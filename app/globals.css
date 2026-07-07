@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #030305;
+    color: #ededed;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @keyframes gridMove {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 100% 100%;
+    }
+  }
+}
