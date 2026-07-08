@@ -14,12 +14,14 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type NavItem = {
   label: string;
   icon: LucideIcon;
 };
+
+type Point = { x: number; y: number };
 
 const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard },
@@ -35,6 +37,18 @@ const navItems: NavItem[] = [
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [active, setActive] = useState("Dashboard");
+  const [mouse, setMouse] = useState<Point>({ x: -300, y: -300 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => setMouse({ x: e.clientX, y: e.clientY });
+    const handleMouseLeave = () => setMouse({ x: -300, y: -300 });
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, []);
 
   const width = collapsed ? 72 : 260;
 
@@ -42,7 +56,7 @@ export default function Sidebar() {
     <motion.aside
       animate={{ width }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="relative flex h-screen shrink-0 flex-col border-r border-white/10 bg-white/[0.04] backdrop-blur-2xl"
+      className="relative flex h-screen shrink-0 flex-col border-r border-white/10 bg-white/[0.04] backdrop-blur-2xl overflow-hidden"
     >
       {/* Grid background */}
       <div
@@ -53,6 +67,13 @@ export default function Sidebar() {
             "linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)",
           backgroundSize: "40px 40px",
         }}
+      />
+
+      {/* Mouse follower glow */}
+      <div
+        className="pointer-events-none fixed h-72 w-72 rounded-full bg-sky-400/20 blur-[140px]"
+        style={{ left: mouse.x, top: mouse.y }}
+        aria-hidden="true"
       />
 
       {/* Brand + toggle */}
