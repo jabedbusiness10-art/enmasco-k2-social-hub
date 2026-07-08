@@ -84,8 +84,10 @@ export default function Sidebar() {
           const isActive = active === item.label;
 
           return (
-            <div key={item.label} className="relative group">
-              <button
+            <div key={item.label} className="relative">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                animate={{ scale: 1.02 }}
                 onClick={() => setActive(item.label)}
                 className={`
                   group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
@@ -131,7 +133,7 @@ export default function Sidebar() {
                     transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                   />
                 )}
-              </button>
+              </motion.button>
             </div>
           );
         })}
