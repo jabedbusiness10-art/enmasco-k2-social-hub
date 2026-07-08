@@ -66,6 +66,7 @@ export default function Sidebar() {
           backgroundImage:
             "linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)",
           backgroundSize: "40px 40px",
+          animation: "gridMove 40s linear infinite",
         }}
       />
 
