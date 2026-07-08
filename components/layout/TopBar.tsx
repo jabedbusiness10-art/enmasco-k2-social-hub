@@ -71,13 +71,11 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
           transition={{ duration: 0.25 }}
           className="group flex min-w-0 items-center gap-3"
         >
-          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-red-200/20 bg-red-400/[0.08] shadow-[0_0_34px_rgba(248,113,113,0.2)] transition-all duration-300 group-hover:border-red-200/45 group-hover:shadow-[0_0_42px_rgba(248,113,113,0.34)]">
-            <div className="absolute inset-1 rounded-[14px] border border-white/10 bg-black/35" />
-            <div className="relative flex flex-col items-center leading-none">
-              <span className="text-sm font-semibold tracking-normal text-white">E</span>
-              <span className="mt-0.5 text-[9px] font-bold tracking-[0.16em] text-red-100">K2</span>
-            </div>
-          </div>
+          <img
+            src="/enmasco-logo.png"
+            alt="ENMASCO K2 SOCIAL"
+            className="w-auto h-12 drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]"
+          />
           <div className="min-w-0">
             <div className="truncate text-base font-semibold leading-tight tracking-normal text-white sm:text-lg">
               ENMASCO K2 SOCIAL
