@@ -40,7 +40,7 @@ const navItems: NavItem[] = [
   { label: "Social Hub", icon: Network, href: "/social" },
   { label: "Duty Routine", icon: BriefcaseBusiness, href: "/duty-routine" },
   { label: "Internal Chat", icon: MessageCircle, href: "/messages" },
-  { label: "CEO Panel", icon: Crown, href: "/dashboard/users" },
+  { label: "CEO Panel", icon: Crown, href: "/ceo" },
   { label: "Security", icon: ShieldCheck, href: "/dashboard/users" },
   { label: "AI Studio", icon: Bot, href: "/ai" },
   { label: "K2 Planner", icon: CalendarDays, href: "/planner" },
