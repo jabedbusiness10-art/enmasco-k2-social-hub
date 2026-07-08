@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -15,32 +17,42 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useState, useEffect } from "react";
 import SidebarItem from "./SidebarItem";
 
 type NavItem = {
   label: string;
   icon: LucideIcon;
+  href?: string;
 };
 
 type Point = { x: number; y: number };
 
 const navItems: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard },
-  { label: "Users", icon: Users },
-  { label: "Command Center", icon: Activity },
-  { label: "Social Hub", icon: Network },
-  { label: "Duty Routine", icon: BriefcaseBusiness },
-  { label: "Internal Chat", icon: MessageCircle },
-  { label: "CEO Panel", icon: Crown },
-  { label: "Security", icon: ShieldCheck },
-  { label: "Settings", icon: Settings },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/" },
+  { label: "Users", icon: Users, href: "/dashboard/users" },
+  { label: "Command Center", icon: Activity, href: "/dashboard/users" },
+  { label: "Social Hub", icon: Network, href: "/dashboard/users" },
+  { label: "Duty Routine", icon: BriefcaseBusiness, href: "/duty-routine" },
+  { label: "Internal Chat", icon: MessageCircle, href: "/dashboard/users" },
+  { label: "CEO Panel", icon: Crown, href: "/dashboard/users" },
+  { label: "Security", icon: ShieldCheck, href: "/dashboard/users" },
+  { label: "Settings", icon: Settings, href: "/dashboard/users" },
 ];
 
 export default function Sidebar() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [active, setActive] = useState("Dashboard");
+  const [active, setActive] = useState<string>(() => {
+    const match = navItems.find((item) => item.href && pathname?.startsWith(item.href));
+    return match?.label ?? "Dashboard";
+  });
   const [mouse, setMouse] = useState<Point>({ x: -300, y: -300 });
+
+  useEffect(() => {
+    const match = navItems.find((item) => item.href && pathname?.startsWith(item.href));
+    if (match) setActive(match.label);
+  }, [pathname]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => setMouse({ x: e.clientX, y: e.clientY });
@@ -53,6 +65,11 @@ export default function Sidebar() {
     };
   }, []);
 
+  const handleClick = (item: NavItem) => {
+    setActive(item.label);
+    if (item.href) router.push(item.href);
+  };
+
   const width = collapsed ? 72 : 260;
 
   return (
@@ -61,7 +78,6 @@ export default function Sidebar() {
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="relative flex h-screen shrink-0 flex-col border-r border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-[0_0_20px_rgba(56,189,248,0.18)] overflow-hidden"
     >
-      {/* Grid background */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-100"
@@ -73,14 +89,12 @@ export default function Sidebar() {
         }}
       />
 
-      {/* Mouse follower glow */}
       <div
         className="pointer-events-none fixed h-72 w-72 rounded-full bg-sky-400/20 blur-[140px]"
         style={{ left: mouse.x, top: mouse.y }}
         aria-hidden="true"
       />
 
-      {/* Brand + toggle */}
       <div className="flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-200/30 bg-sky-500/10 text-sky-100 shadow-[0_0_24px_rgba(56,189,248,0.35)]">
@@ -113,7 +127,6 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="mt-4 flex-1 space-y-1 px-3">
         {navItems.map((item) => (
           <SidebarItem
@@ -121,12 +134,11 @@ export default function Sidebar() {
             label={item.label}
             icon={item.icon}
             isActive={active === item.label}
-            onClick={() => setActive(item.label)}
+            onClick={() => handleClick(item)}
           />
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="border-t border-white/10 p-4">
         <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
           <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05]">

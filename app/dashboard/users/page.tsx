@@ -1,3 +1,5 @@
+"use client";
+
 import EmployeeTable from "@/components/dashboard/EmployeeTable";
 import ProfileDrawer from "@/components/dashboard/ProfileDrawer";
 import UserModal from "@/components/dashboard/UserModal";
