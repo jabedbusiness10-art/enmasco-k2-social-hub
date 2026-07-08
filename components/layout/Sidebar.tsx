@@ -12,6 +12,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -26,6 +27,7 @@ type Point = { x: number; y: number };
 
 const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard },
+  { label: "Users", icon: Users },
   { label: "Command Center", icon: Activity },
   { label: "Social Hub", icon: Network },
   { label: "Duty Routine", icon: BriefcaseBusiness },
