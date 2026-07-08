@@ -124,6 +124,17 @@ export default function Sidebar() {
                     {item.label}
                   </span>
                 )}
+                {isActive && (
+                  <motion.span
+                    layoutId="sidebar-active-bar"
+                    className="absolute left-0 top-1/2 h-8 w-[3px] -translate-y-1/2 rounded-[20px] bg-[#38bdf8]"
+                    style={{
+                      boxShadow:
+                        "0 0 8px #38bdf8, 0 0 16px #38bdf8, 0 0 24px #38bdf8",
+                    }}
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+                  />
+                )}
               </button>
             </div>
           );
