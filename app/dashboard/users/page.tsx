@@ -1,4 +1,6 @@
 import EmployeeTable from "@/components/dashboard/EmployeeTable";
+import ProfileDrawer from "@/components/dashboard/ProfileDrawer";
+import { useState } from "react";
 
 const demo = [
   { id: "1", name: "Jabed Hossain", email: "jabed@enmasco.com", department: "Engineering", role: "Super Admin", status: "Active" as const },
@@ -8,6 +10,8 @@ const demo = [
 ];
 
 export default function UsersPage() {
+  const [selectedUser, setSelectedUser] = useState<typeof demo[number] | null>(null);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -16,7 +20,15 @@ export default function UsersPage() {
           <p className="text-sm text-slate-400">Manage employees, roles, and statuses.</p>
         </div>
       </div>
-      <EmployeeTable data={demo} />
+      <EmployeeTable
+        data={demo}
+        onRowClick={setSelectedUser}
+      />
+      <ProfileDrawer
+        isOpen={!!selectedUser}
+        onClose={() => setSelectedUser(null)}
+        user={selectedUser ?? undefined}
+      />
     </div>
   );
 }
