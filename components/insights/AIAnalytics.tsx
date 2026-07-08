@@ -7,15 +7,14 @@ type AIAnalyticsProps = {
   stats: AIStat;
 };
 
-const items = [
-  { label: "Prompts Generated", value: stats.promptsGenerated.toLocaleString() },
-  { label: "Content Created", value: stats.contentCreated },
-  { label: "Tokens Used", value: stats.tokensUsed.toLocaleString() },
-  { label: "Top Module", value: stats.topAiModule },
-  { label: "Most Used Template", value: stats.mostUsedTemplate },
-];
-
 export default function AIAnalytics({ stats }: AIAnalyticsProps) {
+  const items = [
+    { label: "Prompts Generated", value: stats.promptsGenerated.toLocaleString() },
+    { label: "Content Created", value: stats.contentCreated },
+    { label: "Tokens Used", value: stats.tokensUsed.toLocaleString() },
+    { label: "Top Module", value: stats.topAiModule },
+    { label: "Most Used Template", value: stats.mostUsedTemplate },
+  ];
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
       <div className="text-xs font-semibold uppercase tracking-wider text-white/50">K2Kai AI Analytics</div>
