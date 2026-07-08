@@ -21,7 +21,6 @@ import {
   CalendarDays,
   Workflow,
   BarChart3,
-  LifeBuoy,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import SidebarItem from "./SidebarItem";
@@ -48,6 +47,7 @@ const navItems: NavItem[] = [
   { label: "K2Flow Engine", icon: Workflow, href: "/automation" },
   { label: "K2 Insights", icon: BarChart3, href: "/insights" },
   { label: "Social Integration", icon: Globe, href: "/settings/social" },
+  { label: "Account Manager", icon: ShieldCheck, href: "/settings/accounts" },
   { label: "Settings", icon: Settings, href: "/dashboard/users" },
 ];
 
