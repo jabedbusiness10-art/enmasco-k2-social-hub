@@ -17,6 +17,7 @@ import {
   Users,
   Mail,
   Globe,
+  Bot,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import SidebarItem from "./SidebarItem";
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { label: "Internal Chat", icon: MessageCircle, href: "/messages" },
   { label: "CEO Panel", icon: Crown, href: "/dashboard/users" },
   { label: "Security", icon: ShieldCheck, href: "/dashboard/users" },
+  { label: "AI Studio", icon: Bot, href: "/ai" },
   { label: "Settings", icon: Settings, href: "/dashboard/users" },
 ];
 
