@@ -9,7 +9,7 @@ import AiChat from "@/components/ai/AiChat";
 import AiOutput from "@/components/ai/AiOutput";
 import AiWelcome from "@/components/ai/AiWelcome";
 import type { AiModule, AiMessage } from "@/types/ai";
-import { aiMessages } from "@/data/ai";
+import { aiModules, aiMessages, aiTools, conversations, promptTemplates, aiSettings, aiInsights } from "@/data/ai";
 
 export default function AiStudioPage() {
   const [selectedModuleId, setSelectedModuleId] = useState<AiModule>("CHAT");
