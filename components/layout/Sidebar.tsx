@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
+  Mail,
+  Globe,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import SidebarItem from "./SidebarItem";
@@ -31,9 +33,9 @@ const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
   { label: "Users", icon: Users, href: "/dashboard/users" },
   { label: "Command Center", icon: Activity, href: "/dashboard/users" },
-  { label: "Social Hub", icon: Network, href: "/dashboard/users" },
+  { label: "Social Hub", icon: Network, href: "/social" },
   { label: "Duty Routine", icon: BriefcaseBusiness, href: "/duty-routine" },
-  { label: "Internal Chat", icon: MessageCircle, href: "/dashboard/users" },
+  { label: "Internal Chat", icon: MessageCircle, href: "/messages" },
   { label: "CEO Panel", icon: Crown, href: "/dashboard/users" },
   { label: "Security", icon: ShieldCheck, href: "/dashboard/users" },
   { label: "Settings", icon: Settings, href: "/dashboard/users" },
