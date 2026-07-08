@@ -127,11 +127,7 @@ export default function Sidebar() {
                 {isActive && (
                   <motion.span
                     layoutId="sidebar-active-bar"
-                    className="absolute left-0 top-1/2 h-8 w-[3px] -translate-y-1/2 rounded-[20px] bg-[#38bdf8]"
-                    style={{
-                      boxShadow:
-                        "0 0 8px #38bdf8, 0 0 16px #38bdf8, 0 0 24px #38bdf8",
-                    }}
+                    className="absolute left-0 top-2 h-10 w-1 rounded-r-full bg-sky-400 shadow-[0_0_20px_#38bdf8]"
                     transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                   />
                 )}
