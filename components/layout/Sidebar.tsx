@@ -118,7 +118,7 @@ export default function Sidebar() {
           return (
             <div key={item.label} className="relative">
               <motion.button
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ y: -6, scale: 1.02 }}
                 animate={{ scale: 1.02 }}
                 onClick={() => setActive(item.label)}
                 className={`
