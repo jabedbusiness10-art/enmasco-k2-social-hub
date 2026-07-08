@@ -10,7 +10,7 @@ type SyncHealthProps = {
 const tokenClass: Record<string, string> = {
   Valid: "text-emerald-200",
   "Expires Soon": "text-amber-200",
-  N/A: "text-white/60",
+  "N/A": "text-white/60",
 };
 
 export default function SyncHealth({ accounts }: SyncHealthProps) {
