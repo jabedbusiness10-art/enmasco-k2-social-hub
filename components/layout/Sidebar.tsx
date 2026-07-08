@@ -44,6 +44,17 @@ export default function Sidebar() {
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="relative flex h-screen shrink-0 flex-col border-r border-white/10 bg-white/[0.04] backdrop-blur-2xl"
     >
+      {/* Grid background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-100"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+
       {/* Brand + toggle */}
       <div className="flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-3">
