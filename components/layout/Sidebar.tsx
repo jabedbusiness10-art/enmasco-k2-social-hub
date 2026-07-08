@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useState, useEffect } from "react";
+import SidebarItem from "./SidebarItem";
 
 type NavItem = {
   label: string;
@@ -112,64 +113,15 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="mt-4 flex-1 space-y-1 px-3">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = active === item.label;
-
-          return (
-            <div key={item.label} className="relative">
-              <motion.button
-                whileHover={{ y: -6, scale: 1.02 }}
-                animate={{ scale: 1.02 }}
-                onClick={() => setActive(item.label)}
-                className={`
-                  group relative flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium transition-all duration-300
-                  ${isActive ? "bg-sky-500/10 text-sky-100 shadow-[0_0_24px_rgba(56,189,248,0.35)] drop-shadow-[0_0_20px_rgba(56,189,248,.45)] border-sky-400" : "text-white/70 hover:bg-white/[0.06] hover:text-white hover:shadow-[0_0_18px_rgba(56,189,248,0.25)]"}
-                  ${collapsed ? "justify-center" : ""}
-                `}
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="sidebar-active-glow"
-                    className="absolute inset-0 rounded-xl border border-sky-300/40 bg-sky-500/[0.06]"
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-                  />
-                )}
-                <Icon
-                  className={`relative z-10 h-5 w-5 shrink-0 ${isActive ? "text-sky-100" : "text-white/80"}`}
-                  strokeWidth={1.8}
-                />
-                <AnimatePresence>
-                  {!collapsed && (
-                    <motion.span
-                      initial={{ opacity: 0, x: -6 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -6 }}
-                      transition={{ duration: 0.2 }}
-                      className="relative z-10 truncate"
-                    >
-                      {item.label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-
-                {/* Floating glass tooltip when collapsed */}
-                {collapsed && (
-                  <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-white/90 opacity-0 shadow-2xl backdrop-blur-xl transition-opacity duration-200 group-hover:opacity-100">
-                    {item.label}
-                  </span>
-                )}
-                {isActive && (
-                  <motion.span
-                    layoutId="sidebar-active-bar"
-                    className="absolute left-0 top-2 h-10 w-1 rounded-r-full bg-sky-400 shadow-[0_0_20px_#38bdf8]"
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-                  />
-                )}
-              </motion.button>
-            </div>
-          );
-        })}
+        {navItems.map((item) => (
+          <SidebarItem
+            key={item.label}
+            label={item.label}
+            icon={item.icon}
+            isActive={active === item.label}
+            onClick={() => setActive(item.label)}
+          />
+        ))}
       </nav>
 
       {/* Footer */}
