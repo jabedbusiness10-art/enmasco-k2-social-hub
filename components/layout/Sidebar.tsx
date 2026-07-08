@@ -20,6 +20,7 @@ import {
   Bot,
   CalendarDays,
   Workflow,
+  BarChart3,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import SidebarItem from "./SidebarItem";
@@ -44,6 +45,7 @@ const navItems: NavItem[] = [
   { label: "AI Studio", icon: Bot, href: "/ai" },
   { label: "K2 Planner", icon: CalendarDays, href: "/planner" },
   { label: "K2Flow Engine", icon: Workflow, href: "/automation" },
+  { label: "K2 Insights", icon: BarChart3, href: "/insights" },
   { label: "Settings", icon: Settings, href: "/dashboard/users" },
 ];
 
