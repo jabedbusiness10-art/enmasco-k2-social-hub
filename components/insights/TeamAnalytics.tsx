@@ -7,15 +7,14 @@ type TeamAnalyticsProps = {
   stats: TeamStat;
 };
 
-const items = [
-  { label: "Tasks Completed", value: teamStat.tasksCompleted },
-  { label: "Messages Sent", value: teamStat.messagesSent },
-  { label: "Campaigns Managed", value: teamStat.campaignsManaged },
-  { label: "Duty Completion", value: `${teamStat.dutyCompletion}%` },
-  { label: "Active Users", value: teamStat.activeUsers },
-] as const;
-
 export default function TeamAnalytics({ stats }: TeamAnalyticsProps) {
+  const items = [
+    { label: "Tasks Completed", value: stats.tasksCompleted },
+    { label: "Messages Sent", value: stats.messagesSent },
+    { label: "Campaigns Managed", value: stats.campaignsManaged },
+    { label: "Duty Completion", value: `${stats.dutyCompletion}%` },
+    { label: "Active Users", value: stats.activeUsers },
+  ] as const;
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
       <div className="text-xs font-semibold uppercase tracking-wider text-white/50">Team Performance</div>
