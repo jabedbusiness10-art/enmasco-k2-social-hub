@@ -122,8 +122,8 @@ export default function Sidebar() {
                 animate={{ scale: 1.02 }}
                 onClick={() => setActive(item.label)}
                 className={`
-                  group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
-                  ${isActive ? "bg-sky-500/10 text-sky-100 shadow-[0_0_24px_rgba(56,189,248,0.35)] drop-shadow-[0_0_20px_rgba(56,189,248,.45)]" : "text-white/70 hover:bg-white/[0.06] hover:text-white hover:shadow-[0_0_18px_rgba(56,189,248,0.25)]"}
+                  group relative flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium transition-all duration-300
+                  ${isActive ? "bg-sky-500/10 text-sky-100 shadow-[0_0_24px_rgba(56,189,248,0.35)] drop-shadow-[0_0_20px_rgba(56,189,248,.45)] border-sky-400" : "text-white/70 hover:bg-white/[0.06] hover:text-white hover:shadow-[0_0_18px_rgba(56,189,248,0.25)]"}
                   ${collapsed ? "justify-center" : ""}
                 `}
               >
