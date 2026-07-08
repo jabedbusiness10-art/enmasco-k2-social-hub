@@ -7,14 +7,13 @@ type AutomationAnalyticsProps = {
   stats: AutomationStat;
 };
 
-const items = [
-  { label: "Workflow Runs", value: stats.workflowRuns, accent: "border-white/10 text-white/80" },
-  { label: "Success Rate", value: `${stats.successRate}%`, accent: "border-emerald-500/40 text-emerald-200" },
-  { label: "Failed Jobs", value: stats.failedJobs, accent: "border-red-500/40 text-red-200" },
-  { label: "Average Runtime", value: stats.avgExecutionTime, accent: "border-amber-500/40 text-amber-200" },
-];
-
 export default function AutomationAnalytics({ stats }: AutomationAnalyticsProps) {
+  const items = [
+    { label: "Workflow Runs", value: stats.workflowRuns, accent: "border-white/10 text-white/80" },
+    { label: "Success Rate", value: `${stats.successRate}%`, accent: "border-emerald-500/40 text-emerald-200" },
+    { label: "Failed Jobs", value: stats.failedJobs, accent: "border-red-500/40 text-red-200" },
+    { label: "Average Runtime", value: stats.avgExecutionTime, accent: "border-amber-500/40 text-amber-200" },
+  ];
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
       <div className="text-xs font-semibold uppercase tracking-wider text-white/50">Automation Performance</div>
