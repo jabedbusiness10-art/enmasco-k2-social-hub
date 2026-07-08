@@ -87,18 +87,18 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
         </motion.div>
 
         <motion.div
-          whileHover={{ y: -2, scale: 1.01 }}
-          transition={{ duration: 0.25 }}
-          className="mx-auto w-full max-w-[250px] rounded-2xl border border-white/10 bg-white/[0.055] px-5 py-3 text-center shadow-[0_16px_42px_rgba(0,0,0,0.24)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/30 hover:bg-white/[0.075] hover:shadow-[0_0_34px_rgba(248,113,113,0.18)]"
+          whileHover={{ scale: 1.02, y: -4 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="flex flex-col justify-center p-6 bg-slate-800/50 border border-slate-700/50 rounded-xl backdrop-blur-sm"
         >
-          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-red-100/75">
-            {clock.day}
+          <div className="text-sky-400/80 text-xs font-bold tracking-wider uppercase mb-1">
+            GMT+3 (Riyadh)
           </div>
-          <div className="mt-1 text-sm font-medium text-white/62">
-            {clock.calendarDate}
-          </div>
-          <div className="mt-1 font-mono text-lg font-semibold leading-none text-white tabular-nums tracking-normal sm:text-xl">
+          <div className="text-3xl font-bold text-white tracking-tight mb-1">
             {clock.time}
+          </div>
+          <div className="text-slate-400 text-sm font-medium">
+            {clock.calendarDate}
           </div>
         </motion.div>
 
