@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Image, PlaySquare, FileText, Star, FolderOpen, Bot, Heart, Recycle } from "lucide-react";
 import type { MediaAsset, MediaCategory } from "@/types/media";
 
 type MediaSidebarProps = {
