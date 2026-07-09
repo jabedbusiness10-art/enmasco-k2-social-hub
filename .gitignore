@@ -32,3 +32,5 @@ Thumbs.db
 # Misc
 *.tgz
 *.log
+
+/lib/generated/prisma

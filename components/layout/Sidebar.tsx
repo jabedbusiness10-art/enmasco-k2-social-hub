@@ -3,92 +3,64 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  LayoutDashboard,
-  Activity,
-  Network,
-  BriefcaseBusiness,
-  MessageCircle,
-  Crown,
-  ShieldCheck,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Users,
-  Mail,
-  Globe,
-  Bot,
-  CalendarDays,
-  Workflow,
-  BarChart3,
-  Image,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import SidebarItem from "./SidebarItem";
-
-type NavItem = {
-  label: string;
-  icon: LucideIcon;
-  href?: string;
-};
-
-type Point = { x: number; y: number };
-
-const navItems: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/" },
-  { label: "Users", icon: Users, href: "/dashboard/users" },
-  { label: "Command Center", icon: Activity, href: "/dashboard/users" },
-  { label: "Social Hub", icon: Network, href: "/social" },
-  { label: "Duty Routine", icon: BriefcaseBusiness, href: "/duty-routine" },
-  { label: "Internal Chat", icon: MessageCircle, href: "/messages" },
-  { label: "CEO Panel", icon: Crown, href: "/ceo" },
-  { label: "Security", icon: ShieldCheck, href: "/dashboard/users" },
-  { label: "AI Studio", icon: Bot, href: "/ai" },
-  { label: "K2 Planner", icon: CalendarDays, href: "/planner" },
-  { label: "K2Flow Engine", icon: Workflow, href: "/automation" },
-  { label: "K2 Insights", icon: BarChart3, href: "/insights" },
-  { label: "Social Integration", icon: Globe, href: "/settings/social" },
-  { label: "Account Manager", icon: ShieldCheck, href: "/settings/accounts" },
-  { label: "Media Library", icon: Image, href: "/media" },
-  { label: "Settings", icon: Settings, href: "/dashboard/users" },
-];
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import SidebarSection from "./SidebarSection";
+import { sidebarConfig } from "@/navigation/sidebarConfig";
 
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [active, setActive] = useState<string>(() => {
-    const match = navItems.find((item) => item.href && pathname?.startsWith(item.href));
-    return match?.label ?? "Dashboard";
-  });
-  const [mouse, setMouse] = useState<Point>({ x: -300, y: -300 });
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const match = navItems.find((item) => item.href && pathname?.startsWith(item.href));
-    if (match) setActive(match.label);
+    const activeParents = sidebarConfig
+      .filter((section) =>
+        section.children.some((child) =>
+          child.href === "/" ? pathname === "/" : pathname.startsWith(child.href),
+        ),
+      )
+      .map((section) => section.key);
+    if (activeParents.length > 0) {
+      setExpandedKeys((prev) => {
+        const next = new Set(prev);
+        activeParents.forEach((key) => next.add(key));
+        if (next.size > 1) {
+          const [first, ...rest] = [...next];
+          return new Set([first, ...rest]);
+        }
+        return next;
+      });
+    }
   }, [pathname]);
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => setMouse({ x: e.clientX, y: e.clientY });
-    const handleMouseLeave = () => setMouse({ x: -300, y: -300 });
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseleave", handleMouseLeave);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseleave", handleMouseLeave);
-    };
-  }, []);
-
-  const handleClick = (item: NavItem) => {
-    setActive(item.label);
-    if (item.href) router.push(item.href);
+  const toggleSection = (key: string) => {
+    setExpandedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.clear();
+        next.add(key);
+      }
+      return next;
+    });
   };
 
-  const width = collapsed ? 72 : 260;
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const glow = document.getElementById("sidebar-glow");
+      if (glow) {
+        glow.style.transform = `translate(${e.clientX - 144}px, ${e.clientY - 72}px)`;
+      }
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
   return (
     <motion.aside
-      animate={{ width }}
+      animate={{ width: collapsed ? 72 : 260 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="relative flex h-screen shrink-0 flex-col border-r border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-[0_0_20px_rgba(56,189,248,0.18)] overflow-hidden"
     >
@@ -104,9 +76,10 @@ export default function Sidebar() {
       />
 
       <div
-        className="pointer-events-none fixed h-72 w-72 rounded-full bg-sky-400/20 blur-[140px]"
-        style={{ left: mouse.x, top: mouse.y }}
+        id="sidebar-glow"
         aria-hidden="true"
+        className="pointer-events-none absolute h-72 w-72 rounded-full bg-sky-400/20 blur-[140px]"
+        style={{ left: -144, top: -72 }}
       />
 
       <div className="flex h-16 items-center justify-between px-4">
@@ -125,7 +98,7 @@ export default function Sidebar() {
               >
                 <span className="text-sm font-semibold text-white">ENMASCO</span>
                 <span className="text-[10px] uppercase tracking-widest text-white/50">
-                  OS Launcher
+                  Social
                 </span>
               </motion.div>
             )}
@@ -142,13 +115,13 @@ export default function Sidebar() {
       </div>
 
       <nav className="mt-4 flex-1 space-y-1 px-3">
-        {navItems.map((item) => (
-          <SidebarItem
-            key={item.label}
-            label={item.label}
-            icon={item.icon}
-            isActive={active === item.label}
-            onClick={() => handleClick(item)}
+        {sidebarConfig.map((section) => (
+          <SidebarSection
+            key={section.key}
+            section={section}
+            expandedKeys={expandedKeys}
+            toggleSection={toggleSection}
+            collapsed={collapsed}
           />
         ))}
       </nav>
@@ -156,8 +129,7 @@ export default function Sidebar() {
       <div className="border-t border-white/10 p-4">
         <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
           <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05]">
-            <ShieldCheck className="h-4 w-4 text-sky-100" strokeWidth={1.8} />
-            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]" />
+            <span className="text-xs font-bold text-white/80">K2</span>
           </div>
           <AnimatePresence>
             {!collapsed && (
@@ -169,7 +141,7 @@ export default function Sidebar() {
                 className="flex flex-col"
               >
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-white/60">
-                  ENMASCO Security
+                  K2 SOCIAL
                 </span>
                 <span className="text-[10px] uppercase tracking-widest text-white/40">
                   Enterprise Edition
