@@ -10,7 +10,7 @@ type SettingsState = {
   error: string | null;
 };
 
-type UseCompanySettingsResult = {
+export type UseCompanySettingsResult = {
   state: SettingsState;
   saveSettings: (input: CompanySettingsInput) => Promise<void>;
   resetSettings: () => Promise<void>;
@@ -44,7 +44,7 @@ export function useCompanySettings(): UseCompanySettingsResult {
         }
       } catch (error) {
         if (!cancelled) {
-          setState((prev) => ({ ...prev, loading: false, error: "Failed to load settings" }));
+          setState((prev) => ({ ...prev, isLoading: false, error: "Failed to load settings" }));
           showToast("Failed to load settings", "error");
         }
       }
@@ -69,7 +69,7 @@ export function useCompanySettings(): UseCompanySettingsResult {
       setOriginal((json.settings as CompanySettingsInput) ?? null);
       showToast("Settings saved successfully");
     } catch (error) {
-      showToast("Failed to save settings");
+      showToast("Failed to save settings", "error");
     } finally {
       setIsSaving(false);
     }
@@ -77,9 +77,7 @@ export function useCompanySettings(): UseCompanySettingsResult {
 
   const resetSettings = async () => {
     if (!original) return;
-    setIsSaving(true);
     await saveSettings(original);
-    setIsSaving(false);
   };
 
   return {
