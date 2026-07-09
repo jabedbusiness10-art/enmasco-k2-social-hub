@@ -47,15 +47,8 @@ export default function SidebarSection({
     child.href === "/" ? pathname === "/" : pathname.startsWith(child.href),
   );
 
-  useEffect(() => {
-    if (hasActiveChild) {
-      toggleSection(section.key);
-    }
-  }, [hasActiveChild, section.key, toggleSection]);
-
   const handleParentClick = () => {
     if (collapsed) return;
-    toggleSection(section.key);
     router.push(section.children[0]?.href ?? "/");
   };
 
@@ -119,7 +112,7 @@ export default function SidebarSection({
             <div className="space-y-1 py-1">
               {section.children.map((child) => (
                 <SidebarItem
-                  key={child.href}
+                  key={child.label}
                   label={child.label}
                   href={child.href}
                   subitem
