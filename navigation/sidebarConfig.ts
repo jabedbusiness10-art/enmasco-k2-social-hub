@@ -60,8 +60,8 @@ export const sidebarConfig: NavSection[] = [
     label: "Insights",
     icon: BarChart3,
     children: [
-      { label: "Analytics", href: "/insights" },
-      { label: "Reports", href: "/insights" },
+      { label: "Analytics", href: "/insights/analytics" },
+      { label: "Reports", href: "/insights/reports" },
     ],
   },
   {
@@ -69,9 +69,9 @@ export const sidebarConfig: NavSection[] = [
     label: "Administration",
     icon: ShieldCheck,
     children: [
-      { label: "Security", href: "/dashboard/users" },
-      { label: "Account", href: "/settings/accounts" },
-      { label: "Settings", href: "/dashboard/users" },
+      { label: "Security", href: "/dashboard/settings" },
+      { label: "Account", href: "/settings/account" },
+      { label: "Settings", href: "/dashboard/settings" },
     ],
   },
 ];

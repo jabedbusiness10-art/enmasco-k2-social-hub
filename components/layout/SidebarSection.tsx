@@ -118,7 +118,7 @@ export default function SidebarSection({
             <div className="space-y-1 py-1">
               {section.children.map((child) => (
                 <SidebarItem
-                  key={child.label}
+                  key={`${section.key}-${child.label}`}
                   label={child.label}
                   href={child.href}
                   subitem

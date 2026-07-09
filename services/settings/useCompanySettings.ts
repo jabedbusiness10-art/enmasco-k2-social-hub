@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { CompanySettingsInput } from "@/lib/validations/settings";
-import { toast } from "@/components/ui/Toast";
+import { useToast } from "@/components/ui/Toast";
 
 type SettingsState = {
   settings: CompanySettingsInput | null;
@@ -18,6 +18,7 @@ type UseCompanySettingsResult = {
 };
 
 export default function useCompanySettings(): UseCompanySettingsResult {
+  const { showToast } = useToast();
   const [state, setState] = useState<SettingsState>({
     settings: null,
     isLoading: true,
@@ -44,7 +45,7 @@ export default function useCompanySettings(): UseCompanySettingsResult {
       } catch (error) {
         if (!cancelled) {
           setState((prev) => ({ ...prev, loading: false, error: "Failed to load settings" }));
-          toast.error("Failed to load settings");
+          showToast("Failed to load settings", "error");
         }
       }
     }
@@ -52,7 +53,7 @@ export default function useCompanySettings(): UseCompanySettingsResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showToast]);
 
   const saveSettings = async (input: CompanySettingsInput) => {
     setIsSaving(true);
