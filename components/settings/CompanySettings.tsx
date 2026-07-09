@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useCompanySettings } from "@/services/settings/useCompanySettings";
+import useCompanySettings from "@/services/settings/useCompanySettings";
 import { cn } from "@/lib/utils";
 import CompanyProfile from "./sections/CompanyProfile";
 import RegionalSettings from "./sections/RegionalSettings";

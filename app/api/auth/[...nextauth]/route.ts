@@ -54,3 +54,6 @@ export const authOptions = {
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
