@@ -1,24 +1,32 @@
-import { getServerSession } from "next-auth";
+import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
 import { hasPermission, type UserRole } from "@/services/auth/permissions";
 import type { Permission } from "@/types/auth";
 
-export async function getCurrentUser(req?: NextRequest) {
-  // In App Router route handlers, getServerSession must receive the request
-  // so it can read the JWT cookie and run the session callback (which injects
-  // `role`). Without `req` it returns a session lacking custom fields.
-  const session = req
-    ? await getServerSession(req, {} as any, auth)
-    : await getServerSession(auth);
-  if (!session?.user) return null;
-  return session.user as {
-    id: string;
-    name: string;
-    email: string;
-    role: UserRole;
-    department?: string;
-    avatar?: string;
+export interface SessionUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  department?: string;
+  avatar?: string;
+}
+
+// getServerSession(auth) in this next-auth@4 App Router setup fails to apply
+// the `session` callback, so custom JWT fields (role, department) are dropped
+// and permission checks fail with 401. Reading the JWT token directly via
+// getToken surfaces `role` reliably, so we map the token to a SessionUser here.
+export async function getCurrentUser(req?: NextRequest): Promise<SessionUser | null> {
+  if (!req) return null;
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token?.email) return null;
+  return {
+    id: (token.id as string) ?? (token.sub as string) ?? "",
+    name: (token.name as string) ?? "",
+    email: token.email as string,
+    role: token.role as UserRole,
+    department: token.department as string | undefined,
+    avatar: token.picture as string | undefined,
   };
 }
 
@@ -27,7 +35,7 @@ export async function requirePermission(
   req?: NextRequest,
 ): Promise<{
   ok: boolean;
-  user?: Awaited<ReturnType<typeof getCurrentUser>>;
+  user?: SessionUser;
   error?: string;
 }> {
   const user = await getCurrentUser(req);
