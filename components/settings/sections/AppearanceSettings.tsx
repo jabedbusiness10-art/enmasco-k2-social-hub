@@ -1,14 +1,14 @@
 "use client";
 
-import type { CompanySettings } from "@/services/settings/company";
+import type { CompanySettingsInput } from "@/lib/validations/settings";
 
 type SectionProps = {
-  settings: CompanySettings;
-  onChange: (next: CompanySettings) => void;
+  settings: CompanySettingsInput;
+  onChange: (next: CompanySettingsInput) => void;
 };
 
 export default function AppearanceSettings({ settings, onChange }: SectionProps) {
-  const update = (patch: Partial<CompanySettings>) => onChange({ ...settings, ...patch });
+  const update = (patch: Partial<CompanySettingsInput>) => onChange({ ...settings, ...patch });
 
   return (
     <div className="space-y-4">

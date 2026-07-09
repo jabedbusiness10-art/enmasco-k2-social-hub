@@ -12,7 +12,7 @@ import type { AiModule, AiMessage } from "@/types/ai";
 import { aiModules, aiMessages, aiTools, conversations, promptTemplates, aiSettings, aiInsights } from "@/data/ai";
 
 export default function AiStudioPage() {
-  const [selectedModuleId, setSelectedModuleId] = useState<AiModule>("CHAT");
+  const [selectedModuleId, setSelectedModuleId] = useState("CHAT");
   const [messages, setMessages] = useState<AiMessage[]>(aiMessages);
   const [output, setOutput] = useState<string>("");
 

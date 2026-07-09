@@ -1,14 +1,14 @@
 "use client";
 
-import type { CompanySettings } from "@/services/settings/company";
+import type { CompanySettingsInput } from "@/lib/validations/settings";
 
 type SectionProps = {
-  settings: CompanySettings;
-  onChange: (next: CompanySettings) => void;
+  settings: CompanySettingsInput;
+  onChange: (next: CompanySettingsInput) => void;
 };
 
 export default function RegionalSettings({ settings, onChange }: SectionProps) {
-  const update = (patch: Partial<CompanySettings>) => onChange({ ...settings, ...patch });
+  const update = (patch: Partial<CompanySettingsInput>) => onChange({ ...settings, ...patch });
 
   return (
     <div className="space-y-4">
@@ -54,7 +54,7 @@ export default function RegionalSettings({ settings, onChange }: SectionProps) {
           <span className="text-xs font-medium text-white/60">Time Format</span>
           <select
             value={settings.timeFormat}
-            onChange={(event) => update({ timeFormat: event.target.value })}
+            onChange={(event) => update({ timeFormat: event.target.value as CompanySettingsInput["timeFormat"] })}
             className="rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-300"
           >
             <option value="12H">12H</option>

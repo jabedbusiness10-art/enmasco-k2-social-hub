@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { CompanySettingsInput } from "@/lib/validations/settings";
+import type { CompanySettingsInput } from "@/lib/validations/settings";
 
 export type CompanySettings = {
   id: string;
@@ -21,26 +21,56 @@ export type CompanySettings = {
   sessionTimeout: number;
   passwordPolicy: string;
   auditLogging: boolean;
+  supportEmail: string | null;
+  defaultLanguage: string;
+  allowRegistration: boolean;
+  maintenanceMode: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
 
-export async function getCompanySettings(): Promise<CompanySettings | null> {
-  const settings = await prisma.companySettings.findFirst();
-  return settings as CompanySettings | null;
+function toInput(row: CompanySettings): CompanySettingsInput {
+  return {
+    companyName: row.companyName,
+    companyShortName: row.companyShortName ?? "",
+    logoUrl: row.logoUrl ?? "",
+    website: row.website ?? "",
+    email: row.email ?? "",
+    phone: row.phone ?? "",
+    address: row.address ?? "",
+    timezone: row.timezone,
+    language: row.language,
+    dateFormat: row.dateFormat,
+    timeFormat: row.timeFormat as CompanySettingsInput["timeFormat"],
+    theme: row.theme,
+    accentColor: row.accentColor,
+    sidebarStyle: row.sidebarStyle,
+    glassEffect: row.glassEffect,
+    sessionTimeout: row.sessionTimeout,
+    passwordPolicy: row.passwordPolicy,
+    auditLogging: row.auditLogging,
+  };
 }
 
-export async function upsertCompanySettings(input: CompanySettingsInput): Promise<CompanySettings> {
+export async function getCompanySettings(): Promise<CompanySettingsInput | null> {
+  const settings = await prisma.companySettings.findFirst();
+  if (!settings) return null;
+  return toInput(settings as CompanySettings);
+}
+
+export async function upsertCompanySettings(
+  input: CompanySettingsInput
+): Promise<CompanySettingsInput> {
   const existing = await prisma.companySettings.findFirst();
   if (existing) {
     const updated = await prisma.companySettings.update({
       where: { id: existing.id },
       data: input,
     });
-    return updated as CompanySettings;
+    return toInput(updated as CompanySettings);
   }
   const created = await prisma.companySettings.create({
     data: input,
   });
-  return created as CompanySettings;
+  return toInput(created as CompanySettings);
 }

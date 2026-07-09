@@ -7,6 +7,7 @@ type SidebarItemProps = {
   isActive?: boolean;
   icon?: LucideIcon;
   label: string;
+  href?: string;
   subitem?: boolean;
   onClick?: () => void;
 };

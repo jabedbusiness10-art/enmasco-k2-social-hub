@@ -29,7 +29,7 @@ export default function RootLayout({
               <Toaster />
             </ToastProvider>
           </ClientSessionProvider>
-        </QueryClientProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

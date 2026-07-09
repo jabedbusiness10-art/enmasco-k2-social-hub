@@ -1,0 +1,17 @@
+-- AlterTable
+ALTER TABLE "CompanySettings" ADD COLUMN     "accentColor" TEXT NOT NULL DEFAULT 'blue',
+ADD COLUMN     "address" TEXT,
+ADD COLUMN     "auditLogging" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "companyShortName" TEXT,
+ADD COLUMN     "dateFormat" TEXT NOT NULL DEFAULT 'DD/MM/YYYY',
+ADD COLUMN     "email" TEXT,
+ADD COLUMN     "glassEffect" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "language" TEXT NOT NULL DEFAULT 'en',
+ADD COLUMN     "logoUrl" TEXT,
+ADD COLUMN     "passwordPolicy" TEXT NOT NULL DEFAULT 'standard',
+ADD COLUMN     "phone" TEXT,
+ADD COLUMN     "sessionTimeout" INTEGER NOT NULL DEFAULT 30,
+ADD COLUMN     "sidebarStyle" TEXT NOT NULL DEFAULT 'glass',
+ADD COLUMN     "theme" TEXT NOT NULL DEFAULT 'dark',
+ADD COLUMN     "timeFormat" TEXT NOT NULL DEFAULT '24H',
+ADD COLUMN     "website" TEXT;

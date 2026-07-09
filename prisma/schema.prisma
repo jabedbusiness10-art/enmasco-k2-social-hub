@@ -126,15 +126,31 @@ model User {
 }
 
 model CompanySettings {
-  id                        String   @id @default(cuid())
-  companyName               String
-  supportEmail              String?
-  timezone                  String   @default("UTC")
-  defaultLanguage           String   @default("en")
-  allowRegistration         Boolean  @default(true)
-  maintenanceMode           Boolean  @default(false)
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  id              String   @id @default(cuid())
+  companyName     String
+  companyShortName String?
+  logoUrl         String?
+  website         String?
+  email           String?
+  phone           String?
+  address         String?
+  timezone        String   @default("UTC")
+  language        String   @default("en")
+  dateFormat      String   @default("DD/MM/YYYY")
+  timeFormat      String   @default("24H")
+  theme           String   @default("dark")
+  accentColor     String   @default("blue")
+  sidebarStyle    String   @default("glass")
+  glassEffect     Boolean  @default(true)
+  sessionTimeout  Int      @default(30)
+  passwordPolicy  String   @default("standard")
+  auditLogging    Boolean  @default(true)
+  supportEmail    String?
+  defaultLanguage String   @default("en")
+  allowRegistration Boolean @default(true)
+  maintenanceMode Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model CompanySocialAccount {
