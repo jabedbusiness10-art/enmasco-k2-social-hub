@@ -51,6 +51,6 @@ export const auth = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
 });
 
-const resolvedHandlers = (auth as any).handlers ?? auth;
-export const handlers = () => resolvedHandlers;
-export const { GET, POST } = resolvedHandlers;
+export default auth;
+export const GET = auth;
+export const POST = auth;

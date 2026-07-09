@@ -72,9 +72,9 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
           className="group flex min-w-0 items-center gap-3"
         >
           <img
-            src="/logo.png"
+            src="/logo.svg"
             alt="ENMASCO K2 SOCIAL"
-            className="h-10 w-auto drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]"
+            className="h-10 w-auto drop-shadow-[0_0_14px_rgba(56,189,248,0.55)]"
           />
           <div className="min-w-0">
             <div className="truncate text-base font-semibold leading-tight tracking-normal text-white sm:text-lg">
