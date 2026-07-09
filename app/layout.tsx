@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { ToastProvider } from "@/components/ui/Toast";
 import { Toaster } from "@/components/ui/toaster";
 import ClientSessionProvider from "@/providers/session-provider";
-import { QueryClientProvider } from "@/components/providers/query-provider";
+import QueryClientProvider from "@/components/providers/query-provider";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
