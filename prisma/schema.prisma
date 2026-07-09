@@ -172,19 +172,26 @@ model CompanySocialAccount {
 }
 
 model MediaAsset {
-  id           String    @id @default(cuid())
-  name         String
-  url          String
-  mimeType     String?
-  sizeBytes    Int?
-  category     String?
-  tags         String[]
-  favorited    Boolean   @default(false)
-  uploadedById String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime?
+  id            String    @id @default(cuid())
+  fileName      String
+  originalName  String
+  fileType      String // IMAGE | VIDEO | DOCUMENT | LOGO | BRAND_ASSET
+  mimeType      String
+  fileSize      Int
+  cloudinaryId  String
+  url           String
+  width         Int?
+  height        Int?
+  category      String?
+  tags          String[]
+  favorited     Boolean   @default(false)
+  uploadedBy    String
+  uploadedById  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 
+  @@index([fileType])
   @@index([category])
   @@index([uploadedById])
   @@index([createdAt])

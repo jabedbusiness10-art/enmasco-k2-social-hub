@@ -34,3 +34,7 @@ Thumbs.db
 *.log
 
 /lib/generated/prisma
+
+# build artifacts
+tsconfig.tsbuildinfo
+.next/

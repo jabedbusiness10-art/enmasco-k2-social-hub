@@ -1,9 +1,10 @@
+import type { NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import type { SessionUser } from "@/types/auth";
 import { authenticate, toSessionUser } from "@/services/auth/permissions";
 
-export const auth = NextAuth({
+export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
@@ -49,8 +50,9 @@ export const auth = NextAuth({
     error: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
-});
+};
 
+export const auth = NextAuth(authOptions);
 export default auth;
 export const GET = auth;
 export const POST = auth;

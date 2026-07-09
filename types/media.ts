@@ -1,19 +1,30 @@
-export type MediaType = "image" | "video" | "document";
-export type MediaCategory = "ALL" | "IMAGES" | "VIDEOS" | "DOCUMENTS" | "BRAND" | "CAMPAIGN" | "AI_GENERATED" | "FAVORITES" | "RECENT" | "TRASH";
+export type MediaFileType = "IMAGE" | "VIDEO" | "DOCUMENT" | "LOGO" | "BRAND_ASSET";
 
 export interface MediaAsset {
   id: string;
-  name: string;
-  type: MediaType;
-  size: string;
-  category: MediaCategory;
-  uploadedBy: string;
-  uploadedAt: string;
-  favorite: boolean;
+  fileName: string;
+  originalName: string;
+  fileType: MediaFileType;
+  mimeType: string;
+  fileSize: number;
+  cloudinaryId: string;
+  url: string;
+  width: number | null;
+  height: number | null;
+  category: string | null;
   tags: string[];
-  description?: string;
-  resolution?: string;
-  dimensions?: string;
-  folder?: string;
-  campaign?: string;
+  favorited: boolean;
+  uploadedBy: string;
+  uploadedById: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
 }
+
+export const MEDIA_TYPE_LABELS: Record<MediaFileType, string> = {
+  IMAGE: "Images",
+  VIDEO: "Videos",
+  DOCUMENT: "Documents",
+  LOGO: "Logos",
+  BRAND_ASSET: "Brand Assets",
+};
