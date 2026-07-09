@@ -11,6 +11,7 @@ export type NavSection = {
     label: string;
     href: string;
   }[];
+  expandable?: boolean;
 };
 
 export const sidebarConfig: NavSection[] = [
@@ -21,6 +22,7 @@ export const sidebarConfig: NavSection[] = [
     children: [
       { label: "Overview", href: "/" },
     ],
+    expandable: false,
   },
   {
     key: "social",

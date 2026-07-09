@@ -1,9 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, LucideIcon } from "lucide-react";
+import { ChevronDown, LucideIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
 import SidebarItem from "./SidebarItem";
 
 export type NavChild = {
@@ -16,11 +15,11 @@ export type NavSection = {
   label: string;
   icon: LucideIcon;
   children: NavChild[];
+  expandable?: boolean;
 };
 
 type SidebarSectionProps = {
   section: NavSection;
-  defaultExpanded?: boolean;
   expandedKeys: Set<string>;
   toggleSection: (key: string) => void;
   collapsed: boolean;
@@ -34,7 +33,6 @@ const expandVariants = {
 
 export default function SidebarSection({
   section,
-  defaultExpanded,
   expandedKeys,
   toggleSection,
   collapsed,
@@ -42,25 +40,33 @@ export default function SidebarSection({
   const pathname = usePathname();
   const router = useRouter();
 
+  const isExpandable = section.expandable !== false;
   const expanded = expandedKeys.has(section.key);
   const hasActiveChild = section.children.some((child) =>
     child.href === "/" ? pathname === "/" : pathname.startsWith(child.href),
   );
 
-  const handleParentClick = () => {
+  const handleClick = () => {
     if (collapsed) return;
-    router.push(section.children[0]?.href ?? "/");
+    if (!isExpandable) {
+      router.push(section.children[0]?.href ?? "/");
+      return;
+    }
+    toggleSection(section.key);
   };
 
   return (
     <div className="space-y-0.5">
       <button
-        onClick={handleParentClick}
+        onClick={handleClick}
         title={collapsed ? section.label : undefined}
         className={[
-          "relative flex w-full items-center rounded-lg px-3 py-2 text-left transition-colors duration-300",
+          "relative flex w-full items-center rounded-lg px-3 py-2 text-left transition-all duration-300",
           "border border-white/10 bg-white/[0.04] hover:bg-white/[0.08]",
           expanded || hasActiveChild ? "text-sky-100" : "text-white/70",
+          expanded
+            ? "border-sky-200/25 bg-sky-900/20 shadow-[inset_0_0_0_1px_rgba(56,189,248,0.15)]"
+            : "",
         ].join(" ")}
       >
         <span className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05]">
@@ -81,16 +87,16 @@ export default function SidebarSection({
           )}
         </AnimatePresence>
         <AnimatePresence initial={false}>
-          {!collapsed && (
+          {!collapsed && isExpandable && (
             <motion.span
               key="chevron"
               initial={{ rotate: 0 }}
               animate={{ rotate: expanded ? 180 : 0 }}
               exit={{ rotate: 0 }}
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.2 }}
               className="ml-1 text-white/50"
             >
-              <ChevronRight className="h-4 w-4" strokeWidth={1.8} />
+              <ChevronDown className="h-4 w-4" strokeWidth={1.8} />
             </motion.span>
           )}
         </AnimatePresence>
@@ -107,7 +113,7 @@ export default function SidebarSection({
             animate="show"
             exit="exit"
             transition={{ duration: 0.22 }}
-            className="ml-5 overflow-hidden border-l border-white/10 pl-2"
+            className="overflow-hidden pl-3"
           >
             <div className="space-y-1 py-1">
               {section.children.map((child) => (

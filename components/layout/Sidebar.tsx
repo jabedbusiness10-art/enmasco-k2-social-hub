@@ -126,7 +126,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-white/10 p-4">
+      <div className="mt-auto border-t border-white/10 p-4">
         <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
           <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05]">
             <span className="text-xs font-bold text-white/80">K2</span>
