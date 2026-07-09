@@ -3,7 +3,9 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ToastProvider } from "@/components/ui/Toast";
+import { Toaster } from "@/components/ui/toaster";
 import ClientSessionProvider from "@/providers/session-provider";
+import { QueryClientProvider } from "@/components/providers/query-provider";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -20,11 +22,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className="antialiased">
-        <ClientSessionProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
-        </ClientSessionProvider>
+        <QueryClientProvider>
+          <ClientSessionProvider>
+            <ToastProvider>
+              {children}
+              <Toaster />
+            </ToastProvider>
+          </ClientSessionProvider>
+        </QueryClientProvider>
       </body>
     </html>
   );
