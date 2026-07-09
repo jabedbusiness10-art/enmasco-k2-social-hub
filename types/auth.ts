@@ -1,12 +1,6 @@
 export type UserRole = "CEO" | "ADMIN" | "MARKETING_MANAGER" | "MARKETING_TEAM" | "CONTENT_CREATOR" | "ANALYST" | "VIEWER";
 
-export type Permission =
-  | "VIEW_DASHBOARD"
-  | "VIEW_MEDIA"
-  | "VIEW_SCHEDULER"
-  | "VIEW_PUBLISHING"
-  | "VIEW_AI"
-  | "VIEW_SETTINGS";
+export type Permission = "VIEW_DASHBOARD" | "VIEW_MEDIA" | "VIEW_SCHEDULER" | "VIEW_PUBLISHING" | "VIEW_AI" | "VIEW_SETTINGS";
 
 export interface SessionUser {
   id: string;

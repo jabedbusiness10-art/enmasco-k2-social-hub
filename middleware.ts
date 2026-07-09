@@ -19,5 +19,18 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/dashboard/:path*",
+    "/social/:path*",
+    "/planner/:path*",
+    "/automation/:path*",
+    "/insights/:path*",
+    "/media/:path*",
+    "/scheduler/:path*",
+    "/publishing/:path*",
+    "/inbox/:path*",
+    "/ai/:path*",
+    "/notifications/:path*",
+    "/settings/:path*",
+  ],
 };

@@ -48,7 +48,9 @@ export const auth = NextAuth({
     signIn: "/login",
     error: "/login",
   },
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
 });
 
-export const { handlers } = auth;
+const resolvedHandlers = (auth as any).handlers ?? auth;
+export const handlers = () => resolvedHandlers;
+export const { GET, POST } = resolvedHandlers;
