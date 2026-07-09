@@ -17,7 +17,7 @@ type UseCompanySettingsResult = {
   isSaving: boolean;
 };
 
-export default function useCompanySettings(): UseCompanySettingsResult {
+export function useCompanySettings(): UseCompanySettingsResult {
   const { showToast } = useToast();
   const [state, setState] = useState<SettingsState>({
     settings: null,
@@ -67,9 +67,9 @@ export default function useCompanySettings(): UseCompanySettingsResult {
       const json = await res.json();
       setState((prev) => ({ ...prev, settings: json.settings as CompanySettingsInput }));
       setOriginal((json.settings as CompanySettingsInput) ?? null);
-      toast.success("Settings saved successfully");
+      showToast("Settings saved successfully");
     } catch (error) {
-      toast.error("Failed to save settings");
+      showToast("Failed to save settings");
     } finally {
       setIsSaving(false);
     }
