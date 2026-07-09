@@ -1,0 +1,368 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CEO
+  ADMIN
+  MARKETING_MANAGER
+  MARKETING_TEAM
+  CONTENT_CREATOR
+  ANALYST
+  VIEWER
+}
+
+enum DepartmentName {
+  MARKETING
+  SALES
+  HR
+  FINANCE
+  IT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+enum Platform {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  YOUTUBE
+  X
+  WEBSITE
+}
+
+enum WorkflowStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum NotificationType {
+  SYSTEM
+  APPROVAL
+  AUTOMATION
+  AI
+  MARKETING
+  SECURITY
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Role {
+  id        String   @id @default(cuid())
+  name      UserRole @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+}
+
+model Department {
+  id          String          @id @default(cuid())
+  name        DepartmentName  @unique
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  users User[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @relation(fields: [roleId], references: [id])
+  roleId        String
+  department    Department? @relation(fields: [departmentId], references: [id])
+  departmentId  String?
+  avatar        String?
+  status        UserStatus @default(ACTIVE)
+  emailVerified Boolean    @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  posts         Post[]
+  messages      Message[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  conversations AIConversation[]
+  scheduledPosts ScheduledPost[]
+  workflowJobs  WorkflowJob[]
+
+  @@index([email])
+  @@index([roleId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CompanySettings {
+  id                        String   @id @default(cuid())
+  companyName               String
+  supportEmail              String?
+  timezone                  String   @default("UTC")
+  defaultLanguage           String   @default("en")
+  allowRegistration         Boolean  @default(true)
+  maintenanceMode           Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+model CompanySocialAccount {
+  id             String    @id @default(cuid())
+  platform       Platform
+  accountName    String
+  accountHandle  String?
+  profileUrl     String?
+  isActive       Boolean   @default(true)
+  lastSyncAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  posts Post[]
+
+  @@unique([platform, accountHandle])
+  @@index([platform])
+  @@index([isActive])
+}
+
+model MediaAsset {
+  id           String    @id @default(cuid())
+  name         String
+  url          String
+  mimeType     String?
+  sizeBytes    Int?
+  category     String?
+  tags         String[]
+  favorited    Boolean   @default(false)
+  uploadedById String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  @@index([category])
+  @@index([uploadedById])
+  @@index([createdAt])
+}
+
+model Campaign {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String?
+  budget      Float?
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  posts Post[]
+}
+
+model Post {
+  id            String    @id @default(cuid())
+  content       String?
+  mediaUrl      String?
+  platform      Platform
+  status        PostStatus @default(DRAFT)
+  publishedAt   DateTime?
+  campaignId    String?
+  createdById   String
+  accountId     String?
+  tags          String[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  campaign   Campaign?            @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  account    CompanySocialAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  creator    User                 @relation(fields: [createdById], references: [id])
+  scheduled  ScheduledPost?
+
+  @@index([platform])
+  @@index([status])
+  @@index([campaignId])
+  @@index([accountId])
+  @@index([createdById])
+  @@index([publishedAt])
+  @@index([createdAt])
+}
+
+model ScheduledPost {
+  id              String    @id @default(cuid())
+  postId          String    @unique
+  scheduledAt     DateTime
+  priority        String?
+  retryCount      Int       @default(0)
+  lastError       String?
+  status          String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  post            Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  owner           User?     @relation(fields: [ownerId], references: [id])
+  ownerId         String?
+
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  content    String
+  channel    String?
+  createdAt  DateTime  @default(now())
+  createdById String
+
+  createdBy  User      @relation(fields: [createdById], references: [id])
+
+  @@index([channel])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  type      NotificationType
+  priority  NotificationPriority @default(MEDIUM)
+  title     String
+  body      String?
+  isRead    Boolean             @default(false)
+  meta      String?
+  createdAt DateTime            @default(now())
+  userId    String
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model Workflow {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  isEnabled   Boolean   @default(true)
+  trigger     String?
+  action      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  jobs WorkflowJob[]
+
+  @@index([isEnabled])
+}
+
+model WorkflowJob {
+  id            String       @id @default(cuid())
+  workflowId    String
+  status        WorkflowStatus @default(QUEUED)
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  error         String?
+  createdById   String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  workflow      Workflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  createdBy     User?        @relation(fields: [createdById], references: [id])
+
+  @@index([workflowId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AIConversation {
+  id        String    @id @default(cuid())
+  module    String
+  title     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  userId    String
+
+  user      User       @relation(fields: [userId], references: [id])
+  messages  AIMessage[]
+
+  @@index([userId])
+  @@index([module])
+  @@index([createdAt])
+}
+
+model AIMessage {
+  id              String    @id @default(cuid())
+  conversationId  String
+  role            String
+  content         String
+  tokensUsed      Int?
+  createdAt       DateTime  @default(now())
+
+  conversation    AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model Analytics {
+  id           String    @id @default(cuid())
+  module       String
+  metric       String
+  value        Float?
+  dimension    String?
+  recordedAt   DateTime  @default(now())
+
+  @@index([module])
+  @@index([metric])
+  @@index([recordedAt])
+}
+
+model AuditLog {
+  id         String    @id @default(cuid())
+  action     String
+  entityName String?
+  entityId   String?
+  oldValue   String?
+  newValue   String?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  createdById String
+
+  createdBy  User      @relation(fields: [createdById], references: [id])
+
+  @@index([entityName])
+  @@index([entityId])
+  @@index([createdById])
+  @@index([createdAt])
+}

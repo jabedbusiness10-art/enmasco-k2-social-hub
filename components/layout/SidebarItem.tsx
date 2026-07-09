@@ -4,28 +4,34 @@ import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 
 type SidebarItemProps = {
-  isActive: boolean;
-  icon: LucideIcon;
+  isActive?: boolean;
+  icon?: LucideIcon;
   label: string;
+  subitem?: boolean;
   onClick?: () => void;
 };
 
-export default function SidebarItem({ isActive, icon: Icon, label, onClick }: SidebarItemProps) {
+export default function SidebarItem({ isActive, icon, label, subitem, onClick }: SidebarItemProps) {
   return (
     <motion.button
-      whileHover={{ scale: 1.02, y: -2 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      whileHover={subitem ? {} : { scale: 1.01, y: -1 }}
+      transition={{ type: "spring", stiffness: 260, damping: 20 }}
       onClick={onClick}
       className={[
-        "relative flex items-center w-full px-4 py-3 rounded-lg text-left transition-colors duration-300",
-        isActive ? "bg-sky-900/20 text-sky-400" : "text-gray-400 hover:text-gray-200",
-        isActive ? "before:absolute before:inset-y-2 before:left-0 before:w-[4px] before:bg-sky-400 before:shadow-[0_0_10px_rgba(56,189,248,0.8)] before:rounded-r-md" : "",
+        "relative flex w-full items-center rounded-lg px-3 py-2 text-left transition-colors duration-300",
+        subitem ? "ml-1 border border-transparent" : "border border-white/10 bg-white/[0.04] hover:bg-white/[0.08]",
+        isActive ? "bg-sky-900/25 text-sky-300" : "text-white/70 hover:text-white",
       ].join(" ")}
     >
-      <span className="mr-3">
-        <Icon className="h-5 w-5" strokeWidth={1.8} />
-      </span>
-      <span className="font-medium">{label}</span>
+      {icon && !subitem && (
+        <span className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05]">
+          {(() => { const ActiveIcon = icon; return <ActiveIcon className="h-4 w-4" strokeWidth={1.8} />; })()}
+        </span>
+      )}
+      <span className={`font-medium ${subitem ? "text-xs" : "text-sm"}`}>{label}</span>
+      {isActive && (
+        <span className="absolute left-1.5 top-1/2 h-6 w-[4px] -translate-y-1/2 rounded-r bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)]" />
+      )}
     </motion.button>
   );
 }
