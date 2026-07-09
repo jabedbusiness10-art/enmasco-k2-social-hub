@@ -38,3 +38,6 @@ Thumbs.db
 # build artifacts
 tsconfig.tsbuildinfo
 .next/
+
+# user-uploaded media (local fallback)
+public/uploads/
