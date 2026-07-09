@@ -1,0 +1,19 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="shieldGrad" x1="10" y1="8" x2="110" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="55%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+    <linearGradient id="sGrad" x1="40" y1="38" x2="80" y2="86" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e5e7eb"/>
+    </linearGradient>
+  </defs>
+  <!-- shield -->
+  <path d="M60 6 L104 24 V58 C104 88 84 106 60 114 C36 106 16 88 16 58 V24 Z"
+        fill="url(#shieldGrad)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  <!-- stylized white S -->
+  <path d="M74 44 C74 35 67 31 60 31 C52 31 46 35 46 41 C46 47 52 49 60 51 C69 53 74 56 74 64 C74 71 68 75 60 75 C52 75 46 71 46 63"
+        fill="none" stroke="url(#sGrad)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
