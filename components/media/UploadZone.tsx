@@ -8,9 +8,10 @@ type UploadZoneProps = {
   onUpload: (files: File[], category: string, tags: string) => Promise<void>;
   uploading: boolean;
   progress: number;
+  fileProgress?: { name: string; pct: number } | null;
 };
 
-export default function UploadZone({ canUpload, onUpload, uploading, progress }: UploadZoneProps) {
+export default function UploadZone({ canUpload, onUpload, uploading, progress, fileProgress }: UploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [pending, setPending] = useState<File[]>([]);
@@ -93,7 +94,10 @@ export default function UploadZone({ canUpload, onUpload, uploading, progress }:
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <div className="mt-1 text-right text-[11px] text-white/50">{progress}%</div>
+              <div className="mt-1 flex items-center justify-between text-[11px] text-white/50">
+                <span className="truncate">{fileProgress ? `Uploading ${fileProgress.name}…` : "Uploading…"}</span>
+                <span>{progress}%</span>
+              </div>
             </div>
           )}
           <div className="mt-3 flex justify-end gap-2">

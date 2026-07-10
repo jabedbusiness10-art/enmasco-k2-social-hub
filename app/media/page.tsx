@@ -30,10 +30,14 @@ export default function MediaLibraryPage() {
 
   const [search, setSearch] = useState("");
   const [type, setType] = useState<MediaFileType | "">("");
+  const [category, setCategory] = useState("");
+  const [date, setDate] = useState("all");
   const [sort, setSort] = useState<"newest" | "oldest" | "name">("newest");
 
   const [preview, setPreview] = useState<MediaAsset | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<MediaAsset | null>(null);
+  const [overallProgress, setOverallProgress] = useState<number | null>(null);
+  const [fileProgress, setFileProgress] = useState<{ name: string; pct: number } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,6 +45,8 @@ export default function MediaLibraryPage() {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (type) params.set("type", type);
+      if (category) params.set("category", category);
+      if (date && date !== "all") params.set("date", date);
       if (sort) params.set("sort", sort);
       const res = await fetch(`/api/media?${params.toString()}`, { cache: "no-store" });
       const json = await res.json();
@@ -52,34 +58,64 @@ export default function MediaLibraryPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, type, sort]);
+  }, [search, type, category, date, sort]);
 
   useEffect(() => {
     const t = setTimeout(load, 300);
     return () => clearTimeout(t);
   }, [load]);
 
-  async function handleUpload(files: File[], category: string, tags: string) {
+  async function handleUpload(files: File[], cat: string, tags: string) {
     setUploading(true);
-    setProgress(0);
     setError(null);
+    setOverallProgress(0);
     try {
       for (let i = 0; i < files.length; i++) {
-        const fd = new FormData();
-        fd.append("files", files[i]);
-        if (category) fd.append("category", category);
-        if (tags) fd.append("tags", tags);
-        const res = await fetch("/api/media/upload", { method: "POST", body: fd });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error ?? "Upload failed");
-        setProgress(Math.round(((i + 1) / files.length) * 100));
+        const file = files[i];
+        setFileProgress({ name: file.name, pct: 0 });
+        await uploadOne(file, cat, tags, (pct) => setFileProgress({ name: file.name, pct }));
+        setOverallProgress(Math.round(((i + 1) / files.length) * 100));
       }
+      setFileProgress(null);
       await load();
     } catch (e: any) {
       setError(e.message ?? "Upload failed");
     } finally {
       setUploading(false);
+      setOverallProgress(null);
     }
+  }
+
+  // Real upload progress via XMLHttpRequest.
+  function uploadOne(
+    file: File,
+    cat: string,
+    tags: string,
+    onProgress: (pct: number) => void,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const fd = new FormData();
+      fd.append("files", file);
+      if (cat) fd.append("category", cat);
+      if (tags) fd.append("tags", tags);
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/media/upload");
+      xhr.upload.onprogress = (ev) => {
+        if (ev.lengthComputable) onProgress(Math.round((ev.loaded / ev.total) * 100));
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve();
+        else {
+          try {
+            reject(new Error(JSON.parse(xhr.responseText)?.error ?? "Upload failed"));
+          } catch {
+            reject(new Error("Upload failed"));
+          }
+        }
+      };
+      xhr.onerror = () => reject(new Error("Network error during upload"));
+      xhr.send(fd);
+    });
   }
 
   function handleCopy(url: string) {
@@ -135,9 +171,20 @@ export default function MediaLibraryPage() {
         </div>
       )}
 
-      <UploadZone canUpload={canUpload} onUpload={handleUpload} uploading={uploading} progress={progress} />
+      <UploadZone canUpload={canUpload} onUpload={handleUpload} uploading={uploading} progress={overallProgress ?? 0} fileProgress={fileProgress} />
 
-      <MediaFilters search={search} onSearch={setSearch} type={type} onType={setType} sort={sort} onSort={setSort} />
+      <MediaFilters
+        search={search}
+        onSearch={setSearch}
+        type={type}
+        onType={setType}
+        category={category}
+        onCategory={setCategory}
+        date={date}
+        onDate={setDate}
+        sort={sort}
+        onSort={setSort}
+      />
 
       {loading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

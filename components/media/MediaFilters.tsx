@@ -8,6 +8,10 @@ type MediaFiltersProps = {
   onSearch: (v: string) => void;
   type: MediaFileType | "";
   onType: (v: MediaFileType | "") => void;
+  category: string;
+  onCategory: (v: string) => void;
+  date: string;
+  onDate: (v: string) => void;
   sort: "newest" | "oldest" | "name";
   onSort: (v: "newest" | "oldest" | "name") => void;
 };
@@ -21,7 +25,37 @@ const TYPES: { value: MediaFileType | ""; label: string }[] = [
   { value: "BRAND_ASSET", label: "Brand Assets" },
 ];
 
-export default function MediaFilters({ search, onSearch, type, onType, sort, onSort }: MediaFiltersProps) {
+// Predefined categories so future features (Company Logo, Brand Assets,
+// Social Post Images, AI Generated Images, Document Attachments) reuse the
+// same Media Library without a separate upload system.
+const CATEGORIES: { value: string; label: string }[] = [
+  { value: "", label: "All Categories" },
+  { value: "Brand Assets", label: "Brand Assets" },
+  { value: "Logo", label: "Logo" },
+  { value: "Social Post", label: "Social Post" },
+  { value: "AI Generated", label: "AI Generated" },
+  { value: "Document", label: "Document" },
+];
+
+const DATES: { value: string; label: string }[] = [
+  { value: "all", label: "All Time" },
+  { value: "today", label: "Today" },
+  { value: "week", label: "This Week" },
+  { value: "month", label: "This Month" },
+];
+
+export default function MediaFilters({
+  search,
+  onSearch,
+  type,
+  onType,
+  category,
+  onCategory,
+  date,
+  onDate,
+  sort,
+  onSort,
+}: MediaFiltersProps) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
       <div className="relative flex-1">
@@ -41,6 +75,28 @@ export default function MediaFilters({ search, onSearch, type, onType, sort, onS
         {TYPES.map((t) => (
           <option key={t.value} value={t.value}>
             {t.label}
+          </option>
+        ))}
+      </select>
+      <select
+        value={category}
+        onChange={(e) => onCategory(e.target.value)}
+        className="h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-xs text-white outline-none"
+      >
+        {CATEGORIES.map((c) => (
+          <option key={c.value} value={c.value}>
+            {c.label}
+          </option>
+        ))}
+      </select>
+      <select
+        value={date}
+        onChange={(e) => onDate(e.target.value)}
+        className="h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-xs text-white outline-none"
+      >
+        {DATES.map((d) => (
+          <option key={d.value} value={d.value}>
+            {d.label}
           </option>
         ))}
       </select>
