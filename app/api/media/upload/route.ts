@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth-server";
-import { uploadAsset } from "@/lib/cloudinary";
-import { prisma } from "@/lib/db";
+import { uploadService } from "@/services/media/uploadService";
 
 export const runtime = "nodejs";
-
-function classifyFile(mime: string): "IMAGE" | "VIDEO" | "DOCUMENT" | "LOGO" | "BRAND_ASSET" {
-  if (mime.startsWith("image/")) return mime.includes("logo") ? "LOGO" : "IMAGE";
-  if (mime.startsWith("video/")) return "VIDEO";
-  return "DOCUMENT";
-}
 
 export async function POST(req: NextRequest) {
   const perm = await requirePermission("MEDIA_UPLOAD", req);
@@ -19,7 +12,7 @@ export async function POST(req: NextRequest) {
 
   const form = await req.formData();
   const files = form.getAll("files") as File[];
-  const category = (form.get("category") as string) || null;
+  const folderId = (form.get("folderId") as string) || null;
   const tagsRaw = form.get("tags") as string | null;
   const tags = tagsRaw ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean) : [];
 
@@ -28,35 +21,17 @@ export async function POST(req: NextRequest) {
   }
 
   const created = [];
-
   for (const file of files) {
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const { cloudinaryId, url, width, height } = await uploadAsset(
-      buffer,
-      file.name,
-      file.type,
-    );
-
-    const fileType = classifyFile(file.type);
-
-    const asset = await prisma.mediaAsset.create({
-      data: {
-        fileName: cloudinaryId.split("/").pop() ?? cloudinaryId,
-        originalName: file.name,
-        fileType,
-        mimeType: file.type,
-        fileSize: file.size,
-        cloudinaryId,
-        url,
-        width,
-        height,
-        category,
-        tags,
-        uploadedBy: perm.user.name,
-        uploadedById: perm.user.id,
-      },
+    const asset = await uploadService.uploadFile({
+      buffer: Buffer.from(bytes),
+      originalName: file.name,
+      mimeType: file.type || "application/octet-stream",
+      size: file.size,
+      userId: perm.user.id,
+      userName: perm.user.name,
+      folderId,
+      tags,
     });
     created.push(asset);
   }

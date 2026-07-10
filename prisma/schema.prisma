@@ -119,6 +119,7 @@ model User {
   workflowJobs  WorkflowJob[]
   aiPrompts     AIPrompt[]
   aiTokenUsages AITokenUsage[]
+  mediaAssets   MediaAsset[]
 
 
   @@index([roleId])
@@ -192,29 +193,79 @@ enum PlatformStatus {
   PERMISSION_ERROR
 }
 
+enum MediaStatus {
+  ACTIVE
+  ARCHIVED
+  TRASHED
+}
+
+model MediaFolder {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  icon      String? // lucide icon name
+  parentId  String?
+  order     Int          @default(0)
+  createdAt DateTime     @default(now())
+  parent    MediaFolder? @relation("FolderChildren", fields: [parentId], references: [id])
+  children  MediaFolder[] @relation("FolderChildren")
+  assets    MediaAsset[]
+
+  @@index([parentId])
+}
+
 model MediaAsset {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   fileName      String
   originalName  String
   fileType      String // IMAGE | VIDEO | DOCUMENT | LOGO | BRAND_ASSET
   mimeType      String
   fileSize      Int
-  cloudinaryId  String
+  cloudinaryId  String // storage key / provider id (Cloudinary/S3 ready)
   url           String
   width         Int?
   height        Int?
+  duration      Float? // seconds, for video/audio
+  extension     String? // jpg, mp4, pdf ...
   category      String?
   tags          String[]
-  favorited     Boolean   @default(false)
+  description   String?
+  status        MediaStatus @default(ACTIVE)
+  favorited     Boolean     @default(false)
+  usageCount    Int         @default(0)
+  lastUsedAt    DateTime?
   uploadedBy    String
   uploadedById  String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  folderId      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   deletedAt     DateTime?
+  archivedAt    DateTime?
+
+  folder      MediaFolder? @relation(fields: [folderId], references: [id])
+  uploadedUser User?       @relation(fields: [uploadedById], references: [id])
+  activities  MediaActivity[]
 
   @@index([fileType])
   @@index([category])
+  @@index([folderId])
+  @@index([status])
   @@index([uploadedById])
+  @@index([createdAt])
+}
+
+model MediaActivity {
+  id        String   @id @default(cuid())
+  assetId   String
+  userId    String
+  userName  String
+  action    String // UPLOAD | RENAME | DELETE | MOVE | DOWNLOAD | SHARE | ARCHIVE | RESTORE | FAVORITE
+  meta      String? // free text / extra info
+  createdAt DateTime @default(now())
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
   @@index([createdAt])
 }
 
