@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useCompanySettings } from "@/services/settings/useCompanySettings";
 import { cn } from "@/lib/utils";
+import type { CompanySettingsInput } from "@/lib/validations/settings";
 import CompanyProfile from "./sections/CompanyProfile";
 import RegionalSettings from "./sections/RegionalSettings";
 import AppearanceSettings from "./sections/AppearanceSettings";
@@ -22,8 +23,14 @@ const tabs: { key: Tab; label: string }[] = [
 export default function CompanySettings() {
   const { state, saveSettings, resetSettings, isSaving } = useCompanySettings();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
+  const [draft, setDraft] = useState<CompanySettingsInput>(state.settings);
 
-  if (state.isLoading || !state.settings) {
+  // Sync local draft whenever loaded/saved settings change.
+  useEffect(() => {
+    setDraft(state.settings);
+  }, [state.settings]);
+
+  if (state.isLoading) {
     return (
       <div className="space-y-3">
         <div className="h-4 w-56 rounded bg-white/10" />
@@ -32,8 +39,10 @@ export default function CompanySettings() {
     );
   }
 
-  const handleSectionChange = async (next: any) => {
-    await saveSettings(next);
+  const handleChange = (next: CompanySettingsInput) => setDraft(next);
+  const handleSave = () => saveSettings(draft);
+  const handleReset = async () => {
+    await resetSettings();
   };
 
   return (
@@ -60,19 +69,19 @@ export default function CompanySettings() {
 
       <motion.div layout className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
         {activeTab === "profile" && (
-          <CompanyProfile settings={state.settings} onChange={handleSectionChange} />
+          <CompanyProfile settings={draft} onChange={handleChange} />
         )}
         {activeTab === "regional" && (
-          <RegionalSettings settings={state.settings} onChange={handleSectionChange} />
+          <RegionalSettings settings={draft} onChange={handleChange} />
         )}
         {activeTab === "appearance" && (
-          <AppearanceSettings settings={state.settings} onChange={handleSectionChange} />
+          <AppearanceSettings settings={draft} onChange={handleChange} />
         )}
         {activeTab === "security" && (
-          <SecuritySettings settings={state.settings} onChange={handleSectionChange} />
+          <SecuritySettings settings={draft} onChange={handleChange} />
         )}
 
-        <SaveBar onSave={() => {}} onReset={resetSettings} isSaving={isSaving} />
+        <SaveBar onSave={handleSave} onReset={handleReset} isSaving={isSaving} />
       </motion.div>
     </div>
   );

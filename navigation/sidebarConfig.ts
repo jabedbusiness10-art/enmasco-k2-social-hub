@@ -69,9 +69,8 @@ export const sidebarConfig: NavSection[] = [
     label: "Administration",
     icon: ShieldCheck,
     children: [
-      { label: "Security", href: "/dashboard/settings" },
+      { label: "Company Settings", href: "/dashboard/settings" },
       { label: "Account", href: "/settings/account" },
-      { label: "Settings", href: "/dashboard/settings" },
     ],
   },
 ];

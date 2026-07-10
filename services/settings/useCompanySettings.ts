@@ -4,8 +4,31 @@ import { useState, useEffect } from "react";
 import type { CompanySettingsInput } from "@/lib/validations/settings";
 import { useToast } from "@/components/ui/Toast";
 
+// Defaults mirror the Prisma schema @default values so the form always renders
+// even when no CompanySettings row exists in the database yet.
+const DEFAULT_SETTINGS: CompanySettingsInput = {
+  companyName: "",
+  companyShortName: "",
+  logoUrl: "",
+  website: "",
+  email: "",
+  phone: "",
+  address: "",
+  timezone: "UTC",
+  language: "en",
+  dateFormat: "DD/MM/YYYY",
+  timeFormat: "24H",
+  theme: "dark",
+  accentColor: "blue",
+  sidebarStyle: "glass",
+  glassEffect: true,
+  sessionTimeout: 30,
+  passwordPolicy: "standard",
+  auditLogging: true,
+};
+
 type SettingsState = {
-  settings: CompanySettingsInput | null;
+  settings: CompanySettingsInput;
   isLoading: boolean;
   error: string | null;
 };
@@ -20,12 +43,12 @@ export type UseCompanySettingsResult = {
 export function useCompanySettings(): UseCompanySettingsResult {
   const { showToast } = useToast();
   const [state, setState] = useState<SettingsState>({
-    settings: null,
+    settings: DEFAULT_SETTINGS,
     isLoading: true,
     error: null,
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [original, setOriginal] = useState<CompanySettingsInput | null>(null);
+  const [original, setOriginal] = useState<CompanySettingsInput>(DEFAULT_SETTINGS);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,13 +57,17 @@ export function useCompanySettings(): UseCompanySettingsResult {
         const res = await fetch("/api/company/settings");
         if (!res.ok) throw new Error("Failed to load settings");
         const json = await res.json();
+        const loaded = (json.settings as CompanySettingsInput) ?? null;
+        // Render the loaded row if present, otherwise fall back to defaults so
+        // the form is never blank/hidden.
+        const next = loaded ?? DEFAULT_SETTINGS;
         if (!cancelled) {
           setState({
-            settings: (json.settings as CompanySettingsInput) ?? null,
+            settings: next,
             isLoading: false,
             error: null,
           });
-          setOriginal((json.settings as CompanySettingsInput) ?? null);
+          setOriginal(next);
         }
       } catch (error) {
         if (!cancelled) {
