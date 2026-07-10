@@ -158,9 +158,21 @@ model CompanySocialAccount {
   platform       Platform
   accountName    String
   accountHandle  String?
+  accountId      String?
   profileUrl     String?
-  isActive       Boolean   @default(true)
+  pageId         String?
+  username       String?
+
+  // Encrypted at rest (AES-256-GCM via lib/crypto). Stored as ciphertext strings.
+  accessToken    String
+  refreshToken   String?
+  expiresAt      DateTime?
+
+  status         PlatformStatus @default(CONNECTED)
+  connectedBy    String
+  connectedById  String?
   lastSyncAt     DateTime?
+  isActive       Boolean   @default(true)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -169,6 +181,13 @@ model CompanySocialAccount {
   @@unique([platform, accountHandle])
   @@index([platform])
   @@index([isActive])
+}
+
+enum PlatformStatus {
+  CONNECTED
+  EXPIRING_SOON
+  DISCONNECTED
+  PERMISSION_ERROR
 }
 
 model MediaAsset {
