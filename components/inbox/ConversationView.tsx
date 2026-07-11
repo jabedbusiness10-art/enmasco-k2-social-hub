@@ -50,7 +50,7 @@ export default function ConversationView({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate text-sm font-semibold text-white">{conversation.customer}</span>
-            <StatusBadge status={conversation.status} />
+            <StatusBadge status={conversation.status ?? "UNREAD"} />
           </div>
           <div className={`text-xs ${meta.text}`}>{meta.label}</div>
         </div>

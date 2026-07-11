@@ -145,10 +145,10 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold leading-tight text-white">
-                Jabed Hossain
+                MD Kazim
               </div>
               <div className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Super Administrator
+                Chief Executive Officer (CEO)
               </div>
             </div>
           </motion.div>

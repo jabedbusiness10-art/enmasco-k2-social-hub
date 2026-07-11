@@ -107,7 +107,7 @@ export default function ScheduleModal({ open, onClose, initial, onSubmit }: Prop
         .filter(Boolean),
       scheduledAt: isNaN(dt.getTime()) ? new Date().toISOString() : dt.toISOString(),
       status,
-      owner: initial?.owner ?? "Jabed Hossain",
+      owner: initial?.owner ?? "MD Kazim",
       campaign: v.campaign || undefined,
       timezone: v.timezone,
       accent: PLATFORMS[v.platform].key === "facebook" ? "red" :
