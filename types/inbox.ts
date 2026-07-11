@@ -34,12 +34,12 @@ export interface Conversation {
   lastMessage: string;
   lastActivity: string; // ISO
   unread: number;
-  status: ConversationStatus;
+  status?: ConversationStatus;
   starred?: boolean;
   assignedTo?: string;
   spam?: boolean;
   archived?: boolean;
-  tags: string[];
+  tags?: string[];
   priority: "LOW" | "MEDIUM" | "HIGH";
   conversationCount: number;
   firstContact: string; // ISO

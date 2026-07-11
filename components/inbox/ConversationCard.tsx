@@ -57,7 +57,7 @@ export default function ConversationCard({
         <p className="mt-0.5 truncate text-xs text-white/55">{conversation.lastMessage}</p>
 
         <div className="mt-1.5 flex items-center gap-2">
-          <StatusBadge status={conversation.status} />
+          <StatusBadge status={conversation.status ?? "UNREAD"} />
           {conversation.starred && <Star className="h-3 w-3 fill-amber-400 text-amber-400" strokeWidth={0} />}
           {hasUnread && (
             <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">

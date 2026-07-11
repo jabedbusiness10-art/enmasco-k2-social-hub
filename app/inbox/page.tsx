@@ -56,7 +56,7 @@ export default function InboxPage() {
       if (extra === "week" && !isThisWeek(parseISO(c.lastActivity))) return false;
       // search
       if (q) {
-        const hay = `${c.customer} ${c.lastMessage} ${c.tags.join(" ")}`.toLowerCase();
+        const hay = `${c.customer} ${c.lastMessage} ${c.tags?.join(" ") ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -90,7 +90,7 @@ export default function InboxPage() {
         break;
       case "assign":
         setItems((prev) =>
-          prev.map((c) => (c.id === active.id ? { ...c, assignedTo: "Jabed", status: "REPLIED" as ConversationStatus } : c))
+          prev.map((c) => (c.id === active.id ? { ...c, assignedTo: "MD Kazim", status: "REPLIED" as ConversationStatus } : c))
         );
         break;
       case "delete":

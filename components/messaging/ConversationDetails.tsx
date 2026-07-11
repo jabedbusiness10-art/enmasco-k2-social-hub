@@ -19,7 +19,7 @@ export default function ConversationDetails({ channel }: ConversationDetailsProp
       <div>
         <div className="text-xs font-semibold uppercase tracking-wider text-white/50">Members</div>
         <div className="mt-2 flex flex-wrap gap-2">
-          {["MD Kazim", "Lipton", "Arif", "Sumon", "Jabed"].map((name) => (
+          {["MD Kazim", "Lipton", "Arif", "Sumon", "MD Kazim"].map((name) => (
             <span key={name} className="rounded-full border border-white/10 bg-white/[0.05] px-2 py-1 text-xs text-white/80">
               {name}
             </span>
