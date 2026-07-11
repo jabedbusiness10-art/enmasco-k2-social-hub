@@ -10,7 +10,7 @@ import ReactQueryProvider from "@/components/providers/query-provider";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "EnmaSco K2 Social Hub",
+  title: "K2KAI Social Flow",
   description: "Luxury dark social hub powered by EnmaSco",
 };
 

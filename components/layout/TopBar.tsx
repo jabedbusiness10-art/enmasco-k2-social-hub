@@ -73,15 +73,15 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
         >
           <img
             src="/logo.svg"
-            alt="ENMASCO K2 SOCIAL"
+            alt="K2KAI Social Flow"
             className="h-10 w-auto drop-shadow-[0_0_14px_rgba(56,189,248,0.55)]"
           />
           <div className="min-w-0">
-            <div className="truncate text-base font-semibold leading-tight tracking-normal text-white sm:text-lg">
-              ENMASCO K2 SOCIAL
+            <div className="truncate text-base font-bold leading-tight tracking-[0.3px] text-white sm:text-lg">
+              K2KAI Social Flow
             </div>
-            <div className="truncate text-xs font-medium uppercase tracking-[0.18em] text-white/45">
-              Enterprise Command Center
+            <div className="mt-0.5 truncate text-[12px] font-medium uppercase tracking-[2px] text-white/60">
+              by ENMASCO
             </div>
           </div>
         </motion.div>

@@ -7,12 +7,12 @@ export default function Header() {
           <div className="h-10 w-10 rounded-xl border border-white/10 bg-white/5" />
 
           <div>
-            <h1 className="text-sm font-semibold text-white">
-              ENMASCO K2 SOCIAL
+            <h1 className="text-sm font-bold tracking-[0.3px] text-white">
+              K2KAI Social Flow
             </h1>
 
-            <p className="text-xs text-neutral-400">
-              Enterprise Operating System
+            <p className="mt-0.5 text-[12px] font-medium uppercase tracking-[2px] text-white/60">
+              by ENMASCO
             </p>
           </div>
         </div>
