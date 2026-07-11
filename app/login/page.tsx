@@ -40,8 +40,8 @@ export default function LoginPage() {
             <Shield className="h-5 w-5 text-red-300" strokeWidth={1.8} />
           </div>
           <div>
-            <div className="text-sm font-semibold text-white">ENMASCO K2 SOCIAL</div>
-            <div className="text-xs text-white/60">Secure workspace</div>
+            <div className="text-sm font-bold tracking-[0.3px] text-white">K2KAI Social Flow</div>
+            <div className="mt-0.5 text-[12px] font-medium uppercase tracking-[2px] text-white/60">by ENMASCO</div>
           </div>
         </div>
 

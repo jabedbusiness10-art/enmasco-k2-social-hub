@@ -60,8 +60,11 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
               WELCOME BACK
             </div>
             <h1 className="text-4xl font-semibold leading-none tracking-normal text-white sm:text-5xl lg:text-6xl">
-              ENMASCO K2 SOCIAL
+              K2KAI Social Flow
             </h1>
+            <div className="mt-0.5 text-[12px] font-medium uppercase tracking-[2px] text-white/60">
+              by ENMASCO
+            </div>
             <p className="mt-3 text-lg font-medium tracking-normal text-white/75 sm:text-xl lg:text-2xl">
               Enterprise Command Center
             </p>

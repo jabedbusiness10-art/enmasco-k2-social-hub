@@ -96,9 +96,9 @@ export default function Sidebar() {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
-                <span className="text-sm font-semibold text-white">ENMASCO</span>
-                <span className="text-[10px] uppercase tracking-widest text-white/50">
-                  Social
+                <span className="truncate text-sm font-bold tracking-[0.3px] text-white">K2KAI Social Flow</span>
+                <span className="mt-0.5 truncate text-[12px] font-medium uppercase tracking-[2px] text-white/60">
+                  by ENMASCO
                 </span>
               </motion.div>
             )}
@@ -140,11 +140,11 @@ export default function Sidebar() {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-white/60">
-                  K2 SOCIAL
+                <span className="text-[10px] font-bold tracking-[0.3px] text-white/80">
+                  K2KAI Social Flow
                 </span>
-                <span className="text-[10px] uppercase tracking-widest text-white/40">
-                  Enterprise Edition
+                <span className="text-[10px] uppercase tracking-[2px] text-white/60">
+                  by ENMASCO
                 </span>
               </motion.div>
             )}
