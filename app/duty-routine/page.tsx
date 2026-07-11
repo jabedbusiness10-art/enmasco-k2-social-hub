@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
+import { Stagger, StaggerItem } from "@/components/anim/motion";
 import DutyStats from "@/components/duty/DutyStats";
 import DutyFilters from "@/components/duty/DutyFilters";
 import DutyTable from "@/components/duty/DutyTable";
@@ -45,40 +46,46 @@ export default function DutyRoutinePage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-white">Duty Routine</h1>
-          <p className="text-sm text-slate-400">Manage, assign and track duties.</p>
+    <Stagger className="space-y-6">
+      <StaggerItem>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-white">Duty Routine</h1>
+            <p className="text-sm text-slate-400">Manage, assign and track duties.</p>
+          </div>
+          <motion.button
+            whileHover={{ y: -2, scale: 1.02 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => setCreateOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl border border-sky-400/30 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-100 transition hover:bg-sky-500/20"
+          >
+            <Plus className="h-4 w-4" strokeWidth={1.8} />
+            New Duty
+          </motion.button>
         </div>
-        <motion.button
-          whileHover={{ y: -2, scale: 1.02 }}
-          transition={{ duration: 0.3 }}
-          onClick={() => setCreateOpen(true)}
-          className="inline-flex items-center gap-2 rounded-xl border border-sky-400/30 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-100 transition hover:bg-sky-500/20"
-        >
-          <Plus className="h-4 w-4" strokeWidth={1.8} />
-          New Duty
-        </motion.button>
-      </div>
+      </StaggerItem>
 
-      <DutyStats duties={duties} />
-      <DutyFilters
-        search={search}
-        department={department}
-        status={status}
-        onSearchChange={setSearch}
-        onDepartmentChange={setDepartment}
-        onStatusChange={setStatus}
-      />
-      <DutyTable duties={filtered} onEdit={setEditingDuty} onView={setViewDuty} />
-      <GlassCard className="p-6">
-        <CalendarPlaceholder />
-      </GlassCard>
+      <StaggerItem><DutyStats duties={duties} /></StaggerItem>
+      <StaggerItem>
+        <DutyFilters
+          search={search}
+          department={department}
+          status={status}
+          onSearchChange={setSearch}
+          onDepartmentChange={setDepartment}
+          onStatusChange={setStatus}
+        />
+      </StaggerItem>
+      <StaggerItem><DutyTable duties={filtered} onEdit={setEditingDuty} onView={setViewDuty} /></StaggerItem>
+      <StaggerItem>
+        <GlassCard className="p-6">
+          <CalendarPlaceholder />
+        </GlassCard>
+      </StaggerItem>
 
       <CreateDutyModal isOpen={createOpen} onClose={() => setCreateOpen(false)} onSave={handleSave} />
       {editingDuty && <EditDutyModal duty={editingDuty} onClose={() => setEditingDuty(null)} onSave={handleSave} />}
       <DutyDetailsDrawer duty={viewDuty} isOpen={!!viewDuty} onClose={() => setViewDuty(null)} />
-    </div>
+    </Stagger>
   );
 }

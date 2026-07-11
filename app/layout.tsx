@@ -6,8 +6,9 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { Toaster } from "@/components/ui/toaster";
 import ClientSessionProvider from "@/providers/session-provider";
 import ReactQueryProvider from "@/components/providers/query-provider";
+import { PageTransition, AnimatedBackground } from "@/components/anim/motion";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "K2KAI Social Flow",
@@ -22,10 +23,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className="antialiased">
+        <AnimatedBackground />
         <ReactQueryProvider>
           <ClientSessionProvider>
             <ToastProvider>
-              {children}
+              <PageTransition>{children}</PageTransition>
               <Toaster />
             </ToastProvider>
           </ClientSessionProvider>

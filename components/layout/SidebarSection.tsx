@@ -122,7 +122,6 @@ export default function SidebarSection({
                   label={child.label}
                   href={child.href}
                   subitem
-                  onClick={() => router.push(child.href)}
                 />
               ))}
             </div>

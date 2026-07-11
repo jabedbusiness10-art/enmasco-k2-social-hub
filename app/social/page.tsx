@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Stagger, StaggerItem } from "@/components/anim/motion";
 import { Search } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
 import SocialOverviewCards from "@/components/social/SocialOverviewCards";
@@ -40,10 +41,14 @@ export default function SocialHubPage() {
 
       <SocialOverviewCards accounts={accounts} />
 
-      <div className="mt-4 flex flex-col gap-3 px-4">
-        <PlatformStatus name="Facebook" connected={accounts[0]?.connected} />
-        <QuickActions />
-      </div>
+      <Stagger className="mt-4 flex flex-col gap-3 px-4">
+        <StaggerItem>
+          <PlatformStatus name="Facebook" connected={accounts[0]?.connected} />
+        </StaggerItem>
+        <StaggerItem>
+          <QuickActions />
+        </StaggerItem>
+      </Stagger>
 
       <div className="mt-4 grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[16rem_1fr_16rem]">
         <PlatformSidebar accounts={accounts} selectedPlatformId={selectedPlatformId} onSelectPlatform={setSelectedPlatformId} />

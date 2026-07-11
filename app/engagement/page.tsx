@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { Stagger, StaggerItem } from "@/components/anim/motion";
 import { Activity as ActivityIcon } from "lucide-react";
 import { isToday, isThisWeek, isThisMonth, parseISO } from "date-fns";
 import {
@@ -58,55 +58,63 @@ export default function EngagementPage() {
   }, [platform, search]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <Stagger className="flex flex-col gap-5">
       {/* header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <ActivityIcon className="h-5 w-5 text-red-300" strokeWidth={1.8} />
-            <h1 className="text-lg font-semibold text-white">Reactions &amp; Engagement Monitor</h1>
+      <StaggerItem>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <ActivityIcon className="h-5 w-5 text-red-300" strokeWidth={1.8} />
+              <h1 className="text-lg font-semibold text-white">Reactions &amp; Engagement Monitor</h1>
+            </div>
+            <p className="text-xs text-white/55">
+              Real-time reactions, comments &amp; reach across every connected platform.
+            </p>
           </div>
-          <p className="text-xs text-white/55">
-            Real-time reactions, comments &amp; reach across every connected platform.
-          </p>
         </div>
-      </div>
+      </StaggerItem>
 
       {/* overview stat cards */}
-      <ReactionCards stats={engagement.stats} />
+      <StaggerItem>
+        <ReactionCards stats={engagement.stats} />
+      </StaggerItem>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[300px_1fr]">
-        {/* left: filters + live status */}
-        <aside className="flex flex-col gap-4">
-          <PlatformFilter
-            platform={platform}
-            onPlatform={setPlatform}
-            date={date}
-            onDate={setDate}
-            reaction={reaction}
-            onReaction={setReaction}
-            search={search}
-            onSearch={setSearch}
-          />
-          <EngagementOverview live={engagement.live} />
-        </aside>
+      <StaggerItem>
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-[300px_1fr]">
+          {/* left: filters + live status */}
+          <aside className="flex flex-col gap-4">
+            <PlatformFilter
+              platform={platform}
+              onPlatform={setPlatform}
+              date={date}
+              onDate={setDate}
+              reaction={reaction}
+              onReaction={setReaction}
+              search={search}
+              onSearch={setSearch}
+            />
+            <EngagementOverview live={engagement.live} />
+          </aside>
 
-        {/* right: feed + charts */}
-        <div className="flex flex-col gap-4">
-          <ActivityFeed items={filteredActivity} />
-          <EngagementCharts
-            daily={engagement.daily}
-            weekly={engagement.weekly}
-            monthly={engagement.monthly}
-            platformComparison={engagement.platformComparison}
-            reactionDistribution={engagement.reactionDistribution}
-            growthTrend={engagement.growthTrend}
-          />
-        </div>
-      </section>
+          {/* right: feed + charts */}
+          <div className="flex flex-col gap-4">
+            <ActivityFeed items={filteredActivity} />
+            <EngagementCharts
+              daily={engagement.daily}
+              weekly={engagement.weekly}
+              monthly={engagement.monthly}
+              platformComparison={engagement.platformComparison}
+              reactionDistribution={engagement.reactionDistribution}
+              growthTrend={engagement.growthTrend}
+            />
+          </div>
+        </section>
+      </StaggerItem>
 
       {/* top posts full width */}
-      <TopPosts posts={filteredPosts} />
-    </div>
+      <StaggerItem>
+        <TopPosts posts={filteredPosts} />
+      </StaggerItem>
+    </Stagger>
   );
 }

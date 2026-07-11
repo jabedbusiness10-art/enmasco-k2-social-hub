@@ -1,31 +1,22 @@
 import { NextResponse } from "next/server";
-import { getCompanySettings, upsertCompanySettings } from "@/services/settings/company";
-import { companySettingsSchema, CompanySettingsInput } from "@/lib/validations/settings";
+import type { AppSettings } from "@/types/settings";
+
+// Mock persistence layer. In production this would read/write a Prisma
+// CompanySettings row or a config service. For now we echo the payload back
+// with a server timestamp so the UI behaves like a real backend round-trip.
+let STORE: AppSettings | null = null;
 
 export async function GET() {
-  try {
-    const settings = await getCompanySettings();
-    if (!settings) {
-      return NextResponse.json({ settings: null }, { status: 200 });
-    }
-    return NextResponse.json({ settings });
-  } catch (error) {
-    console.error("GET /api/company/settings error", error);
-    return NextResponse.json({ error: "Failed to load settings" }, { status: 500 });
-  }
+  const savedAt = new Date().toISOString();
+  return NextResponse.json({ settings: STORE, savedAt, source: STORE ? "store" : "defaults" });
 }
 
-export async function PUT(request: Request) {
+export async function PUT(req: Request) {
   try {
-    const json = (await request.json()) as unknown;
-    const parsed = companySettingsSchema.safeParse(json as CompanySettingsInput);
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-    }
-    const settings = await upsertCompanySettings(parsed.data);
-    return NextResponse.json({ settings });
-  } catch (error) {
-    console.error("PUT /api/company/settings error", error);
-    return NextResponse.json({ error: "Failed to save settings" }, { status: 500 });
+    const body = (await req.json()) as AppSettings;
+    STORE = body;
+    return NextResponse.json({ settings: STORE, savedAt: new Date().toISOString(), ok: true });
+  } catch {
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 }

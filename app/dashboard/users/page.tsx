@@ -3,6 +3,7 @@
 import EmployeeTable from "@/components/dashboard/EmployeeTable";
 import ProfileDrawer from "@/components/dashboard/ProfileDrawer";
 import UserModal from "@/components/dashboard/UserModal";
+import { Stagger, StaggerItem } from "@/components/anim/motion";
 import { useState } from "react";
 
 type User = {
@@ -57,27 +58,31 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-white">User Management</h1>
-          <p className="text-sm text-slate-400">Manage employees, roles, and statuses.</p>
+    <Stagger className="space-y-6">
+      <StaggerItem>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-white">User Management</h1>
+            <p className="text-sm text-slate-400">Manage employees, roles, and statuses.</p>
+          </div>
+          <button
+            onClick={openCreate}
+            className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-medium text-white transition hover:bg-white/[0.12]"
+          >
+            Add Employee
+          </button>
         </div>
-        <button
-          onClick={openCreate}
-          className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-medium text-white transition hover:bg-white/[0.12]"
-        >
-          Add Employee
-        </button>
-      </div>
-      <EmployeeTable
-        data={users}
-        onRowClick={setSelectedUser}
-        onEdit={openEdit}
-        onDelete={handleDelete}
-      />
+      </StaggerItem>
+      <StaggerItem>
+        <EmployeeTable
+          data={users}
+          onRowClick={setSelectedUser}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+        />
+      </StaggerItem>
       <ProfileDrawer isOpen={!!selectedUser} onClose={() => setSelectedUser(null)} user={selectedUser ?? undefined} />
       <UserModal isOpen={modalOpen} onClose={() => setModalOpen(false)} user={editingUser ?? undefined} onSave={handleSave} />
-    </div>
+    </Stagger>
   );
 }
