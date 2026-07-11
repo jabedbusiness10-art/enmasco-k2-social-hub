@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Network, Users, Bot, BarChart3, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Network, Users, Bot, BarChart3, ShieldCheck, Inbox } from "lucide-react";
 
 export type NavSection = {
   key: string;
@@ -63,6 +63,15 @@ export const sidebarConfig: NavSection[] = [
       { label: "Analytics", href: "/insights/analytics" },
       { label: "Reports", href: "/insights/reports" },
     ],
+  },
+  {
+    key: "inbox",
+    label: "Inbox",
+    icon: Inbox,
+    children: [
+      { label: "Unified Inbox", href: "/inbox" },
+    ],
+    expandable: false,
   },
   {
     key: "administration",
