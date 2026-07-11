@@ -210,9 +210,9 @@ export default function ContentPlannerPage() {
         filtersActive={filtersActive}
       />
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[200px_minmax(0,1fr)_300px]">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:items-stretch">
         {/* Left filters */}
-        <div className="hidden overflow-y-auto lg:block">
+        <div className="hidden shrink-0 overflow-y-auto lg:block lg:w-[200px]">
           <FilterSidebar
             platforms={platforms}
             selectedPlatforms={selPlatforms}
@@ -222,8 +222,8 @@ export default function ContentPlannerPage() {
           />
         </div>
 
-        {/* Calendar */}
-        <div className="min-h-0">
+        {/* Calendar — primary content area, always fills available height */}
+        <div className="flex min-h-[280px] flex-1 flex-col">
           <CalendarArea
             view={view}
             items={filtered}
@@ -235,13 +235,13 @@ export default function ContentPlannerPage() {
         </div>
 
         {/* Right analytics */}
-        <div className="hidden overflow-y-auto xl:block">
+        <div className="hidden shrink-0 overflow-y-auto xl:block xl:w-[300px]">
           <AnalyticsPanel items={items} activity={planningActivity} onOpen={(i) => setDrawerItem(i)} />
         </div>
       </div>
 
-      {/* Bottom timeline */}
-      <div className="shrink-0">
+      {/* Bottom timeline — bounded so it never steals the calendar's height */}
+      <div className="max-h-[180px] shrink-0 overflow-y-auto">
         <ActivityTimeline items={planningActivity} />
       </div>
 
