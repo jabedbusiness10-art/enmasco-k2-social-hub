@@ -31,7 +31,7 @@ export const sidebarConfig: NavSection[] = [
     children: [
       { label: "Social Hub", href: "/social" },
       { label: "Publishing", href: "/publishing" },
-      { label: "Planner", href: "/planner" },
+      { label: "Content Planner", href: "/content-planner" },
       { label: "Media Library", href: "/media" },
       { label: "Integrations", href: "/settings/social" },
     ],
