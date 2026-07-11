@@ -9,12 +9,67 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  @keyframes gridMove {
-    from {
-      background-position: 0 0;
-    }
-    to {
-      background-position: 100% 100%;
-    }
+  /* ---- Ambient backdrop animations ---- */
+  @keyframes gridDrift {
+    from { background-position: 0 0, 0 0; }
+    to   { background-position: 44px 44px, 44px 44px; }
+  }
+
+  @keyframes orbFloat {
+    0%   { transform: translate(0, 0) scale(1); }
+    33%  { transform: translate(40px, -30px) scale(1.1); }
+    66%  { transform: translate(-30px, 25px) scale(0.95); }
+    100% { transform: translate(0, 0) scale(1); }
+  }
+
+  .orb { opacity: 0.5; }
+  .orb-a { top: 8%; left: 12%; animation: orbFloat 22s ease-in-out infinite; }
+  .orb-b { bottom: 10%; right: 14%; animation: orbFloat 28s ease-in-out infinite reverse; }
+  .orb-c { top: 40%; left: 55%; animation: orbFloat 34s ease-in-out infinite; }
+
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .shimmer {
+    background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.12) 50%, transparent 65%);
+    background-size: 200% 100%;
+    animation: shimmer 2.4s linear infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.55; filter: brightness(1); }
+    50%      { opacity: 1; filter: brightness(1.25); }
+  }
+  .glow-pulse { animation: glowPulse 2.6s ease-in-out infinite; }
+
+  @keyframes borderSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+  .floaty { animation: floaty 4s ease-in-out infinite; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-up { animation: fadeUp 0.5s ease forwards; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orb, .shimmer, .glow-pulse, .floaty { animation: none !important; }
+    * { scroll-behavior: auto !important; }
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(90deg, #e2e8f0, #7dd3fc 45%, #fda4af);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }

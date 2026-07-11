@@ -24,10 +24,10 @@ const stats = [
 ];
 
 const quickActions = [
-  { icon: Network, label: "SOCIAL HUB" },
-  { icon: ShieldCheck, label: "DUTY ROUTINE" },
-  { icon: MessageCircle, label: "INTERNAL CHAT" },
-  { icon: Crown, label: "CEO PANEL" },
+  { icon: Network, label: "SOCIAL HUB", href: "/social" },
+  { icon: ShieldCheck, label: "DUTY ROUTINE", href: "/duty-routine" },
+  { icon: MessageCircle, label: "INTERNAL CHAT", href: "/messages" },
+  { icon: Crown, label: "CEO PANEL", href: "/ceo" },
 ];
 
 type HeroPanelProps = {
@@ -119,6 +119,7 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
                 key={action.label}
                 icon={action.icon}
                 label={action.label}
+                href={action.href}
                 delay={0.48 + index * 0.05}
               />
             ))}
