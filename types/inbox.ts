@@ -1,6 +1,30 @@
-export type InboxPlatform = "facebook" | "instagram" | "linkedin" | "website";
-export type ConversationStatus = "OPEN" | "ASSIGNED" | "CLOSED";
-export type MessageSender = "CUSTOMER" | "AGENT" | "SYSTEM";
+// TASK-41 Unified Social Inbox — domain types
+// Platforms: live (FB/IG/LinkedIn) + future-ready (X/TikTok/WhatsApp).
+
+export type InboxPlatform =
+  | "facebook"
+  | "instagram"
+  | "linkedin"
+  | "x"
+  | "tiktok"
+  | "whatsapp";
+
+export type ConversationStatus =
+  | "UNREAD"
+  | "REPLIED"
+  | "PENDING"
+  | "RESOLVED"
+  | "CLOSED";
+
+export type MessageSender = "CUSTOMER" | "AGENT" | "SYSTEM" | "AI";
+
+export type InboxFolder =
+  | "ALL"
+  | "UNREAD"
+  | "ASSIGNED"
+  | "STARRED"
+  | "ARCHIVED"
+  | "SPAM";
 
 export interface Conversation {
   id: string;
@@ -8,12 +32,17 @@ export interface Conversation {
   customer: string;
   avatar?: string;
   lastMessage: string;
+  lastActivity: string; // ISO
   unread: number;
   status: ConversationStatus;
-  priority: "LOW" | "MEDIUM" | "HIGH";
+  starred?: boolean;
   assignedTo?: string;
-  lastActivity: string;
+  spam?: boolean;
+  archived?: boolean;
   tags: string[];
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  conversationCount: number;
+  firstContact: string; // ISO
 }
 
 export interface InboxMessage {
@@ -22,20 +51,23 @@ export interface InboxMessage {
   sender: MessageSender;
   text: string;
   sentAt: string;
-  internalNote?: boolean;
   attachment?: string;
 }
 
-export interface CustomerProfile {
+export interface CustomerProfileData {
+  id: string;
   name: string;
   platform: InboxPlatform;
   firstContact: string;
   lastActivity: string;
-  assignedStaff?: string;
-  status: ConversationStatus;
+  conversationCount: number;
   tags: string[];
-  notes: string;
-  interactionHistory: { date: string; action: string }[];
+  assignedAgent: string;
+}
+
+export interface InboxNotification {
+  platform: InboxPlatform;
+  count: number;
 }
 
 export interface QuickReply {
