@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -53,18 +53,18 @@ const H = 200;
 
 function useWidth() {
   const ref = useRef<HTMLDivElement>(null);
-  const [w, setW] = useState(320);
-  useLayoutEffect(() => {
+  const [w, setW] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
     if (!ref.current) return;
-    const ro = new ResizeObserver((entries) => {
-      const cw = entries[0]?.contentRect.width;
-      if (cw) setW(Math.floor(cw));
-    });
+    const update = () => setW(Math.floor(ref.current?.clientWidth || 0));
+    const ro = new ResizeObserver(update);
     ro.observe(ref.current);
-    setW(Math.floor(ref.current.clientWidth) || 320);
+    update();
     return () => ro.disconnect();
   }, []);
-  return { ref, w };
+  return { ref, w: w || 320, mounted };
 }
 
 function Card({
@@ -74,12 +74,12 @@ function Card({
   title: string;
   children: (width: number) => React.ReactNode;
 }) {
-  const { ref, w } = useWidth();
+  const { ref, w, mounted } = useWidth();
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl">
       <h3 className="mb-3 text-sm font-semibold text-white">{title}</h3>
       <div ref={ref} className="w-full" style={{ height: H }}>
-        {children(w)}
+        {mounted ? children(w) : <div className="h-full w-full animate-pulse rounded-lg bg-white/[0.04]" />}
       </div>
     </div>
   );
