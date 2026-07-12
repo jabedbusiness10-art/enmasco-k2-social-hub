@@ -4,43 +4,75 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Network,
+  MessageCircle,
   Users,
   Bot,
   BarChart3,
   Inbox,
   ShieldCheck,
-  Activity,
-  Calendar,
-  FileText,
+  // social
+  Link2,
+  CalendarClock,
+  PenLine,
+  FileEdit,
   Megaphone,
+  CalendarDays,
+  Activity,
   MessageSquare,
-  Image,
-  Camera,
-  Send,
-  AlertCircle,
-  BarChart2,
+  // messenger
+  Hash,
   Users2,
+  Volume2,
+  Paperclip,
   Star,
-  Settings,
-  KeyRound,
+  Archive,
+  // team
   UserCog,
-  Lock,
+  KeyRound,
+  ListChecks,
   ScrollText,
-  Bell,
-  Database,
-  HeartPulse,
+  // ai
   Sparkles,
   Wand2,
   Workflow,
-  ListChecks,
-  MessageCircle,
+  // insights
+  TrendingUp,
+  Eye,
+  Heart,
+  Users as UsersIcon,
+  FileText,
+  Radio,
+  // inbox
+  Facebook,
+  Instagram,
+  Linkedin,
+  Globe,
+  // admin
+  Building2,
+  Settings,
+  Plug,
+  Lock,
+  ShieldAlert,
+  Bell,
+  Database,
+  HeartPulse,
 } from "lucide-react";
+
+export type NavChild = {
+  label: string;
+  href: string;
+  /** short description for page header */
+  description?: string;
+};
 
 export type NavSection = {
   key: string;
   label: string;
   icon: LucideIcon;
-  children: { label: string; href: string }[];
+  href: string;
+  /** breadcrumb segment label for the module root */
+  crumb: string;
+  children: NavChild[];
   expandable?: boolean;
 };
 
@@ -52,103 +84,152 @@ export const sidebarConfig: NavSection[] = [
     key: "dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    children: [{ label: "Overview", href: "/" }],
+    href: "/dashboard",
+    crumb: "Dashboard",
     expandable: false,
+    children: [],
   },
   {
     key: "social",
     label: "Social",
     icon: Network,
+    href: "/dashboard/social",
+    crumb: "Social",
     children: [
-      { label: "Connected Accounts", href: "/settings/social" },
-      { label: "Publishing Scheduler", href: "/scheduler" },
-      { label: "Content Planner", href: "/content-planner" },
-      { label: "Draft Posts", href: "/planner" },
-      { label: "Campaign Manager", href: "/social/campaigns" },
-      { label: "Social Calendar", href: "/scheduler" },
-      { label: "Engagement Monitor", href: "/engagement" },
-      { label: "Comments", href: "/social/comments" },
-      { label: "Media Library", href: "/media" },
-    ],
-  },
-  {
-    key: "team",
-    label: "Team",
-    icon: Users,
-    children: [
-      { label: "Members", href: "/dashboard/users" },
-      { label: "Roles & Permissions", href: "/dashboard/users" },
-      { label: "Assigned Tasks", href: "/duty-routine" },
-      { label: "Activity Logs", href: "/team/activity" },
+      { label: "Connected Accounts", href: "/dashboard/social/accounts", description: "Manage connected social platform accounts and their auth status." },
+      { label: "Publishing Scheduler", href: "/dashboard/social/scheduler", description: "Schedule and manage posts across all connected platforms." },
+      { label: "Content Planner", href: "/dashboard/social/planner", description: "Plan and organize content ideas into a calendar." },
+      { label: "Draft Posts", href: "/dashboard/social/drafts", description: "Create and manage draft posts before publishing." },
+      { label: "Campaign Manager", href: "/dashboard/social/campaigns", description: "Create and track marketing campaigns across platforms." },
+      { label: "Social Calendar", href: "/dashboard/social/calendar", description: "Visual calendar of all scheduled and published content." },
+      { label: "Engagement Monitor", href: "/dashboard/social/engagement", description: "Monitor likes, comments, and reactions in real time." },
+      { label: "Comments", href: "/dashboard/social/comments", description: "Review and respond to comments from all platforms." },
     ],
   },
   {
     key: "messenger",
     label: "K2 Messenger",
     icon: MessageCircle,
+    href: "/dashboard/messenger",
+    crumb: "K2 Messenger",
     children: [
-      { label: "Direct", href: "/messenger/direct" },
-      { label: "Groups", href: "/groups" },
-      { label: "Channels", href: "/channels" },
-      { label: "Announcements", href: "/announcements" },
-      { label: "Files", href: "/files" },
-      { label: "Starred", href: "/starred" },
-      { label: "Archive", href: "/archive" },
+      { label: "Direct Messages", href: "/dashboard/messenger/direct", description: "One-on-one realtime conversations." },
+      { label: "Groups", href: "/dashboard/messenger/groups", description: "Group conversations with your team and clients." },
+      { label: "Channels", href: "/dashboard/messenger/channels", description: "Broadcast channels for announcements and updates." },
+      { label: "Announcements", href: "/dashboard/messenger/announcements", description: "Company-wide announcements and notices." },
+      { label: "Shared Files", href: "/dashboard/messenger/files", description: "Files shared across your conversations." },
+      { label: "Starred", href: "/dashboard/messenger/starred", description: "Your starred messages and conversations." },
+      { label: "Archive", href: "/dashboard/messenger/archive", description: "Archived conversations and messages." },
     ],
   },
   {
-    key: "ai-automation",
+    key: "team",
+    label: "Team",
+    icon: Users,
+    href: "/dashboard/team",
+    crumb: "Team",
+    children: [
+      { label: "Members", href: "/dashboard/team/members", description: "Manage team members, profiles, and access." },
+      { label: "Roles & Permissions", href: "/dashboard/team/roles", description: "Define roles and control what each member can do." },
+      { label: "Duty Routine", href: "/dashboard/team/duty", description: "Assign and track team duties and routines." },
+      { label: "Activity Logs", href: "/dashboard/team/activity", description: "Audit trail of team actions and changes." },
+    ],
+  },
+  {
+    key: "ai",
     label: "AI & Automation",
     icon: Bot,
+    href: "/dashboard/ai",
+    crumb: "AI & Automation",
     children: [
-      { label: "K2KAI Studio", href: "/ai" },
-      { label: "AI Reply Assistant", href: "/inbox" },
-      { label: "Caption Generator", href: "/ai" },
-      { label: "Workflow Automation", href: "/automation" },
-      { label: "Automation Logs", href: "/automation" },
+      { label: "K2Kai Studio", href: "/dashboard/ai/studio", description: "Create and manage AI agents and prompts." },
+      { label: "AI Reply Assistant", href: "/dashboard/ai/reply", description: "AI-suggested replies for your inbox and messages." },
+      { label: "Caption Generator", href: "/dashboard/ai/captions", description: "Generate post captions and hashtags with AI." },
+      { label: "Workflow Automation", href: "/dashboard/ai/workflows", description: "Build automated workflows and triggers." },
+      { label: "Automation Logs", href: "/dashboard/ai/logs", description: "History and status of automated workflows." },
     ],
   },
   {
     key: "insights",
     label: "Insights",
     icon: BarChart3,
+    href: "/dashboard/insights",
+    crumb: "Insights",
     children: [
-      { label: "Analytics Dashboard", href: "/insights/analytics" },
-      { label: "Reach", href: "/insights/analytics" },
-      { label: "Engagement", href: "/engagement" },
-      { label: "Audience", href: "/insights/analytics" },
-      { label: "Reports", href: "/insights/reports" },
-      { label: "Live Analytics", href: "/insights/analytics" },
+      { label: "Analytics Dashboard", href: "/dashboard/insights/dashboard", description: "Unified analytics across all platforms." },
+      { label: "Reach", href: "/dashboard/insights/reach", description: "Audience reach and impression metrics." },
+      { label: "Engagement", href: "/dashboard/insights/engagement", description: "Engagement rate and interaction analytics." },
+      { label: "Audience", href: "/dashboard/insights/audience", description: "Audience demographics and growth." },
+      { label: "Reports", href: "/dashboard/insights/reports", description: "Generate and export performance reports." },
+      { label: "Live Analytics", href: "/dashboard/insights/live", description: "Real-time analytics as events happen." },
     ],
   },
   {
     key: "inbox",
     label: "Inbox",
     icon: Inbox,
+    href: "/dashboard/inbox",
+    crumb: "Inbox",
     children: [
-      { label: "Unified Inbox", href: "/inbox" },
-      { label: "Messages", href: "/messages" },
-      { label: "Comments", href: "/social/comments" },
-      { label: "Mentions", href: "/inbox" },
-      { label: "Reviews", href: "/inbox" },
-      { label: "AI Replies", href: "/inbox" },
+      { label: "Unified Inbox", href: "/dashboard/inbox/all", description: "All external messages in one place." },
+      { label: "Facebook", href: "/dashboard/inbox/facebook", description: "Facebook messages and comments." },
+      { label: "Instagram", href: "/dashboard/inbox/instagram", description: "Instagram messages and comments." },
+      { label: "LinkedIn", href: "/dashboard/inbox/linkedin", description: "LinkedIn messages and comments." },
+      { label: "Website Messages", href: "/dashboard/inbox/website", description: "Messages submitted through your website." },
     ],
-    expandable: false,
   },
   {
-    key: "administration",
+    key: "admin",
     label: "Administration",
     icon: ShieldCheck,
+    href: "/dashboard/admin",
+    crumb: "Administration",
     children: [
-      { label: "Company Profile", href: "/dashboard/settings" },
-      { label: "Workspace Settings", href: "/dashboard/settings" },
-      { label: "API Connections", href: "/settings/social" },
-      { label: "User Management", href: "/dashboard/users" },
-      { label: "Security", href: "/settings/account" },
-      { label: "Audit Logs", href: "/administration/audit" },
-      { label: "Notifications", href: "/notifications" },
-      { label: "Backup & Restore", href: "/administration/backup" },
-      { label: "System Health", href: "/dashboard" },
+      { label: "Company Settings", href: "/dashboard/admin/company", description: "Company profile and branding configuration." },
+      { label: "Workspace Settings", href: "/dashboard/admin/workspace", description: "Workspace-wide preferences and defaults." },
+      { label: "API Connections", href: "/dashboard/admin/apis", description: "Manage third-party API integrations." },
+      { label: "Security", href: "/dashboard/admin/security", description: "Password, 2FA, and security policies." },
+      { label: "Audit Logs", href: "/dashboard/admin/audit", description: "System-wide audit and security logs." },
+      { label: "Notifications", href: "/dashboard/admin/notifications", description: "Global notification preferences." },
+      { label: "Backup & Restore", href: "/dashboard/admin/backup", description: "Backup data and restore from snapshots." },
+      { label: "System Health", href: "/dashboard/admin/health", description: "Servers, queues, and system status." },
     ],
   },
 ];
+
+/** Flat lookup of every route → its nav meta (for breadcrumbs + page headers). */
+export type RouteMeta = {
+  href: string;
+  label: string;
+  description?: string;
+  moduleKey: string;
+  moduleLabel: string;
+  moduleHref: string;
+  crumb: string;
+};
+
+export const routeMetaMap: Record<string, RouteMeta> = (() => {
+  const map: Record<string, RouteMeta> = {};
+  for (const section of sidebarConfig) {
+    map[section.href] = {
+      href: section.href,
+      label: section.label,
+      moduleKey: section.key,
+      moduleLabel: section.label,
+      moduleHref: section.href,
+      crumb: section.crumb,
+    };
+    for (const child of section.children) {
+      map[child.href] = {
+        href: child.href,
+        label: child.label,
+        description: child.description,
+        moduleKey: section.key,
+        moduleLabel: section.label,
+        moduleHref: section.href,
+        crumb: section.crumb,
+      };
+    }
+  }
+  return map;
+})();

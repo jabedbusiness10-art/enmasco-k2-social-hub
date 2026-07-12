@@ -268,10 +268,10 @@ export default function MessengerPage() {
         {/* Left: conversation list */}
         <div className="flex flex-col border-r border-white/10 bg-white/[0.02]">
           <div className="flex items-center gap-1 border-b border-white/5 p-2">
-            <QuickTab label="Direct" href="/messenger/direct" />
-            <QuickTab label="Groups" href="/groups" />
-            <QuickTab label="Chan" href="/channels" />
-            <QuickTab label="More" href="/announcements" />
+            <QuickTab label="Direct" href="/dashboard/messenger/direct" />
+            <QuickTab label="Groups" href="/dashboard/messenger/groups" />
+            <QuickTab label="Chan" href="/dashboard/messenger/channels" />
+            <QuickTab label="More" href="/dashboard/messenger/announcements" />
           </div>
           <div className="flex-1 space-y-1 overflow-y-auto p-2">
             {loading ? <div className="p-4 text-center text-xs text-white/40">Loading…</div> :

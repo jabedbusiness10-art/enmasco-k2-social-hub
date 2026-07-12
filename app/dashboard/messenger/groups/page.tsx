@@ -10,7 +10,7 @@ export default function GroupsPage() {
   const user = (session?.user as any) ?? null;
   return (
     <MessengerSocketProvider user={user}>
-      <MessengerSubList title="Groups" kind="GROUP" icon={Users} cta={{ label: "New Group", href: "/messenger/direct" }} />
+      <MessengerSubList title="Groups" kind="GROUP" icon={Users} cta={{ label: "New Group", href: "/dashboard/messenger/direct" }} />
     </MessengerSocketProvider>
   );
 }

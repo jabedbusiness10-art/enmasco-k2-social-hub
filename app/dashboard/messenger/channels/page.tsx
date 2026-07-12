@@ -10,7 +10,7 @@ export default function ChannelsPage() {
   const user = (session?.user as any) ?? null;
   return (
     <MessengerSocketProvider user={user}>
-      <MessengerSubList title="Channels" kind="CHANNEL" icon={Hash} cta={{ label: "New Channel", href: "/messenger/direct" }} />
+      <MessengerSubList title="Channels" kind="CHANNEL" icon={Hash} cta={{ label: "New Channel", href: "/dashboard/messenger/direct" }} />
     </MessengerSocketProvider>
   );
 }
