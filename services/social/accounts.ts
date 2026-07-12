@@ -21,6 +21,13 @@ export interface SocialAccountPublic {
   connectedBy: string;
   lastSyncAt: string | null;
   expiresAt: string | null;
+  // --- TASK-45 Meta OAuth display fields (no tokens) ---
+  instagramBusinessId: string | null;
+  pageName: string | null;
+  permissions: string[];
+  accessTokenStatus: string | null;
+  provider: string | null;
+  // -------------------------------------------------------
   createdAt: string;
   updatedAt: string;
 }
@@ -55,6 +62,11 @@ function toPublic(row: any): SocialAccountPublic {
     connectedBy: row.connectedBy,
     lastSyncAt: row.lastSyncAt ? row.lastSyncAt.toISOString() : null,
     expiresAt: row.expiresAt ? row.expiresAt.toISOString() : null,
+    instagramBusinessId: row.instagramBusinessId ?? null,
+    pageName: row.pageName ?? null,
+    permissions: row.permissions ?? [],
+    accessTokenStatus: row.accessTokenStatus ?? null,
+    provider: row.provider ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -80,6 +92,13 @@ export interface ConnectInput {
   expiresAt?: string | null;
   connectedBy: string;
   connectedById?: string | null;
+  // --- TASK-45 Meta extensions (optional, provider-agnostic) ---
+  instagramBusinessId?: string | null;
+  pageName?: string | null;
+  permissions?: string[];
+  accessTokenStatus?: "ACTIVE" | "EXPIRING" | "EXPIRED" | null;
+  provider?: string | null;
+  // -------------------------------------------------------------------
 }
 
 // Upsert by (platform, accountHandle). Tokens are encrypted at rest.
@@ -106,6 +125,11 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       status: "CONNECTED",
       connectedBy: input.connectedBy,
       connectedById: input.connectedById ?? null,
+      instagramBusinessId: input.instagramBusinessId ?? null,
+      pageName: input.pageName ?? null,
+      permissions: input.permissions ?? [],
+      accessTokenStatus: input.accessTokenStatus ?? "ACTIVE",
+      provider: input.provider ?? "manual",
       lastSyncAt: new Date(),
     },
     update: {
@@ -120,6 +144,11 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       status: "CONNECTED",
       connectedBy: input.connectedBy,
       connectedById: input.connectedById ?? null,
+      instagramBusinessId: input.instagramBusinessId ?? null,
+      pageName: input.pageName ?? null,
+      permissions: input.permissions ?? [],
+      accessTokenStatus: input.accessTokenStatus ?? "ACTIVE",
+      provider: input.provider ?? "manual",
       lastSyncAt: new Date(),
     },
   });
@@ -151,6 +180,82 @@ export async function refreshAccount(id: string): Promise<SocialAccountPublic> {
 export async function disconnectAccount(id: string): Promise<void> {
   await prisma.companySocialAccount.update({
     where: { id },
-    data: { status: "DISCONNECTED", isActive: false, accessToken: "", refreshToken: null },
+    data: {
+      status: "DISCONNECTED",
+      isActive: false,
+      accessToken: "",
+      refreshToken: null,
+      instagramBusinessId: null,
+      accessTokenStatus: "EXPIRED",
+    },
   });
+}
+
+// ---------------------------------------------------------------------------
+// TASK-45 — Meta OAuth connection persistence.
+// Stores a Facebook Page connection plus its linked Instagram Business account.
+// Tokens are encrypted at rest via lib/crypto. Reuses connectAccount's upsert.
+// ---------------------------------------------------------------------------
+
+export interface MetaConnectionInput {
+  page: { id: string; name: string; accessToken: string };
+  ig?: { id: string; username?: string } | null;
+  userToken?: string; // long-lived user token (optional, for token refresh later)
+  permissions: string[];
+  expiresAt: string | null;
+  connectedBy: string;
+  connectedById?: string | null;
+}
+
+/**
+ * Persist a Meta (Facebook Page + Instagram Business) connection.
+ * - FB Page → one CompanySocialAccount (platform FACEBOOK)
+ * - IG Business → one CompanySocialAccount (platform INSTAGRAM), linked via instagramBusinessId
+ * Both share the same underlying page token scope so future publishing/DM works.
+ */
+export async function connectMetaAccount(input: MetaConnectionInput): Promise<{
+  facebook: SocialAccountPublic;
+  instagram: SocialAccountPublic | null;
+}> {
+  const fb = await connectAccount({
+    platform: "FACEBOOK",
+    accountName: input.page.name,
+    accountHandle: input.page.id,
+    accountId: input.page.id,
+    pageId: input.page.id,
+    pageName: input.page.name,
+    accessToken: input.page.accessToken,
+    refreshToken: input.userToken ?? null,
+    expiresAt: input.expiresAt,
+    permissions: input.permissions,
+    accessTokenStatus: input.expiresAt ? "ACTIVE" : "ACTIVE",
+    provider: "meta",
+    connectedBy: input.connectedBy,
+    connectedById: input.connectedById ?? null,
+  });
+
+  let ig: SocialAccountPublic | null = null;
+  if (input.ig) {
+    ig = await connectAccount({
+      platform: "INSTAGRAM",
+      accountName: input.ig.username
+        ? `Instagram @${input.ig.username}`
+        : "Instagram Business",
+      accountHandle: input.ig.id,
+      accountId: input.ig.id,
+      pageId: input.page.id,
+      instagramBusinessId: input.ig.id,
+      pageName: input.page.name,
+      accessToken: input.page.accessToken, // page token also grants IG business access
+      refreshToken: input.userToken ?? null,
+      expiresAt: input.expiresAt,
+      permissions: input.permissions,
+      accessTokenStatus: input.expiresAt ? "ACTIVE" : "ACTIVE",
+      provider: "meta",
+      connectedBy: input.connectedBy,
+      connectedById: input.connectedById ?? null,
+    });
+  }
+
+  return { facebook: fb, instagram: ig };
 }

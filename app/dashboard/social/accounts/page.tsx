@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { Plus, RefreshCw, Search, Loader2 } from "lucide-react";
+import { Plus, RefreshCw, Search, Loader2, Megaphone } from "lucide-react";
 import type { CompanySocialAccount, SocialPlatform } from "@/types/company-social";
 import SocialStatCards from "@/components/company-social/SocialStatCards";
 import SocialAccountCard from "@/components/company-social/SocialAccountCard";
@@ -19,8 +20,10 @@ type Sort = "newest" | "oldest" | "platform";
 
 export default function CompanySocialPage() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const role = (session?.user as { role?: string } | undefined)?.role ?? "VIEWER";
   const canManage = ROLES_CAN_MANAGE.includes(role);
+  const [metaStatus, setMetaStatus] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
 
   const [accounts, setAccounts] = useState<CompanySocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +56,25 @@ export default function CompanySocialPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // TASK-45 — surface Meta OAuth result from callback redirect query.
+  useEffect(() => {
+    const meta = searchParams.get("meta");
+    if (!meta) return;
+    if (meta === "success") setMetaStatus({ kind: "success", msg: "Meta connection established successfully." });
+    else if (meta === "error") {
+      const reason = searchParams.get("reason") ?? "Connection failed";
+      setMetaStatus({ kind: "error", msg: reason });
+    } else if (meta === "unauthorized") {
+      setMetaStatus({ kind: "error", msg: "You are not authorized to connect Meta." });
+    }
+    // clear the query param so a refresh doesn't re-trigger
+    window.history.replaceState({}, "", "/dashboard/social/accounts");
+  }, [searchParams]);
+
+  function connectWithMeta() {
+    window.location.href = "/api/social/meta/auth";
+  }
 
   async function handleConnect(payload: any) {
     const res = await fetch("/api/social/connect", {
@@ -173,6 +195,14 @@ export default function CompanySocialPage() {
           )}
           {canManage && (
             <button
+              onClick={connectWithMeta}
+              className="flex items-center gap-1.5 rounded-xl border border-[#1877F2]/40 bg-[#1877F2]/15 px-3.5 py-2 text-xs font-semibold text-[#9fc4ff] transition hover:bg-[#1877F2]/25"
+            >
+              <Megaphone className="h-4 w-4" /> Connect with Meta
+            </button>
+          )}
+          {canManage && (
+            <button
               onClick={() => {
                 setReconnectTarget(null);
                 setConnectOpen(true);
@@ -187,6 +217,18 @@ export default function CompanySocialPage() {
 
       {error && (
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs text-rose-300">{error}</div>
+      )}
+
+      {metaStatus && (
+        <div
+          className={`rounded-xl border px-4 py-2 text-xs ${
+            metaStatus.kind === "success"
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+              : "border-rose-500/30 bg-rose-500/10 text-rose-300"
+          }`}
+        >
+          {metaStatus.msg}
+        </div>
       )}
 
       {/* Stat cards */}

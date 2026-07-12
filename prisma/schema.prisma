@@ -173,6 +173,19 @@ model CompanySocialAccount {
   refreshToken   String?
   expiresAt      DateTime?
 
+  // --- TASK-45 Meta OAuth extensions (all nullable, non-destructive) ---
+  // Instagram Business account linked to the connected Facebook Page.
+  instagramBusinessId String?
+  // Display name of the selected Facebook Page.
+  pageName            String?
+  // Granted permission scopes (from token debug / granted_scopes).
+  permissions         String[] @default([])
+  // High-level token health derived from expiry + debug: ACTIVE | EXPIRED | EXPIRING
+  accessTokenStatus   String?  @map("access_token_status")
+  // OAuth provider that established this connection (meta | manual | linkedin | ...).
+  provider            String?  @default("manual")
+  // -------------------------------------------------------------------------
+
   status         PlatformStatus @default(CONNECTED)
   connectedBy    String
   connectedById  String?
