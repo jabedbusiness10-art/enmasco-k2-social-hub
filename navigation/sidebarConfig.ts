@@ -19,6 +19,7 @@ import {
   CalendarDays,
   Activity,
   MessageSquare,
+  Mail,
   // messenger
   Hash,
   Users2,
@@ -42,11 +43,10 @@ import {
   Users as UsersIcon,
   FileText,
   Radio,
-  // inbox
-  Facebook,
-  Instagram,
-  Linkedin,
-  Globe,
+  // inbox (brand icons substituted with generic + per-platform initials in UI)
+  MessageCircle as FacebookIcon,
+  MessageCircle as InstagramIcon,
+  MessageCircle as LinkedinIcon,
   // admin
   Building2,
   Settings,
@@ -56,6 +56,7 @@ import {
   Bell,
   Database,
   HeartPulse,
+  UserPlus,
 } from "lucide-react";
 
 export type NavChild = {
@@ -76,9 +77,8 @@ export type NavSection = {
   expandable?: boolean;
 };
 
-// Project architecture — every feature lives under its parent module.
-// Routes that already have pages are linked directly; planned modules
-// point to their future route so navigation stays consistent.
+// Blueprint v1.0 (Architecture Freeze) — single source of truth for navigation.
+// Route Registry §3 + Naming Convention §8. Every route here is the canonical path.
 export const sidebarConfig: NavSection[] = [
   {
     key: "dashboard",
@@ -96,14 +96,28 @@ export const sidebarConfig: NavSection[] = [
     href: "/dashboard/social",
     crumb: "Social",
     children: [
-      { label: "Connected Accounts", href: "/dashboard/social/accounts", description: "Manage connected social platform accounts and their auth status." },
-      { label: "Publishing Scheduler", href: "/dashboard/social/scheduler", description: "Schedule and manage posts across all connected platforms." },
+      { label: "Connected Accounts", href: "/dashboard/social/accounts", description: "Connect and manage Facebook, Instagram, LinkedIn and website accounts." },
+      { label: "Publishing Scheduler", href: "/dashboard/social/publisher", description: "Schedule and publish posts across all connected platforms." },
       { label: "Content Planner", href: "/dashboard/social/planner", description: "Plan and organize content ideas into a calendar." },
+      { label: "Social Calendar", href: "/dashboard/social/calendar", description: "Visual calendar of all scheduled and published content." },
       { label: "Draft Posts", href: "/dashboard/social/drafts", description: "Create and manage draft posts before publishing." },
       { label: "Campaign Manager", href: "/dashboard/social/campaigns", description: "Create and track marketing campaigns across platforms." },
-      { label: "Social Calendar", href: "/dashboard/social/calendar", description: "Visual calendar of all scheduled and published content." },
       { label: "Engagement Monitor", href: "/dashboard/social/engagement", description: "Monitor likes, comments, and reactions in real time." },
       { label: "Comments", href: "/dashboard/social/comments", description: "Review and respond to comments from all platforms." },
+      { label: "Messages", href: "/dashboard/social/messages", description: "Social conversation threads and direct messages from platforms." },
+    ],
+  },
+  {
+    key: "team",
+    label: "Team",
+    icon: Users,
+    href: "/dashboard/team",
+    crumb: "Team",
+    children: [
+      { label: "Members", href: "/dashboard/team/members", description: "Manage team members, profiles, and access." },
+      { label: "Roles & Permissions", href: "/dashboard/team/roles", description: "Define roles and control what each member can do." },
+      { label: "Tasks", href: "/dashboard/team/tasks", description: "Assign and track team tasks and routines." },
+      { label: "Activity Logs", href: "/dashboard/team/activity", description: "Audit trail of team actions and changes." },
     ],
   },
   {
@@ -120,19 +134,6 @@ export const sidebarConfig: NavSection[] = [
       { label: "Shared Files", href: "/dashboard/messenger/files", description: "Files shared across your conversations." },
       { label: "Starred", href: "/dashboard/messenger/starred", description: "Your starred messages and conversations." },
       { label: "Archive", href: "/dashboard/messenger/archive", description: "Archived conversations and messages." },
-    ],
-  },
-  {
-    key: "team",
-    label: "Team",
-    icon: Users,
-    href: "/dashboard/team",
-    crumb: "Team",
-    children: [
-      { label: "Members", href: "/dashboard/team/members", description: "Manage team members, profiles, and access." },
-      { label: "Roles & Permissions", href: "/dashboard/team/roles", description: "Define roles and control what each member can do." },
-      { label: "Duty Routine", href: "/dashboard/team/duty", description: "Assign and track team duties and routines." },
-      { label: "Activity Logs", href: "/dashboard/team/activity", description: "Audit trail of team actions and changes." },
     ],
   },
   {
@@ -156,7 +157,7 @@ export const sidebarConfig: NavSection[] = [
     href: "/dashboard/insights",
     crumb: "Insights",
     children: [
-      { label: "Analytics Dashboard", href: "/dashboard/insights/dashboard", description: "Unified analytics across all platforms." },
+      { label: "Analytics", href: "/dashboard/insights/analytics", description: "Unified analytics across all platforms." },
       { label: "Reach", href: "/dashboard/insights/reach", description: "Audience reach and impression metrics." },
       { label: "Engagement", href: "/dashboard/insights/engagement", description: "Engagement rate and interaction analytics." },
       { label: "Audience", href: "/dashboard/insights/audience", description: "Audience demographics and growth." },
@@ -171,11 +172,10 @@ export const sidebarConfig: NavSection[] = [
     href: "/dashboard/inbox",
     crumb: "Inbox",
     children: [
-      { label: "Unified Inbox", href: "/dashboard/inbox/all", description: "All external messages in one place." },
+      { label: "Unified Inbox", href: "/dashboard/inbox/unified", description: "All external messages in one place." },
       { label: "Facebook", href: "/dashboard/inbox/facebook", description: "Facebook messages and comments." },
       { label: "Instagram", href: "/dashboard/inbox/instagram", description: "Instagram messages and comments." },
       { label: "LinkedIn", href: "/dashboard/inbox/linkedin", description: "LinkedIn messages and comments." },
-      { label: "Website Messages", href: "/dashboard/inbox/website", description: "Messages submitted through your website." },
     ],
   },
   {
@@ -187,12 +187,13 @@ export const sidebarConfig: NavSection[] = [
     children: [
       { label: "Company Settings", href: "/dashboard/admin/company", description: "Company profile and branding configuration." },
       { label: "Workspace Settings", href: "/dashboard/admin/workspace", description: "Workspace-wide preferences and defaults." },
-      { label: "API Connections", href: "/dashboard/admin/apis", description: "Manage third-party API integrations." },
+      { label: "API Connections", href: "/dashboard/admin/api", description: "Manage third-party API integrations." },
+      { label: "User Management", href: "/dashboard/admin/users", description: "Manage platform users, access, and invitations." },
       { label: "Security", href: "/dashboard/admin/security", description: "Password, 2FA, and security policies." },
       { label: "Audit Logs", href: "/dashboard/admin/audit", description: "System-wide audit and security logs." },
       { label: "Notifications", href: "/dashboard/admin/notifications", description: "Global notification preferences." },
       { label: "Backup & Restore", href: "/dashboard/admin/backup", description: "Backup data and restore from snapshots." },
-      { label: "System Health", href: "/dashboard/admin/health", description: "Servers, queues, and system status." },
+      { label: "System Health", href: "/dashboard/admin/system-health", description: "Servers, queues, and system status." },
     ],
   },
 ];
