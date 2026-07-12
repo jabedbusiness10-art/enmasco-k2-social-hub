@@ -78,7 +78,8 @@ export default function K2Chat() {
         : messages;
       const userMsg: ChatMsg = { id: `u${Date.now()}`, role: "user", content };
       const assistantId = `a${Date.now()}`;
-      const next = [...history, ...(regenerate ? [] : [userMsg]), { id: assistantId, role: "assistant", content: "" }];
+      const assistantMsg: ChatMsg = { id: assistantId, role: "assistant", content: "" };
+      const next = [...history, ...(regenerate ? [] : [userMsg]), assistantMsg];
       setMessages(next);
       setInput("");
       scrollToBottom();

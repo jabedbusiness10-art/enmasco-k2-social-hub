@@ -38,7 +38,7 @@ export const campaigns: Campaign[] = [
 ];
 
 export const users: User[] = [
-  { id: "u1", name: "Jabed Hossain", color: "#0ea5e9", role: "CEO" },
+  { id: "u1", name: "MD Kazim", color: "#0ea5e9", role: "CEO" },
   { id: "u2", name: "Sara Khan", color: "#ec4899", role: "Content Lead" },
   { id: "u3", name: "MD Kazim", color: "#8b5cf6", role: "Sales Head" },
   { id: "u4", name: "Arif Rahman", color: "#f97316", role: "Designer" },
@@ -74,7 +74,7 @@ export const contentPlans: ContentPlan[] = [
     platform: "facebook",
     status: "SCHEDULED",
     schedule: { scheduledAt: iso(0, 9, 0), timezone: "Asia/Dhaka", recurrence: "NONE" },
-    approval: { status: "APPROVED", requestedAt: at(-2, 10), decidedAt: at(-1, 14), decidedBy: "Jabed Hossain" },
+    approval: { status: "APPROVED", requestedAt: at(-2, 10), decidedAt: at(-1, 14), decidedBy: "MD Kazim" },
     campaignId: "c1",
     departmentId: "d1",
     creatorId: "u2",
@@ -145,7 +145,7 @@ export const contentPlans: ContentPlan[] = [
     platform: "x",
     status: "SCHEDULED",
     schedule: { scheduledAt: iso(2, 7, 0), timezone: "Asia/Dhaka", recurrence: "WEEKLY" },
-    approval: { status: "APPROVED", requestedAt: at(-3, 10), decidedAt: at(-2, 11), decidedBy: "Jabed Hossain" },
+    approval: { status: "APPROVED", requestedAt: at(-3, 10), decidedAt: at(-2, 11), decidedBy: "MD Kazim" },
     campaignId: "c5",
     departmentId: "d1",
     creatorId: "u2",
@@ -180,7 +180,7 @@ export const contentPlans: ContentPlan[] = [
     platform: "linkedin",
     status: "APPROVED",
     schedule: { scheduledAt: iso(3, 11, 0), timezone: "Asia/Dhaka", recurrence: "NONE" },
-    approval: { status: "APPROVED", requestedAt: at(-1, 10), decidedAt: at(0, 9), decidedBy: "Jabed Hossain" },
+    approval: { status: "APPROVED", requestedAt: at(-1, 10), decidedAt: at(0, 9), decidedBy: "MD Kazim" },
     campaignId: "c4",
     departmentId: "d4",
     creatorId: "u5",
@@ -197,7 +197,7 @@ export const contentPlans: ContentPlan[] = [
     platform: "instagram",
     status: "SCHEDULED",
     schedule: { scheduledAt: iso(0, 7, 0), timezone: "Asia/Dhaka", recurrence: "NONE" },
-    approval: { status: "APPROVED", requestedAt: at(-2, 10), decidedAt: at(-1, 14), decidedBy: "Jabed Hossain" },
+    approval: { status: "APPROVED", requestedAt: at(-2, 10), decidedAt: at(-1, 14), decidedBy: "MD Kazim" },
     campaignId: "c1",
     departmentId: "d3",
     creatorId: "u4",
@@ -247,7 +247,7 @@ export const contentPlans: ContentPlan[] = [
     platform: "linkedin",
     status: "SCHEDULED",
     schedule: { scheduledAt: iso(1, 14, 0), timezone: "Asia/Dhaka", recurrence: "NONE" },
-    approval: { status: "APPROVED", requestedAt: at(-2, 10), decidedAt: at(-1, 12), decidedBy: "Jabed Hossain" },
+    approval: { status: "APPROVED", requestedAt: at(-2, 10), decidedAt: at(-1, 12), decidedBy: "MD Kazim" },
     campaignId: "c4",
     departmentId: "d2",
     creatorId: "u3",
@@ -282,7 +282,7 @@ export const contentPlans: ContentPlan[] = [
 
 export const planningActivity: PlanningActivity[] = [
   { id: "a1", type: "PUBLISHED", contentId: "cp3", contentTitle: "We're Hiring — Engineering", actorName: "MD Kazim", at: at(-2, 10, 2), detail: "Published to LinkedIn" },
-  { id: "a2", type: "APPROVED", contentId: "cp7", contentTitle: "Customer Story — Rahim Traders", actorName: "Jabed Hossain", at: at(0, 9, 5), detail: "Approved for scheduling" },
+  { id: "a2", type: "APPROVED", contentId: "cp7", contentTitle: "Customer Story — Rahim Traders", actorName: "MD Kazim", at: at(0, 9, 5), detail: "Approved for scheduling" },
   { id: "a3", type: "SCHEDULED", contentId: "cp1", contentTitle: "Eid Mega Sale Reveal", actorName: "Sara Khan", at: at(0, 8, 30), detail: "Scheduled for today 09:00" },
   { id: "a4", type: "EDITED", contentId: "cp5", contentTitle: "Weekly Deals Drop", actorName: "Sara Khan", at: at(-2, 11, 0), detail: "Updated caption + hashtags" },
   { id: "a5", type: "FAILED", contentId: "cp6", contentTitle: "Behind the Brand — TikTok", actorName: "System", at: at(-1, 18, 1), detail: "Upload rejected: file too large" },

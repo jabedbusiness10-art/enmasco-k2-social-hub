@@ -17,7 +17,7 @@ const pool = new pg.Pool({ connectionString: url });
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
 const demoUsers = [
-  { id: "u1", name: "Jabed", email: "ceo@enmasco.local", role: "CEO", password: "admin123" },
+  { id: "u1", name: "MD Kazim", email: "ceo@enmasco.local", role: "CEO", password: "admin123" },
   { id: "u2", name: "Admin User", email: "admin@enmasco.local", role: "ADMIN", password: "admin123" },
   { id: "u3", name: "Marketing Manager", email: "manager@enmasco.local", role: "MARKETING_MANAGER", password: "admin123" },
   { id: "u4", name: "Marketing Team", email: "marketing@enmasco.local", role: "MARKETING_TEAM", password: "admin123" },

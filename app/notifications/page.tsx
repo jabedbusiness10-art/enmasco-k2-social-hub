@@ -36,12 +36,12 @@ export default function NotificationsPage() {
 
   return (
     <div className="flex h-[calc(100vh-6rem)] flex-col">
-      <NotificationHeader tabs={tabs} activeFilter={activeTab} onSelectFilter={setActiveTab} />
+      <NotificationHeader filters={tabs} activeFilter={activeTab} onSelectFilter={setActiveTab as (filter: string) => void} />
       <NotificationStats />
 
       <div className="mt-4 grid flex-1 grid-cols-1 overflow-hidden xl:grid-cols-[16rem_1fr_16rem]">
         <aside className="flex h-full flex-col gap-3 overflow-hidden p-4">
-          <NotificationFilters filters={Array.from(tabs)} active={activeTab} onSelect={setActiveTab} />
+          <NotificationFilters filters={Array.from(tabs)} active={activeTab} onSelect={setActiveTab as (value: string) => void} />
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-xs text-white/80">
             <div className="font-semibold text-white">Quick Actions</div>
             <div className="mt-2 space-y-2">

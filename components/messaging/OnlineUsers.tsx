@@ -8,7 +8,7 @@ export default function OnlineUsers() {
     { name: "Lipton", status: "online" },
     { name: "Arif", status: "online" },
     { name: "Sumon", status: "away" },
-    { name: "Jabed", status: "offline" },
+    { name: "MD Kazim", status: "offline" },
   ];
 
   return (

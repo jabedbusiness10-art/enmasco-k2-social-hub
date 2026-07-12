@@ -11,7 +11,7 @@ export const companyAccounts: CompanySocialAccount[] = [
     lastSync: "2026-07-08 03:00",
     connectedDate: "2026-01-10",
     lastUpdated: "2026-07-08",
-    createdBy: "Jabed Hossain",
+    createdBy: "MD Kazim",
   },
   {
     id: "ig",
@@ -23,7 +23,7 @@ export const companyAccounts: CompanySocialAccount[] = [
     lastSync: "2026-07-08 02:45",
     connectedDate: "2026-02-05",
     lastUpdated: "2026-07-08",
-    createdBy: "Jabed Hossain",
+    createdBy: "MD Kazim",
   },
   {
     id: "li",
@@ -35,7 +35,7 @@ export const companyAccounts: CompanySocialAccount[] = [
     lastSync: "2026-07-07 11:20",
     connectedDate: "2026-03-01",
     lastUpdated: "2026-07-07",
-    createdBy: "Jabed Hossain",
+    createdBy: "MD Kazim",
   },
   {
     id: "web",
@@ -46,7 +46,7 @@ export const companyAccounts: CompanySocialAccount[] = [
     lastSync: "2026-07-08 01:00",
     connectedDate: "2026-01-10",
     lastUpdated: "2026-07-08",
-    createdBy: "Jabed Hossain",
+    createdBy: "MD Kazim",
   },
   {
     id: "yt",
@@ -72,10 +72,10 @@ export const connectionHealth: HealthItem[] = [
 ];
 
 export const platformInfo = [
-  { platform: "Facebook", accountName: "ENMASCO Security Trading Co.", businessId: "FB-ENMASCO-001", connectedDate: "2026-01-10", lastUpdated: "2026-07-08", createdBy: "Jabed Hossain" },
-  { platform: "Instagram", accountName: "@enmasco", businessId: "IG-ENMASCO-001", connectedDate: "2026-02-05", lastUpdated: "2026-07-08", createdBy: "Jabed Hossain" },
-  { platform: "LinkedIn", accountName: "ENMASCO Security Trading Co.", businessId: "LI-ENMASCO-001", connectedDate: "2026-03-01", lastUpdated: "2026-07-07", createdBy: "Jabed Hossain" },
-  { platform: "Website", accountName: "www.enmasco.com", businessId: "WEB-ENMASCO-001", connectedDate: "2026-01-10", lastUpdated: "2026-07-08", createdBy: "Jabed Hossain" },
+  { platform: "Facebook", accountName: "ENMASCO Security Trading Co.", businessId: "FB-ENMASCO-001", connectedDate: "2026-01-10", lastUpdated: "2026-07-08", createdBy: "MD Kazim" },
+  { platform: "Instagram", accountName: "@enmasco", businessId: "IG-ENMASCO-001", connectedDate: "2026-02-05", lastUpdated: "2026-07-08", createdBy: "MD Kazim" },
+  { platform: "LinkedIn", accountName: "ENMASCO Security Trading Co.", businessId: "LI-ENMASCO-001", connectedDate: "2026-03-01", lastUpdated: "2026-07-07", createdBy: "MD Kazim" },
+  { platform: "Website", accountName: "www.enmasco.com", businessId: "WEB-ENMASCO-001", connectedDate: "2026-01-10", lastUpdated: "2026-07-08", createdBy: "MD Kazim" },
   { platform: "YouTube", accountName: "ENMASCO TV", businessId: "YT-ENMASCO-001", connectedDate: "—", lastUpdated: "—", createdBy: "—" },
 ];
 

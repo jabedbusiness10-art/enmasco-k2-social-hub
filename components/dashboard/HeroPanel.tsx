@@ -26,7 +26,7 @@ const stats = [
 const quickActions = [
   { icon: Network, label: "SOCIAL HUB", href: "/social" },
   { icon: ShieldCheck, label: "DUTY ROUTINE", href: "/duty-routine" },
-  { icon: MessageCircle, label: "INTERNAL CHAT", href: "/messages" },
+  { icon: MessageCircle, label: "K2 MESSENGER", href: "/messenger" },
   { icon: Crown, label: "CEO PANEL", href: "/ceo" },
 ];
 

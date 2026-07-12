@@ -33,6 +33,7 @@ import {
   Wand2,
   Workflow,
   ListChecks,
+  MessageCircle,
 } from "lucide-react";
 
 export type NavSection = {
@@ -79,6 +80,20 @@ export const sidebarConfig: NavSection[] = [
       { label: "Roles & Permissions", href: "/dashboard/users" },
       { label: "Assigned Tasks", href: "/duty-routine" },
       { label: "Activity Logs", href: "/team/activity" },
+    ],
+  },
+  {
+    key: "messenger",
+    label: "K2 Messenger",
+    icon: MessageCircle,
+    children: [
+      { label: "Direct", href: "/messenger/direct" },
+      { label: "Groups", href: "/groups" },
+      { label: "Channels", href: "/channels" },
+      { label: "Announcements", href: "/announcements" },
+      { label: "Files", href: "/files" },
+      { label: "Starred", href: "/starred" },
+      { label: "Archive", href: "/archive" },
     ],
   },
   {

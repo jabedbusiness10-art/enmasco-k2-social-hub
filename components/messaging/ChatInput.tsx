@@ -17,8 +17,8 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
         <input
           className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40"
           placeholder="Type a message..."
-          onChange={(e) => {
-            if (e.key === "Enter") {
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
               const value = e.currentTarget.value.trim();
               if (value) {
                 onSendMessage(value);
