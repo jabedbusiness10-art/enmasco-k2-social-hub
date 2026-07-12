@@ -1,3 +1,5 @@
+"use client";
+
 import MessengerSubList from "@/components/messaging/MessengerSubList";
 import { Hash } from "lucide-react";
 
