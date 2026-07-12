@@ -35,7 +35,7 @@ async function main() {
   const sales = departments.find((item) => item.name === "SALES");
 
   const users = [
-    { name: "Jabed", email: "ceo@enmasco.local", password: "admin123", role: "CEO", department: null },
+    { name: "MD Kazim", email: "ceo@enmasco.local", password: "admin123", role: "CEO", department: null },
     { name: "Admin User", email: "admin@enmasco.local", password: "admin123", role: "ADMIN", department: null },
     { name: "Marketing Manager", email: "marketing_manager@enmasco.local", password: "admin123", role: "MARKETING_MANAGER", department: marketing },
     { name: "Marketing Team", email: "marketing_team@enmasco.local", password: "admin123", role: "MARKETING_TEAM", department: marketing },

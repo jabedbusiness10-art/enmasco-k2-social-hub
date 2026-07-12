@@ -143,7 +143,7 @@ export const recentActivities: ActivityItem[] = [
   { id: "a2", user: "Sara Khan", action: "Approved Security Roundup", time: "09:40 AM" },
   { id: "a3", user: "Arif", action: "Updated K2Kai AI settings", time: "10:05 AM" },
   { id: "a4", user: "Nusrat", action: "Scheduled 3 posts", time: "10:30 AM" },
-  { id: "a5", user: "Jabed", action: "Reviewed automation logs", time: "11:00 AM" },
+  { id: "a5", user: "MD Kazim", action: "Reviewed automation logs", time: "11:00 AM" },
 ];
 
 export const socialStats: SocialPlatformStat[] = [

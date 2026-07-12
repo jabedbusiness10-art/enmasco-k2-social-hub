@@ -54,7 +54,7 @@ export default function ChatSidebar({ channels, selectedChannelId, onSelectChann
           </div>
           <div className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-white/70 hover:bg-white/[0.06]">
             <span className="h-2 w-2 rounded-full bg-red-400" />
-            Jabed
+            MD Kazim
           </div>
         </div>
       </div>

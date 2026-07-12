@@ -99,7 +99,7 @@ function makeActivity(): ActivityItem[] {
   return [
     { id: "a1", kind: "publish", text: "Sara Khan published “Eid Mega Sale Reveal” to Instagram", time: "2m ago" },
     { id: "a2", kind: "ai", text: "K2Kai generated 3 caption variants for TikTok campaign", time: "9m ago" },
-    { id: "a3", kind: "scheduled", text: "“Founder Live — X Space” scheduled by Jabed Hossain", time: "21m ago" },
+    { id: "a3", kind: "scheduled", text: "“Founder Live — X Space” scheduled by MD Kazim", time: "21m ago" },
     { id: "a4", kind: "team", text: "Arif Rahman moved “Behind the Brand” to Review", time: "34m ago" },
     { id: "a5", kind: "failed", text: "“Product Launch Teaser” failed on YouTube — retrying", time: "51m ago" },
     { id: "a6", kind: "publish", text: "Nusrat Jahan published “Customer Story — Rahim Traders” to LinkedIn", time: "1h ago" },

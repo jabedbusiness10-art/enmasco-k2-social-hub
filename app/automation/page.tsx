@@ -37,7 +37,7 @@ export default function AutomationPage() {
 
   return (
     <div className="flex h-[calc(100vh-6rem)] flex-col">
-      <AutomationHeader tabs={tabList} tab={tab} onSelectTab={setTab} />
+      <AutomationHeader tabs={tabList} tab={tab} onSelectTab={setTab as (tab: string) => void} />
       <AutomationStats />
 
       <div className="mt-4 grid flex-1 grid-cols-1 overflow-hidden xl:grid-cols-[16rem_1fr_16rem]">

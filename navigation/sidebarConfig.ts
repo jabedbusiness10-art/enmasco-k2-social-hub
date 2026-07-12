@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Network, Users, Bot, BarChart3, ShieldCheck, Inbox } from "lucide-react";
+import { LayoutDashboard, Network, Users, Bot, BarChart3, ShieldCheck, Inbox, MessageCircle } from "lucide-react";
 
 export type NavSection = {
   key: string;
@@ -43,7 +43,20 @@ export const sidebarConfig: NavSection[] = [
     children: [
       { label: "Users", href: "/dashboard/users" },
       { label: "Duty Routine", href: "/duty-routine" },
-      { label: "Internal Chat", href: "/messages" },
+    ],
+  },
+  {
+    key: "messenger",
+    label: "K2 Messenger",
+    icon: MessageCircle,
+    children: [
+      { label: "Direct", href: "/messenger/direct" },
+      { label: "Groups", href: "/groups" },
+      { label: "Channels", href: "/channels" },
+      { label: "Announcements", href: "/announcements" },
+      { label: "Files", href: "/files" },
+      { label: "Starred", href: "/starred" },
+      { label: "Archive", href: "/archive" },
     ],
   },
   {

@@ -17,7 +17,7 @@ export default function AiSidebar({ modules, selectedModuleId, onSelectModule }:
       <div className="space-y-1 px-3">
         {modules.map((module, index) => (
           <motion.button
-            key={module.id}
+            key={module.label}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: index * 0.04 }}

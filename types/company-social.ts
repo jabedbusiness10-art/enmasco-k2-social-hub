@@ -3,6 +3,7 @@ export type PlatformStatus = "CONNECTED" | "EXPIRING_SOON" | "DISCONNECTED" | "P
 
 export interface CompanySocialAccount {
   id: string;
+  businessId: string | null;
   platform: SocialPlatform;
   accountName: string;
   accountHandle: string | null;
@@ -16,6 +17,31 @@ export interface CompanySocialAccount {
   expiresAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface BrandSettings {
+  companyName: string;
+  website: string;
+  language: string;
+  timeZone: string;
+  brandColor: string;
+  signature: string;
+}
+
+export interface HealthItem {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface PostingPermissionItem {
+  label: string;
+  requiresApproval: boolean;
+}
+
+export interface PermissionItem {
+  role: string;
+  access: string;
 }
 
 export const PLATFORM_META: Record<

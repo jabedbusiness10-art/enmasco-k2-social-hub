@@ -3,15 +3,17 @@
 import { motion } from "framer-motion";
 
 type ActionToolbarProps = {
-  onPublishNow: () => void;
-  onRetryFailed: () => void;
-  onCancelJob: () => void;
-  onPauseQueue: () => void;
-  onResumeQueue: () => void;
-  onViewLogs: () => void;
+  onPublishNow?: () => void;
+  onRetryFailed?: () => void;
+  onCancelJob?: () => void;
+  onPauseQueue?: () => void;
+  onResumeQueue?: () => void;
+  onViewLogs?: () => void;
 };
 
-export default function ActionToolbar({ onPublishNow, onRetryFailed, onCancelJob, onPauseQueue, onResumeQueue, onViewLogs }: ActionToolbarProps) {
+const noop = () => {};
+
+export default function ActionToolbar({ onPublishNow = noop, onRetryFailed = noop, onCancelJob = noop, onPauseQueue = noop, onResumeQueue = noop, onViewLogs = noop }: ActionToolbarProps) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
       <div className="text-xs font-semibold uppercase tracking-wider text-white/50">Manual Actions</div>

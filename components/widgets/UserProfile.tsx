@@ -11,7 +11,7 @@ export default function UserProfile() {
         />
       </div>
       <div className="hidden text-left md:block">
-        <p className="text-sm font-medium text-white">Jabed Hossain</p>
+        <p className="text-sm font-medium text-white">MD Kazim</p>
         <p className="text-[10px] uppercase tracking-widest text-neutral-400">Team</p>
       </div>
     </div>

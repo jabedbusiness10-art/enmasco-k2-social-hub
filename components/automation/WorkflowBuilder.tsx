@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { Sparkles, Workflow } from "lucide-react";
-import type { Workflow } from "@/types/automation";
+import type { Workflow as WorkflowT } from "@/types/automation";
 
 type WorkflowBuilderProps = {
-  workflow: Workflow | null;
+  workflow: WorkflowT | null;
 };
 
 export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
