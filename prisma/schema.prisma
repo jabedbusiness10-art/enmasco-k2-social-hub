@@ -123,6 +123,8 @@ model User {
   conversationNotifications ConversationNotification[]
   presence     OnlinePresence?
 
+  accounts      Account[]
+  sessions      Session[]
 
   @@index([roleId])
   @@index([departmentId])
@@ -132,6 +134,8 @@ model User {
 
 model CompanySettings {
   id              String   @id @default(cuid())
+  companyId       String?  @unique // TASK-45 pre-flight: loose link to Company model (1:1)
+  company         Company? @relation(fields: [companyId], references: [id])
   companyName     String
   companyShortName String?
   logoUrl         String?
@@ -751,4 +755,63 @@ model AuditLog {
   @@index([entityId])
   @@index([createdById])
   @@index([createdAt])
+}
+
+// ============================================================================
+// TASK-45 Pre-Flight — DB readiness models (additive, non-destructive)
+// ============================================================================
+
+// Company entity (Blueprint: Administration > Company Settings).
+// Loose 1:1 with CompanySettings via optional companyId on CompanySettings.
+model Company {
+  id           String   @id @default(cuid())
+  name         String
+  legalName    String?
+  website      String?
+  industry     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  settings CompanySettings?
+}
+
+// --- NextAuth.js OAuth adapter tables (readiness for TASK-46 LinkedIn OAuth) ---
+// Standard next-auth models. Stored provider OAuth identities link here.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
