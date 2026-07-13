@@ -46,7 +46,7 @@ export default function AiStudioPage() {
   }, [tab]);
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] gap-4">
+    <div className="flex h-full gap-4">
       {/* Left nav */}
       <aside className="hidden w-56 shrink-0 flex-col gap-1 rounded-3xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-xl md:flex">
         <div className="mb-2 flex items-center gap-2 px-2 py-1">

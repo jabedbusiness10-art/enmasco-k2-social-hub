@@ -35,7 +35,7 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] flex-col">
+    <div className="flex h-full flex-col">
       <NotificationHeader filters={tabs} activeFilter={activeTab} onSelectFilter={setActiveTab as (filter: string) => void} />
       <NotificationStats />
 

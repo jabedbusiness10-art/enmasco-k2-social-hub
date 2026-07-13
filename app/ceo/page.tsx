@@ -26,7 +26,7 @@ export default function CEOPage() {
   }, []);
 
   return (
-    <Stagger className="flex h-[calc(100vh-6rem)] flex-col">
+    <Stagger className="flex h-full flex-col">
       <StaggerItem>
         <ExecutiveHeader timeLabel={timeLabel} />
       </StaggerItem>

@@ -12,7 +12,7 @@ import { companyAccounts, activityTimeline, permissions } from "@/data/account-m
 
 export default function CompanyAccountsSettingsPage() {
   return (
-    <Stagger className="flex h-[calc(100vh-6rem)] flex-col">
+    <Stagger className="flex h-full flex-col">
       <StaggerItem>
         <AccountHeader title="Company Social Account Manager" description="Manage connected official ENMASCO company social accounts, sync health, and access permissions." />
       </StaggerItem>

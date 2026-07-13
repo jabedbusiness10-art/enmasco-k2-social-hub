@@ -172,7 +172,7 @@ export default function SchedulerPage() {
   }, [posts, platform, status, search]);
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] flex-col">
+    <div className="flex h-full flex-col">
       <SchedulerHeader onNewPost={openNew} />
 
       {error && (

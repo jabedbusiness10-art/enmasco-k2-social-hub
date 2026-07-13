@@ -26,7 +26,7 @@ export default function MessengerSubList({
   const list = useMemo(() => conversations.filter((c) => (kind ? c.kind === kind : true)).filter((c) => (filter ? filter(c) : true)), [conversations, kind, filter]);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col">
+    <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-3">
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-sky-200/30 bg-sky-500/10 text-sky-100"><Icon className="h-5 w-5" /></span>

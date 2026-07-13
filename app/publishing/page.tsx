@@ -19,7 +19,7 @@ export default function PublishingPage() {
   const [selected, setSelected] = useState<PublishJob | null>(publishJobs[1] ?? null);
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] flex-col">
+    <div className="flex h-full flex-col">
       <PublishingHeader />
       <div className="mt-4 px-4">
         <PublishStats items={kpis} />

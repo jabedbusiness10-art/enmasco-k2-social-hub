@@ -7,7 +7,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative min-h-screen bg-[#0f172a] text-[#ededed] overflow-hidden">
+    <div className="relative flex h-[100dvh] w-full overflow-hidden bg-[#0f172a] text-[#ededed]">
       {/* 40px grid layer */}
       <div
         aria-hidden="true"
@@ -29,13 +29,13 @@ export default function DashboardLayout({
         }}
       />
 
-      {/* Foreground layout */}
-      <div className="relative z-10">
-        <TopBar />
-        <div className="flex">
-          <Sidebar />
-          <main className="flex-1">
-            <div className="mx-auto max-w-7xl px-6 py-8">{children}</div>
+      {/* Foreground layout engine */}
+      <div className="relative z-10 flex h-full w-full">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <TopBar />
+          <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="mx-auto w-full max-w-7xl px-6 py-8">{children}</div>
           </main>
         </div>
       </div>

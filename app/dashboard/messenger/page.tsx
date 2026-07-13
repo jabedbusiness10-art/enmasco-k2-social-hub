@@ -218,7 +218,7 @@ export default function MessengerPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col">
+    <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-3">
         <div className="flex items-center gap-3">

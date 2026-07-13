@@ -24,14 +24,21 @@ export default function SparkLine({
   const W = 1000;
   const H = 300;
   const pad = 12;
-  const max = Math.max(...data.map((d) => d.value)) || 1;
-  const min = Math.min(...data.map((d) => d.value));
+  const safe = data.map((d) => ({
+    ...d,
+    value: Number.isFinite(d.value) ? d.value : 0,
+  }));
+  const max = Math.max(...safe.map((d) => d.value)) || 1;
+  const min = Math.min(...safe.map((d) => d.value));
   const span = max - min || 1;
+  const n = safe.length;
 
-  const pts = data.map((d, i) => {
-    const x = pad + (i / (data.length - 1)) * (W - pad * 2);
+  const pts = safe.map((d, i) => {
+    const x = pad + (n <= 1 ? 0.5 : i / (n - 1)) * (W - pad * 2);
     const y = pad + (1 - (d.value - min) / span) * (H - pad * 2);
-    return [x, y] as const;
+    const cx = Number.isFinite(x) ? x : pad;
+    const cy = Number.isFinite(y) ? y : H - pad;
+    return [cx, cy] as const;
   });
 
   const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");

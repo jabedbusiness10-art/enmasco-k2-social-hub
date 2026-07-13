@@ -69,7 +69,7 @@ export default function SettingsControlCenter() {
   const activeLabel = SETTINGS_SECTIONS.find((s) => s.key === active)?.label ?? "";
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] gap-4">
+    <div className="flex h-full gap-4">
       {/* Sidebar nav */}
       <motion.aside
         initial={{ opacity: 0, x: -12 }}

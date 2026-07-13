@@ -198,7 +198,7 @@ export default function ContentPlannerPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-5.5rem)] flex-col gap-4">
+    <div className="flex h-full flex-col gap-4">
       <PlannerHeader onCreate={() => openCreate()} onImport={importCalendar} onExport={exportSchedule} />
       <PlannerStats stats={stats} />
       <PlannerToolbar

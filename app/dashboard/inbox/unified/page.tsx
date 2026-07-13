@@ -129,7 +129,7 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] flex-col">
+    <div className="flex h-full flex-col">
       <InboxHeader />
 
       <div className="mt-4 flex flex-col gap-4 overflow-y-auto px-4 pb-6">

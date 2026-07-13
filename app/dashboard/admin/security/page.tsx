@@ -12,7 +12,7 @@ const sections = [
 
 export default function AccountSettingsPage() {
   return (
-    <div className="flex h-[calc(100vh-6rem)] flex-col">
+    <div className="flex h-full flex-col">
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}

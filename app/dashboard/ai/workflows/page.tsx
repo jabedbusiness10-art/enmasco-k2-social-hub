@@ -36,7 +36,7 @@ export default function AutomationPage() {
   const successRate = executions.length ? Math.round((successCount / executions.length) * 100) : 0;
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] flex-col">
+    <div className="flex h-full flex-col">
       <AutomationHeader tabs={tabList} tab={tab} onSelectTab={setTab as (tab: string) => void} />
       <AutomationStats />
 
