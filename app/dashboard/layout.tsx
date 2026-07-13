@@ -1,44 +1,10 @@
-import Sidebar from "@/components/layout/Sidebar";
-import TopBar from "@/components/layout/TopBar";
+import AppShell from "@/components/layout/AppShell";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="relative flex h-[100dvh] w-full overflow-hidden bg-[#0f172a] text-[#ededed]">
-      {/* 40px grid layer */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(to_right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to_bottom, rgba(255,255,255,0.03) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      {/* SVG noise texture layer */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')",
-        }}
-      />
-
-      {/* Foreground layout engine */}
-      <div className="relative z-10 flex h-full w-full">
-        <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <TopBar />
-          <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-            <div className="mx-auto w-full max-w-[1600px] px-8 pb-8 pt-6">{children}</div>
-          </main>
-        </div>
-      </div>
-    </div>
-  );
+/**
+ * DashboardLayout — single global AppShell for every /dashboard/* route.
+ * No page may create its own sidebar or header; all inherit this shell.
+ * (Foundation v1.0 — layout architecture only, no visual redesign.)
+ */
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return <AppShell>{children}</AppShell>;
 }

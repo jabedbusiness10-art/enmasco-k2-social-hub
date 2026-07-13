@@ -1,16 +1,21 @@
 import Breadcrumb from "@/components/layout/Breadcrumb";
+import { ReactNode } from "react";
 
 type PageHeaderProps = {
   title: string;
   description?: string;
-  actions?: React.ReactNode;
+  /** Primary action buttons (right-aligned). */
+  actions?: ReactNode;
+  /** Optional filter row rendered between description and content. */
+  filters?: ReactNode;
 };
 
 /**
- * Generic page header used by all /dashboard/* routes.
- * Kept visually neutral (no theme change) — wraps breadcrumb + title + description + actions.
+ * Shared Page Template (PART 10) — every module inherits this exact structure:
+ *   Breadcrumb → Page Title → Description → Primary Actions → (Filters) → Content
+ * Kept visually neutral (no theme change). Do NOT patch per-page; extend via props.
  */
-export default function PageHeader({ title, description, actions }: PageHeaderProps) {
+export default function PageHeader({ title, description, actions, filters }: PageHeaderProps) {
   return (
     <div className="mb-6 border-b border-white/10 pb-5">
       <Breadcrumb />
@@ -21,6 +26,7 @@ export default function PageHeader({ title, description, actions }: PageHeaderPr
         </div>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
+      {filters && <div className="mt-4 flex flex-wrap items-center gap-2">{filters}</div>}
     </div>
   );
 }

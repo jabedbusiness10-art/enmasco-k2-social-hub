@@ -60,9 +60,9 @@ export default function Sidebar() {
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 72 : 260 }}
+      animate={{ width: collapsed ? 72 : 280 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="relative flex h-full w-[260px] shrink-0 flex-col border-r border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-[0_0_20px_rgba(56,189,248,0.18)] overflow-hidden"
+      className="relative flex h-full w-[280px] shrink-0 flex-col border-r border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-[0_0_20px_rgba(56,189,248,0.18)] overflow-hidden"
     >
       <div
         aria-hidden="true"
