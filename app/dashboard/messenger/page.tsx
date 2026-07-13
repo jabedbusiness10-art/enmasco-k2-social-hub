@@ -14,6 +14,29 @@ import { useMessenger, loadMessages } from "@/components/messaging/useMessenger"
 import type { ConversationDTO, MessageDTO, ReactionEmoji } from "@/types/messenger";
 import { REACTION_EMOJIS, LANG_LABELS } from "@/types/messenger";
 
+// TASK-49 — social DM Center helpers (reuse existing shell, add social filters)
+type SocialPlatform = "FACEBOOK" | "INSTAGRAM" | "LINKEDIN" | "WEBSITE" | "WHATSAPP";
+type ConvStatus = "OPEN" | "PENDING" | "RESOLVED" | "CLOSED";
+type ConvPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+
+interface SocialConv extends ConversationDTO {
+  platform?: string | null;
+  externalId?: string | null;
+  priority: ConvPriority;
+  status: ConvStatus;
+  labelIds: string[];
+  customer?: { id: string; name: string; platform?: string | null; externalId?: string | null; avatarUrl?: string | null; locale?: string | null } | null;
+  assignedTo?: { id: string; name: string; avatar?: string | null } | null;
+}
+
+async function loadSocialConversations(q: Record<string, string>): Promise<SocialConv[]> {
+  const qs = new URLSearchParams(q).toString();
+  const res = await fetch(`/api/messages/conversations?${qs}`, { cache: "no-store" });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.conversations ?? []) as SocialConv[];
+}
+
 function PresenceDot({ status }: { status?: string }) {
   const color =
     status === "ONLINE" ? "bg-emerald-400" :
@@ -52,15 +75,37 @@ export default function MessengerPage() {
   const [translateResult, setTranslateResult] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  // TASK-49 — social DM Center state
+  const [socialConvs, setSocialConvs] = useState<SocialConv[]>([]);
+  const [filterPlatform, setFilterPlatform] = useState<SocialPlatform | "">("");
+  const [filterStatus, setFilterStatus] = useState<ConvStatus | "">("");
+  const [filterPriority, setFilterPriority] = useState<ConvPriority | "">("");
+  const [statusBusy, setStatusBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const selected = useMemo(() => conversations.find((c) => c.id === selectedId) ?? null, [conversations, selectedId]);
+  // TASK-49 — load social conversations (Facebook/IG DM etc.) with filters
+  const loadSocial = useCallback(async () => {
+    const q: Record<string, string> = {};
+    if (filterPlatform) q.platform = filterPlatform;
+    if (filterStatus) q.status = filterStatus;
+    if (filterPriority) q.priority = filterPriority;
+    const data = await loadSocialConversations(q);
+    setSocialConvs(data);
+  }, [filterPlatform, filterStatus, filterPriority]);
 
+  useEffect(() => { loadSocial(); }, [loadSocial]);
+
+  const selected = useMemo(
+    () => (socialConvs as ConversationDTO[]).find((c) => c.id === selectedId) ?? conversations.find((c) => c.id === selectedId) ?? null,
+    [conversations, socialConvs, selectedId],
+  );
+
+  const source = socialConvs.length ? socialConvs : conversations;
   const filtered = useMemo(() => {
-    if (!search) return conversations;
-    return conversations.filter((c) => c.title.toLowerCase().includes(search.toLowerCase()));
-  }, [conversations, search]);
+    if (!search) return source;
+    return source.filter((c) => (c.title ?? "").toLowerCase().includes(search.toLowerCase()));
+  }, [source, search]);
 
   const totalUnread = useMemo(
     () => conversations.reduce((s, c) => s + (c.unreadCount || 0), 0) + Object.values(unread).reduce((a, b) => a + b, 0),
@@ -273,6 +318,30 @@ export default function MessengerPage() {
             <QuickTab label="Chan" href="/dashboard/messenger/channels" />
             <QuickTab label="More" href="/dashboard/messenger/announcements" />
           </div>
+          {/* TASK-49 — social DM filters */}
+          <div className="flex flex-wrap items-center gap-1 border-b border-white/5 px-2 py-1.5">
+            <select value={filterPlatform} onChange={(e) => setFilterPlatform(e.target.value as SocialPlatform | "")} className="h-7 rounded-md border border-white/10 bg-white/[0.06] px-1.5 text-[11px] text-white/70 outline-none">
+              <option value="">All Platforms</option>
+              <option value="FACEBOOK">Facebook</option>
+              <option value="INSTAGRAM">Instagram</option>
+              <option value="WEBSITE">Website</option>
+              <option value="LINKEDIN">LinkedIn</option>
+            </select>
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as ConvStatus | "")} className="h-7 rounded-md border border-white/10 bg-white/[0.06] px-1.5 text-[11px] text-white/70 outline-none">
+              <option value="">All Status</option>
+              <option value="OPEN">Open</option>
+              <option value="PENDING">Pending</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+            <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value as ConvPriority | "")} className="h-7 rounded-md border border-white/10 bg-white/[0.06] px-1.5 text-[11px] text-white/70 outline-none">
+              <option value="">All Priority</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+              <option value="URGENT">Urgent</option>
+            </select>
+          </div>
           <div className="flex-1 space-y-1 overflow-y-auto p-2">
             {loading ? <div className="p-4 text-center text-xs text-white/40">Loading…</div> :
               filtered.map((c) => (
@@ -289,6 +358,18 @@ export default function MessengerPage() {
                       {c.kind === "GROUP" && <Users className="h-3 w-3 text-white/50" />}
                       {c.isEncrypted && <Lock className="h-3 w-3 text-emerald-400/70" />}
                       <span className="truncate text-sm font-medium text-white">{c.title}</span>
+                    </div>
+                    {/* TASK-49 — social badges */}
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                      {(c as SocialConv).platform && (
+                        <span className="rounded bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-sky-300">{(c as SocialConv).platform}</span>
+                      )}
+                      {(c as SocialConv).status && (c as SocialConv).status !== "OPEN" && (
+                        <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-300">{(c as SocialConv).status}</span>
+                      )}
+                      {(c as SocialConv).priority && (c as SocialConv).priority !== "MEDIUM" && (
+                        <span className="rounded bg-rose-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-rose-300">{(c as SocialConv).priority}</span>
+                      )}
                     </div>
                     <div className="truncate text-xs text-white/50">{c.lastMessage ? `${c.lastMessage.senderName}: ${c.lastMessage.content}` : "No messages yet"}</div>
                   </div>
@@ -444,6 +525,40 @@ export default function MessengerPage() {
                           </div>
                           <PresenceDot status={presence[mem.id] ?? mem.status} />
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* TASK-49 — Customer Profile (external social customer) */}
+                  {(selected as SocialConv).customer && (
+                    <div className="space-y-2 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Customer Profile</div>
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-500/30 to-red-500/30 text-sm font-bold text-white">
+                          {initials((selected as SocialConv).customer!.name)}
+                        </span>
+                        <div>
+                          <div className="text-sm font-semibold text-white">{(selected as SocialConv).customer!.name}</div>
+                          <div className="text-[11px] text-white/50">{(selected as SocialConv).customer!.platform ?? "—"} • {(selected as SocialConv).customer!.locale ?? "en"}</div>
+                        </div>
+                      </div>
+                      {(selected as SocialConv).customer!.externalId && (
+                        <div className="text-[10px] text-white/40">External ID: {(selected as SocialConv).customer!.externalId}</div>
+                      )}
+                      {(selected as SocialConv).assignedTo && (
+                        <div className="text-[11px] text-white/60">Assigned: {(selected as SocialConv).assignedTo!.name}</div>
+                      )}
+                    </div>
+                  )}
+                  {/* TASK-49 — Conversation status control */}
+                  <div className="space-y-2">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Status</div>
+                    <div className="flex flex-wrap gap-1">
+                      {(["OPEN", "PENDING", "RESOLVED", "CLOSED"] as ConvStatus[]).map((s) => (
+                        <button key={s} disabled={statusBusy} onClick={async () => {
+                          setStatusBusy(true);
+                          await fetch(`/api/messages/status/${selected.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: s }) }).catch(() => {});
+                          setStatusBusy(false); loadSocial();
+                        }} className={`rounded-md border px-2 py-1 text-[10px] font-semibold ${((selected as SocialConv).status ?? "OPEN") === s ? "border-sky-400/50 bg-sky-400/10 text-sky-200" : "border-white/10 text-white/50 hover:text-white"}`}>{s}</button>
                       ))}
                     </div>
                   </div>

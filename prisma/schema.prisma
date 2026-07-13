@@ -125,6 +125,8 @@ model User {
   mediaAssets   MediaAsset[]
   conversationMembers ConversationMember[]
   conversationNotifications ConversationNotification[]
+  assignedConversations ConversationAssignment[] @relation("AssignmentTo")
+  createdAssignments     ConversationAssignment[] @relation("AssignmentBy")
   presence     OnlinePresence?
 
   accounts      Account[]
@@ -651,14 +653,35 @@ model Conversation {
   updatedAt     DateTime       @updatedAt
   lastMessageAt DateTime       @default(now())
 
+  // --- TASK-49: Social Messaging Hub extensions (additive) ---
+  // Social platform this conversation belongs to (FACEBOOK = Messenger,
+  // INSTAGRAM = IG DM, WEBSITE = live chat, future LINKEDIN/WHATSAPP).
+  platform           Platform?
+  platformAccountId  String?   // CompanySocialAccount id that owns this inbox
+  externalId         String?   // platform-native conversation/id (e.g. FB conversation id)
+  customerId         String?   // SocialCustomer (external party) for DMs
+  priority           ConversationPriority @default(MEDIUM)
+  status             ConversationStatus    @default(OPEN)
+  labelIds           String[]  @default([]) // ConversationLabel ids
+  assignedToId       String?   // denormalized current assignee (see ConversationAssignment)
+  // -------------------------------------------------------------------------
+
   members      ConversationMember[]
   messages     Message[]
   announcements Announcement[]
+  customer     SocialCustomer? @relation("CustomerConversations", fields: [customerId], references: [id])
+  assignments  ConversationAssignment[]
 
   @@index([kind])
   @@index([departmentId])
   @@index([isCeoChannel])
   @@index([isArchived])
+  @@index([platform])
+  @@index([platformAccountId])
+  @@index([customerId])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedToId])
   @@index([updatedAt])
 }
 
@@ -798,6 +821,78 @@ model Announcement {
   @@index([createdAt])
 }
 
+// ===========================================================================
+// TASK-49 — Enterprise Direct Message Center (Social Messaging Hub)
+// Extends the existing K2 Messenger Conversation with social-platform
+// identity, CRM-style fields, labels, assignment and status tracking.
+// All additions are additive + nullable where sensible (non-destructive).
+// ===========================================================================
+
+enum ConversationStatus {
+  OPEN
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+enum ConversationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// External social customer identity (Facebook/Instagram user, website visitor,
+// future WhatsApp/LinkedIn). Distinct from internal User.
+model SocialCustomer {
+  id            String   @id @default(cuid())
+  platform      Platform?
+  externalId    String?  // platform-scoped user id (psid / ig id / wa id)
+  firstName     String?
+  lastName      String?
+  name          String // display name fallback
+  avatarUrl     String?
+  locale        String?  @default("en")
+  // Conversation(s) this customer participates in (direct DMs)
+  conversations Conversation[] @relation("CustomerConversations")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([platform])
+  @@index([externalId])
+}
+
+// Reusable conversation labels (e.g. "Lead", "Complaint", "VIP").
+model ConversationLabel {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#38bdf8") // hex token, no magic UI change
+  companyId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+// Assignment of a conversation to an internal team member.
+model ConversationAssignment {
+  id             String   @id @default(cuid())
+  conversationId String
+  assignedToId    String // User id
+  assignedById    String?
+  assignedAt      DateTime @default(now())
+  note            String?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  assignedTo   User        @relation("AssignmentTo", fields: [assignedToId], references: [id])
+  assignedBy   User?       @relation("AssignmentBy", fields: [assignedById], references: [id])
+
+  @@index([conversationId])
+  @@index([assignedToId])
+}
+
+// ===========================================================================
+// TASK-45 Pre-Flight — DB readiness models (additive, non-destructive)
 model ConversationNotification {
   id             String   @id @default(cuid())
   userId         String
