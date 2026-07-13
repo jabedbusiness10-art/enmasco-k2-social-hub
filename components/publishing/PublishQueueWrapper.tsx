@@ -78,7 +78,7 @@ function ActionLinks({ job }: { job: PublishJob }) {
   return (
     <div className="flex items-center gap-2">
       <button className="text-xs text-sky-300 hover:text-sky-200">Edit</button>
-      {job.status !== "PUBLISHED" && (
+      {job.status !== "SUCCESS" && (
         <button className="text-xs text-red-300 hover:text-red-200">Cancel</button>
       )}
       {job.status === "FAILED" && (

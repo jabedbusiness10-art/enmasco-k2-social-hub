@@ -17,6 +17,17 @@ export interface CompanySocialAccount {
   expiresAt: string | null;
   createdAt: string;
   updatedAt: string;
+  // TASK-46 LinkedIn OAuth display fields (no tokens, server-provided).
+  organizationId?: string | null;
+  organizationName?: string | null;
+  companyName?: string | null;
+  companyLogo?: string | null;
+  apiVersion?: string | null;
+  provider?: string | null;
+  permissions?: string[];
+  accessTokenStatus?: string | null;
+  instagramBusinessId?: string | null;
+  pageName?: string | null;
 }
 
 export interface BrandSettings {
@@ -34,6 +45,15 @@ export interface HealthItem {
   value: string;
 }
 
+// SecurityCenter card item shape (referenced by components/company-social/SecurityCenter.tsx).
+export interface SecurityItem {
+  id: string;
+  label: string;
+  value: string;
+  status?: "ok" | "warn" | "error";
+  detail?: string;
+}
+
 export interface PostingPermissionItem {
   label: string;
   requiresApproval: boolean;
@@ -42,6 +62,16 @@ export interface PostingPermissionItem {
 export interface PermissionItem {
   role: string;
   access: string;
+}
+
+// Activity timeline entry (referenced by data/company-social.ts).
+export interface ActivityItem {
+  id: string;
+  action: string;
+  target?: string;
+  platform?: string;
+  actor?: string;
+  timestamp: string;
 }
 
 export const PLATFORM_META: Record<

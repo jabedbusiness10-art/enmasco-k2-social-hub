@@ -49,7 +49,8 @@ async function main() {
       where: { email: user.email },
       update: {},
       create: {
-        ...user,
+        name: user.name,
+        email: user.email,
         password: user.password,
         roleId: role.id,
         departmentId: user.department?.id ?? null,

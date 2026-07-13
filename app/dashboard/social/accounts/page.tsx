@@ -24,6 +24,7 @@ export default function CompanySocialPage() {
   const role = (session?.user as { role?: string } | undefined)?.role ?? "VIEWER";
   const canManage = ROLES_CAN_MANAGE.includes(role);
   const [metaStatus, setMetaStatus] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
+  const [linkedinStatus, setLinkedinStatus] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
 
   const [accounts, setAccounts] = useState<CompanySocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,8 +73,26 @@ export default function CompanySocialPage() {
     window.history.replaceState({}, "", "/dashboard/social/accounts");
   }, [searchParams]);
 
+  // TASK-46 — surface LinkedIn OAuth result from callback redirect query.
+  useEffect(() => {
+    const li = searchParams.get("linkedin");
+    if (!li) return;
+    if (li === "success") setLinkedinStatus({ kind: "success", msg: "LinkedIn Company Page connected successfully." });
+    else if (li === "error") {
+      const reason = searchParams.get("reason") ?? "Connection failed";
+      setLinkedinStatus({ kind: "error", msg: reason });
+    } else if (li === "unauthorized") {
+      setLinkedinStatus({ kind: "error", msg: "You are not authorized to connect LinkedIn." });
+    }
+    window.history.replaceState({}, "", "/dashboard/social/accounts");
+  }, [searchParams]);
+
   function connectWithMeta() {
     window.location.href = "/api/social/meta/auth";
+  }
+
+  function connectWithLinkedIn() {
+    window.location.href = "/api/social/linkedin/connect";
   }
 
   async function handleConnect(payload: any) {
@@ -203,6 +222,14 @@ export default function CompanySocialPage() {
           )}
           {canManage && (
             <button
+              onClick={connectWithLinkedIn}
+              className="flex items-center gap-1.5 rounded-xl border border-[#0A66C2]/40 bg-[#0A66C2]/15 px-3.5 py-2 text-xs font-semibold text-[#9cc0f5] transition hover:bg-[#0A66C2]/25"
+            >
+              <LinkedinIcon className="h-4 w-4" /> Connect LinkedIn
+            </button>
+          )}
+          {canManage && (
+            <button
               onClick={() => {
                 setReconnectTarget(null);
                 setConnectOpen(true);
@@ -228,6 +255,18 @@ export default function CompanySocialPage() {
           }`}
         >
           {metaStatus.msg}
+        </div>
+      )}
+
+      {linkedinStatus && (
+        <div
+          className={`rounded-xl border px-4 py-2 text-xs ${
+            linkedinStatus.kind === "success"
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+              : "border-rose-500/30 bg-rose-500/10 text-rose-300"
+          }`}
+        >
+          {linkedinStatus.msg}
         </div>
       )}
 
@@ -339,5 +378,20 @@ export default function CompanySocialPage() {
       />
       {detail && <AccountDetailModal account={detail} onClose={() => setDetail(null)} />}
     </div>
+  );
+}
+
+/** Inline LinkedIn glyph — avoids a hard lucide-react version dependency. */
+function LinkedinIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.24 8.25h4.52V24H.24V8.25zM8.34 8.25h4.33v2.15h.06c.6-1.14 2.07-2.34 4.26-2.34 4.56 0 5.4 3 5.4 6.9V24h-4.52v-6.98c0-1.66-.03-3.8-2.32-3.8-2.32 0-2.67 1.81-2.67 3.68V24H8.34V8.25z" />
+    </svg>
   );
 }

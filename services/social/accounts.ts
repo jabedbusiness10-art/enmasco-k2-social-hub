@@ -27,6 +27,12 @@ export interface SocialAccountPublic {
   permissions: string[];
   accessTokenStatus: string | null;
   provider: string | null;
+  // --- TASK-46 LinkedIn OAuth display fields (no tokens) ---
+  organizationId: string | null;
+  organizationName: string | null;
+  companyName: string | null;
+  companyLogo: string | null;
+  apiVersion: string | null;
   // -------------------------------------------------------
   createdAt: string;
   updatedAt: string;
@@ -67,6 +73,11 @@ function toPublic(row: any): SocialAccountPublic {
     permissions: row.permissions ?? [],
     accessTokenStatus: row.accessTokenStatus ?? null,
     provider: row.provider ?? null,
+    organizationId: row.organizationId ?? null,
+    organizationName: row.organizationName ?? null,
+    companyName: row.companyName ?? null,
+    companyLogo: row.companyLogo ?? null,
+    apiVersion: row.apiVersion ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -98,6 +109,12 @@ export interface ConnectInput {
   permissions?: string[];
   accessTokenStatus?: "ACTIVE" | "EXPIRING" | "EXPIRED" | null;
   provider?: string | null;
+  // --- TASK-46 LinkedIn OAuth extensions (optional) ---
+  organizationId?: string | null;
+  organizationName?: string | null;
+  companyName?: string | null;
+  companyLogo?: string | null;
+  apiVersion?: string | null;
   // -------------------------------------------------------------------
 }
 
@@ -108,7 +125,7 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
     where: {
       platform_accountHandle: {
         platform: input.platform,
-        accountHandle: input.accountHandle ?? null,
+        accountHandle: input.accountHandle ?? "",
       },
     },
     create: {
@@ -130,6 +147,12 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       permissions: input.permissions ?? [],
       accessTokenStatus: input.accessTokenStatus ?? "ACTIVE",
       provider: input.provider ?? "manual",
+      // TASK-46 LinkedIn fields
+      organizationId: input.organizationId ?? null,
+      organizationName: input.organizationName ?? null,
+      companyName: input.companyName ?? null,
+      companyLogo: input.companyLogo ?? null,
+      apiVersion: input.apiVersion ?? null,
       lastSyncAt: new Date(),
     },
     update: {
@@ -149,6 +172,12 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       permissions: input.permissions ?? [],
       accessTokenStatus: input.accessTokenStatus ?? "ACTIVE",
       provider: input.provider ?? "manual",
+      // TASK-46 LinkedIn fields
+      organizationId: input.organizationId ?? null,
+      organizationName: input.organizationName ?? null,
+      companyName: input.companyName ?? null,
+      companyLogo: input.companyLogo ?? null,
+      apiVersion: input.apiVersion ?? null,
       lastSyncAt: new Date(),
     },
   });
@@ -258,4 +287,93 @@ export async function connectMetaAccount(input: MetaConnectionInput): Promise<{
   }
 
   return { facebook: fb, instagram: ig };
+}
+
+// ---------------------------------------------------------------------------
+// TASK-46 — LinkedIn OAuth connection persistence.
+// Stores a LinkedIn Organization (Company Page) connection.
+// Tokens are encrypted at rest via lib/crypto. Reuses connectAccount's upsert.
+// ---------------------------------------------------------------------------
+
+export interface LinkedInConnectionInput {
+  organization: {
+    id: string;
+    name: string;
+    logoUrl?: string | null;
+    vanityName?: string | null;
+  };
+  accessToken: string;
+  refreshToken?: string | null;
+  permissions?: string[];
+  expiresAt: string | null;
+  apiVersion: string;
+  connectedBy: string;
+  connectedById?: string | null;
+}
+
+/**
+ * Persist a LinkedIn Organization connection.
+ * Upsert key is platform=LINKEDIN + accountHandle=organizationId so reconnects
+ * update the same row. Token is encrypted; nothing secret is returned to client.
+ */
+export async function connectLinkedInAccount(
+  input: LinkedInConnectionInput,
+): Promise<SocialAccountPublic> {
+  return connectAccount({
+    platform: "LINKEDIN",
+    accountName: input.organization.name,
+    accountHandle: input.organization.id,
+    accountId: input.organization.id,
+    username: input.organization.vanityName ?? null,
+    profileUrl: input.organization.vanityName
+      ? `https://www.linkedin.com/company/${input.organization.vanityName}`
+      : null,
+    accessToken: input.accessToken,
+    refreshToken: input.refreshToken ?? null,
+    expiresAt: input.expiresAt,
+    permissions: input.permissions ?? [],
+    accessTokenStatus: input.expiresAt ? "ACTIVE" : "ACTIVE",
+    provider: "linkedin",
+    connectedBy: input.connectedBy,
+    connectedById: input.connectedById ?? null,
+    // TASK-46 LinkedIn fields
+    organizationId: input.organization.id,
+    organizationName: input.organization.name,
+    companyName: input.organization.name,
+    companyLogo: input.organization.logoUrl ?? null,
+    apiVersion: input.apiVersion,
+  });
+}
+
+/**
+ * Refresh a stored LinkedIn access token using its refresh token.
+ * Architecture-ready: decrypt -> refresh -> re-encrypt. Returns null if no
+ * refresh token is available (LinkedIn only returns one on some configs).
+ */
+export async function refreshLinkedInAccount(
+  id: string,
+): Promise<SocialAccountPublic | null> {
+  const row = await prisma.companySocialAccount.findUnique({ where: { id } });
+  if (!row || row.provider !== "linkedin") return null;
+  const refreshToken = row.refreshToken ? decrypt(row.refreshToken) : null;
+  if (!refreshToken) return null;
+
+  // Lazy import to avoid a hard dependency cycle at module load.
+  const { refreshAccessToken, tokenExpiryInfo, LINKEDIN_API_VERSION } =
+    await import("@/services/linkedin/oauth");
+  const fresh = await refreshAccessToken(refreshToken);
+  const { expiresAt, status } = tokenExpiryInfo(fresh.expires_in);
+
+  const updated = await prisma.companySocialAccount.update({
+    where: { id },
+    data: {
+      accessToken: encrypt(fresh.access_token),
+      refreshToken: fresh.refresh_token ? encrypt(fresh.refresh_token) : row.refreshToken,
+      expiresAt: expiresAt ?? row.expiresAt,
+      accessTokenStatus: status,
+      status: "CONNECTED",
+      lastSyncAt: new Date(),
+    },
+  });
+  return toPublic(updated);
 }

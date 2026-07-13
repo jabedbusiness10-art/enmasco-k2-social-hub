@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useState } from "react";
-import type { Duty } from "@/types/duty";
+import type { Duty, DutyPriority } from "@/types/duty";
 
 type DutyModalProps = {
   isOpen: boolean;
@@ -42,7 +42,7 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...form, id: duty?.id, ...(!duty ? { status: form.status } : { status: form.status }) });
+    onSave({ ...form, priority: form.priority as DutyPriority, status: form.status as any, id: duty?.id });
     onClose();
   };
 

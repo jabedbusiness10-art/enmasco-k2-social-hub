@@ -157,15 +157,24 @@ function EventChip({
   const meta = PLATFORMS[post.platform];
   const Icon = meta.icon;
   return (
-    <motion.button
+    <motion.div
       layout
+      role="button"
+      tabIndex={0}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className={`flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.05] px-1.5 py-1 text-left transition hover:border-white/25 hover:bg-white/10 ${
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick();
+        }
+      }}
+      className={`flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.05] px-1.5 py-1 text-left transition hover:border-white/25 hover:bg-white/10 ${
         compact ? "text-[10px]" : "text-xs"
       } ${wide ? "w-full" : ""}`}
     >
@@ -177,7 +186,7 @@ function EventChip({
           {format(parseISO(post.scheduledAt), "hh:mm a")}
         </span>
       )}
-    </motion.button>
+    </motion.div>
   );
 }
 

@@ -1,6 +1,10 @@
 import type { UserRole, Permission, DummyUser } from "@/types/auth";
 import { dummyUsers } from "@/data/auth";
 
+// Re-export so consumers (e.g. lib/auth-server) can import UserRole from here.
+export type { UserRole } from "@/types/auth";
+
+
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   CEO: ["VIEW_DASHBOARD", "VIEW_MEDIA", "VIEW_SCHEDULER", "VIEW_PUBLISHING", "VIEW_AI", "VIEW_SETTINGS", "MEDIA_UPLOAD", "MEDIA_DELETE", "VIEW_SOCIAL", "SOCIAL_CONNECT", "SOCIAL_DISCONNECT"],
   ADMIN: ["VIEW_DASHBOARD", "VIEW_MEDIA", "VIEW_SCHEDULER", "VIEW_PUBLISHING", "VIEW_AI", "VIEW_SETTINGS", "MEDIA_UPLOAD", "MEDIA_DELETE", "VIEW_SOCIAL", "SOCIAL_CONNECT", "SOCIAL_DISCONNECT"],

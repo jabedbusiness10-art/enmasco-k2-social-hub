@@ -188,6 +188,14 @@ model CompanySocialAccount {
   accessTokenStatus   String?  @map("access_token_status")
   // OAuth provider that established this connection (meta | manual | linkedin | ...).
   provider            String?  @default("manual")
+
+  // --- TASK-46 LinkedIn OAuth extensions (all nullable, non-destructive) ---
+  // Linkedin Organization (Company Page) identifiers + metadata.
+  organizationId    String?  // LinkedIn organization / company page urn id
+  organizationName  String?  // display name of the organization
+  companyName       String?  // human-readable company name (alias of organizationName)
+  companyLogo       String?  // logo URL from LinkedIn
+  apiVersion        String?  // LinkedIn API version used (e.g. "202504")
   // -------------------------------------------------------------------------
 
   status         PlatformStatus @default(CONNECTED)

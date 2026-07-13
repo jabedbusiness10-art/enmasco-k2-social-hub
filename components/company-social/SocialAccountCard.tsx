@@ -87,6 +87,14 @@ export default function SocialAccountCard({
       <div className="relative flex items-start justify-between">
         <div className="flex items-center gap-3">
           <PlatformIcon platform={account.platform} color={meta.color} />
+          {account.companyLogo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={account.companyLogo}
+              alt={account.accountName}
+              className="h-11 w-11 rounded-2xl object-cover ring-1 ring-white/10"
+            />
+          ) : null}
           <div>
             <div className="text-[11px] uppercase tracking-wider text-white/40">{meta.label}</div>
             <div className="text-sm font-semibold text-white">{account.accountName}</div>
@@ -107,10 +115,11 @@ export default function SocialAccountCard({
       <div className="relative mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-white/55">
         <Field label="Account ID" value={account.accountId ?? "—"} />
         <Field label="Page ID" value={account.pageId ?? "—"} />
+        <Field label="Org ID" value={account.organizationId ?? account.pageId ?? "—"} />
         <Field label="Last Sync" value={account.lastSyncAt ? new Date(account.lastSyncAt).toLocaleString() : "—"} />
         <Field label="Token Exp." value={account.expiresAt ? new Date(account.expiresAt).toLocaleDateString() : "Never"} />
         <Field label="Connected By" value={account.connectedBy} />
-        <Field label="API Version" value={ui.apiVersion} />
+        <Field label="API Version" value={account.apiVersion ?? ui.apiVersion} />
         <Field label="Platform Type" value={ui.platformType} />
         <Field label="Business Mgr" value={ui.businessManager} />
       </div>
