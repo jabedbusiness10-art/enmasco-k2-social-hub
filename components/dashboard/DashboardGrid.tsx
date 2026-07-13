@@ -24,14 +24,14 @@ type ModuleLink = {
 };
 
 const modules: ModuleLink[] = [
-  { icon: Network, title: "Social", desc: "Accounts, publishing & engagement", href: "/social", accent: "text-sky-300" },
-  { icon: CalendarClock, title: "Publishing Scheduler", desc: "Plan & schedule posts", href: "/scheduler", accent: "text-sky-300" },
-  { icon: HeartPulse, title: "Engagement Monitor", desc: "Reactions & insights", href: "/engagement", accent: "text-red-300" },
-  { icon: Inbox, title: "Unified Inbox", desc: "All conversations in one place", href: "/inbox", accent: "text-sky-300" },
-  { icon: Users, title: "Team", desc: "Members & permissions", href: "/dashboard/users", accent: "text-sky-300" },
-  { icon: Bot, title: "AI & Automation", desc: "Studio & workflows", href: "/ai", accent: "text-sky-300" },
-  { icon: BarChart3, title: "Insights", desc: "Analytics & reports", href: "/insights/analytics", accent: "text-sky-300" },
-  { icon: ShieldCheck, title: "Administration", desc: "Settings & security", href: "/dashboard/settings", accent: "text-sky-300" },
+  { icon: Network, title: "Social", desc: "Accounts, publishing & engagement", href: "/dashboard/social", accent: "text-sky-300" },
+  { icon: CalendarClock, title: "Publishing Scheduler", desc: "Plan & schedule posts", href: "/dashboard/social/publisher", accent: "text-sky-300" },
+  { icon: HeartPulse, title: "Engagement Monitor", desc: "Reactions & insights", href: "/dashboard/social/engagement", accent: "text-red-300" },
+  { icon: Inbox, title: "Unified Inbox", desc: "All conversations in one place", href: "/dashboard/inbox/unified", accent: "text-sky-300" },
+  { icon: Users, title: "Team", desc: "Members & permissions", href: "/dashboard/team/members", accent: "text-sky-300" },
+  { icon: Bot, title: "AI & Automation", desc: "Studio & workflows", href: "/dashboard/ai", accent: "text-sky-300" },
+  { icon: BarChart3, title: "Insights", desc: "Analytics & reports", href: "/dashboard/insights/analytics", accent: "text-sky-300" },
+  { icon: ShieldCheck, title: "Administration", desc: "Settings & security", href: "/dashboard/admin", accent: "text-sky-300" },
 ];
 
 export default function DashboardGrid() {
@@ -54,7 +54,7 @@ export default function DashboardGrid() {
               >
                 <Link
                   href={m.href}
-                  className="group flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-all duration-300 hover:border-sky-400/40 hover:shadow-[0_0_24px_rgba(56,189,248,0.12)]"
+                  className="group flex h-full items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-all duration-300 hover:border-sky-400/40 hover:shadow-[0_0_24px_rgba(56,189,248,0.12)]"
                 >
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05]">
                     <Icon className={`h-5 w-5 ${m.accent}`} strokeWidth={1.8} />

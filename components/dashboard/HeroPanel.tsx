@@ -24,9 +24,9 @@ const stats = [
 ];
 
 const quickActions = [
-  { icon: Network, label: "SOCIAL HUB", href: "/social" },
-  { icon: ShieldCheck, label: "DUTY ROUTINE", href: "/duty-routine" },
-  { icon: MessageCircle, label: "K2 MESSENGER", href: "/messenger" },
+  { icon: Network, label: "SOCIAL HUB", href: "/dashboard/social" },
+  { icon: ShieldCheck, label: "DUTY ROUTINE", href: "/dashboard/duty-routine" },
+  { icon: MessageCircle, label: "K2 MESSENGER", href: "/dashboard/messenger" },
   { icon: Crown, label: "CEO PANEL", href: "/ceo" },
 ];
 

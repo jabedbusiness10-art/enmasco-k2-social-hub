@@ -16,7 +16,7 @@ type User = {
 };
 
 const demo: User[] = [
-  { id: "1", name: "MD Kazim", email: "jabed@enmasco.com", department: "Engineering", role: "Chief Executive Officer (CEO)", status: "Active" },
+  { id: "1", name: "MD Kazim", email: "md.kazim@enmasco.com", department: "Engineering", role: "Chief Executive Officer (CEO)", status: "Active" },
   { id: "2", name: "Sara Khan", email: "sara@enmasco.com", department: "Product", role: "Manager", status: "Away" },
   { id: "3", name: "Rafi Ahmed", email: "rafi@enmasco.com", department: "Security", role: "Analyst", status: "Offline" },
   { id: "4", name: "Nusrat Jahan", email: "nusrat@enmasco.com", department: "HR", role: "Lead", status: "Active" },
