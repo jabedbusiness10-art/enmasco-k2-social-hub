@@ -105,6 +105,7 @@ export const sidebarConfig: NavSection[] = [
       { label: "Engagement Monitor", href: "/dashboard/social/engagement", description: "Monitor likes, comments, and reactions in real time." },
       { label: "Comments", href: "/dashboard/social/comments", description: "Review and respond to comments from all platforms." },
       { label: "Messages", href: "/dashboard/social/messages", description: "Social conversation threads and direct messages from platforms." },
+      { label: "Facebook Live", href: "/dashboard/social/facebook", description: "Real-time Facebook page data: followers, posts and inbox messages." },
     ],
   },
   {
