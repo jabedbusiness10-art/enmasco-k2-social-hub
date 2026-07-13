@@ -59,7 +59,7 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
       initial={{ opacity: 0, y: -18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
-      className={`enterprise-top-nav sticky top-0 z-50 h-16 overflow-hidden rounded-[28px] border border-white/10 bg-[#070709]/80 px-4 py-3 text-white shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:px-5 lg:px-6 ${className}`}
+      className={`enterprise-top-nav relative z-50 h-16 overflow-hidden rounded-[28px] border border-white/10 bg-[#070709]/80 px-4 py-3 text-white shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:px-5 lg:px-6 ${className}`}
     >
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_8%_0%,rgba(248,113,113,0.18),transparent_28%),radial-gradient(circle_at_50%_-30%,rgba(255,255,255,0.09),transparent_24%),radial-gradient(circle_at_95%_100%,rgba(127,29,29,0.24),transparent_34%)]" />
       <div className="top-nav-grid absolute inset-0 -z-10 opacity-35" />
