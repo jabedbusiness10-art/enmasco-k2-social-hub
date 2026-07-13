@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const info = await gq(pageId, token, "fields=name,fan_count,followers_count,category,link");
-    const postsRaw = await gq(`${pageId}/posts`, token, "fields=message,created_time,permalink_url,likes.limit(0).summary(true)&limit=8").catch(() => ({ data: [] }));
+    const postsRaw = await gq(`${pageId}/posts`, token, "fields=message,created_time,permalink_url&limit=8").catch(() => ({ data: [] }));
     const convsRaw = await gq(`${pageId}/conversations`, token, "fields=id,snippet,updated_time&limit=10").catch(() => ({ data: [] }));
 
     if (info.error) {
