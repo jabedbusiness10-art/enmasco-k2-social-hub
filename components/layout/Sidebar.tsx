@@ -127,28 +127,24 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto border-t border-white/10 p-4">
-        <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05]">
-            <span className="text-xs font-bold text-white/80">K2</span>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold tracking-[0.3px] text-white/85">K2KAI Social Flow</span>
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
+              Online
+            </span>
           </div>
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -6 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col"
-              >
-                <span className="text-[10px] font-bold tracking-[0.3px] text-white/80">
-                  K2KAI Social Flow
-                </span>
-                <span className="text-[10px] uppercase tracking-[2px] text-white/60">
-                  by ENMASCO
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="flex items-center justify-between text-[10px] text-white/45">
+            <span>v1.0.0</span>
+            <span className="rounded bg-white/10 px-1.5 py-0.5 uppercase tracking-wider">
+              {process.env.NODE_ENV === "production" ? "Production" : "Development"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-white/35">
+            <span>Build 2026.07.13</span>
+            <span>by ENMASCO</span>
+          </div>
         </div>
       </div>
     </motion.aside>

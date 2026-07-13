@@ -35,7 +35,7 @@ export default function DashboardLayout({
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <TopBar />
           <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-            <div className="mx-auto w-full max-w-7xl px-6 py-8">{children}</div>
+            <div className="mx-auto w-full max-w-[1600px] px-8 pb-8 pt-6">{children}</div>
           </main>
         </div>
       </div>

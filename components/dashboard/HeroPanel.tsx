@@ -102,6 +102,30 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
           ))}
         </div>
 
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {[
+            { icon: Network, label: "Connected Accounts", value: "3" },
+            { icon: CalendarClock, label: "Scheduled Today", value: "18" },
+            { icon: Users, label: "Online Team", value: "12" },
+            { icon: Bot, label: "AI Queue", value: "Stable" },
+            { icon: ShieldCheck, label: "Uptime", value: "99.9%" },
+          ].map((item, index) => (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.3 + index * 0.05 }}
+              className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 backdrop-blur-xl"
+            >
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                <item.icon className="h-3.5 w-3.5 text-red-200/70" strokeWidth={1.8} />
+                {item.label}
+              </div>
+              <div className="text-lg font-bold text-white/90">{item.value}</div>
+            </motion.div>
+          ))}
+        </div>
+
         <HealthBar value={97} />
 
         <motion.div

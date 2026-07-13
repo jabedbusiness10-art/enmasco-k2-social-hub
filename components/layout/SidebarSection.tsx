@@ -65,7 +65,7 @@ export default function SidebarSection({
           "border border-white/10 bg-white/[0.04] hover:bg-white/[0.08]",
           expanded || hasActiveChild ? "text-sky-100" : "text-white/70",
           expanded
-            ? "border-sky-200/25 bg-sky-900/20 shadow-[inset_0_0_0_1px_rgba(56,189,248,0.15)]"
+            ? "border-sky-300/30 bg-sky-500/10 text-sky-200 shadow-[0_0_18px_rgba(56,189,248,0.22)]"
             : "",
         ].join(" ")}
       >
