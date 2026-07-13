@@ -33,8 +33,12 @@ enum UserStatus {
 enum PostStatus {
   DRAFT
   SCHEDULED
+  QUEUED
+  PUBLISHING
   PUBLISHED
   FAILED
+  APPROVED
+  REJECTED
 }
 
 enum Platform {
@@ -375,6 +379,18 @@ model Post {
   account    CompanySocialAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
   creator    User                 @relation(fields: [createdById], references: [id])
   scheduled  ScheduledPost?
+  platforms  PostPlatform[]
+  media      PostMedia[]
+  jobs       PublishingJob[]
+  history    PublishingHistory[]
+  approvals  Approval[]
+
+  // TASK-48 — composer fields
+  title       String?
+  link        String?
+  cta         String?
+  location    String?
+  hashtags    String[] @default([])
 
   @@index([platform])
   @@index([status])
@@ -402,6 +418,168 @@ model ScheduledPost {
 
   @@index([scheduledAt])
   @@index([status])
+}
+
+// ===========================================================================
+// TASK-48 — Enterprise Real Publishing Engine
+// ===========================================================================
+
+enum PublishStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  QUEUED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+  CANCELLED
+}
+
+enum JobState {
+  QUEUED
+  PROCESSING
+  PUBLISHED
+  FAILED
+  RETRY
+  CANCELLED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum QueueState {
+  QUEUED
+  PROCESSING
+  DONE
+  FAILED
+  CANCELLED
+}
+
+model PostPlatform {
+  id           String       @id @default(cuid())
+  postId       String
+  platform     Platform // FACEBOOK | INSTAGRAM | LINKEDIN (also X/TIKTOK/YOUTUBE future)
+  accountId    String? // CompanySocialAccount id (the connected page/company)
+  status       PublishStatus @default(QUEUED)
+  platformPostId String? // id returned by the platform after publish
+  liveUrl      String? // permalink to the published post
+  error        String?
+  mediaIds     String[] // PostMedia ids used for this platform
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, platform])
+  @@index([postId])
+  @@index([platform])
+  @@index([status])
+}
+
+model PostMedia {
+  id         String @id @default(cuid())
+  postId     String
+  type       String // IMAGE | VIDEO | CAROUSEL | DOCUMENT | LINK
+  url        String
+  thumbnail  String?
+  alt        String?
+  order      Int    @default(0)
+  createdAt  DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model PublishingJob {
+  id            String   @id @default(cuid())
+  postId        String
+  platform      Platform
+  accountId     String?
+  state         JobState @default(QUEUED)
+  scheduledFor  DateTime? // when to publish (null = now)
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  attempt       Int      @default(0)
+  maxAttempts   Int      @default(3)
+  lastError     String?
+  resultPostId  String?
+  resultUrl     String?
+  queueId       String? // links to Queue row (DB-backed or BullMQ job id)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([state])
+  @@index([scheduledFor])
+  @@index([postId])
+}
+
+model PublishingHistory {
+  id           String   @id @default(cuid())
+  postId       String
+  platform     Platform
+  accountId    String?
+  status       PublishStatus
+  postPlatformId String?
+  publishedBy  String
+  publishedAt  DateTime @default(now())
+  platformPostId String?
+  liveUrl      String?
+  errorMessage String?
+  jobId        String?
+  createdAt    DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([platform])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model Approval {
+  id         String        @id @default(cuid())
+  postId     String
+  status     ApprovalStatus @default(PENDING)
+  requestedBy String
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  comment     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId])
+  @@index([postId])
+  @@index([status])
+}
+
+model Queue {
+  id          String    @id @default(cuid())
+  name        String // e.g. "publishing"
+  payload     String // JSON (serialized job), encrypted if sensitive
+  state       QueueState @default(QUEUED)
+  priority    Int       @default(0)
+  runAt       DateTime  @default(now()) // earliest run time (for scheduled)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  lastError   String?
+  lockedUntil DateTime?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([state])
+  @@index([runAt])
+  @@index([name])
 }
 
 // ===========================================================================
