@@ -59,17 +59,17 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
       initial={{ opacity: 0, y: -18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
-      className={`enterprise-top-nav relative z-50 h-16 overflow-hidden rounded-[28px] border border-white/10 bg-[#070709]/80 px-4 py-3 text-white shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:px-5 lg:px-6 ${className}`}
+      className={`enterprise-top-nav relative z-50 min-h-16 overflow-visible rounded-[28px] border border-white/10 bg-[#070709]/80 px-4 py-3 text-white shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:px-5 lg:px-6 ${className}`}
     >
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_8%_0%,rgba(248,113,113,0.18),transparent_28%),radial-gradient(circle_at_50%_-30%,rgba(255,255,255,0.09),transparent_24%),radial-gradient(circle_at_95%_100%,rgba(127,29,29,0.24),transparent_34%)]" />
       <div className="top-nav-grid absolute inset-0 -z-10 opacity-35" />
       <div className="absolute left-0 top-0 -z-10 h-px w-full bg-gradient-to-r from-transparent via-red-200/45 to-transparent" />
 
-      <div className="grid items-center gap-4 lg:grid-cols-[minmax(240px,1fr)_auto_minmax(360px,1fr)]">
+      <div className="flex flex-wrap items-center gap-3">
         <motion.div
           whileHover={{ x: 2 }}
           transition={{ duration: 0.25 }}
-          className="group flex min-w-0 items-center gap-3"
+          className="group flex min-w-0 flex-shrink-0 items-center gap-3"
         >
           <img
             src="/logo.svg"
@@ -89,7 +89,7 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
         <motion.div
           whileHover={{ scale: 1.02, y: -4 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="flex flex-col justify-center p-6 bg-slate-800/50 border border-slate-700/50 rounded-xl backdrop-blur-sm"
+          className="flex flex-shrink-0 flex-col justify-center rounded-xl border border-slate-700/50 bg-slate-800/50 p-4 backdrop-blur-sm"
         >
           <div className="text-sky-400/80 text-xs font-bold tracking-wider uppercase mb-1">
             GMT+3 (Riyadh)
@@ -102,7 +102,7 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
           </div>
         </motion.div>
 
-        <div className="flex flex-wrap items-stretch justify-start gap-2 lg:justify-end">
+        <div className="ml-auto flex flex-wrap items-stretch justify-end gap-2 min-w-0">
           <StatusTile
             icon={BrainCircuit}
             label="AI Status"
@@ -113,7 +113,7 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
             icon={Radio}
             label="Network Status"
             value="Connected"
-            tone="red"
+            tone="emerald"
           />
           <StatusTile
             icon={CloudSun}
@@ -138,7 +138,7 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
           <motion.div
             whileHover={{ y: -2, scale: 1.01 }}
             transition={{ duration: 0.25 }}
-            className="group flex min-h-[58px] min-w-[210px] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/35 hover:bg-white/[0.078] hover:shadow-[0_0_30px_rgba(248,113,113,0.2)]"
+            className="group flex min-h-[52px] min-w-[170px] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/35 hover:bg-white/[0.078] hover:shadow-[0_0_30px_rgba(248,113,113,0.2)]"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-red-200/20 bg-red-400/[0.1] text-red-100 shadow-[0_0_24px_rgba(248,113,113,0.18)] transition-all duration-300 group-hover:border-red-200/45 group-hover:text-white">
               <UserRound className="h-5 w-5" strokeWidth={1.8} />
@@ -196,7 +196,7 @@ function StatusTile({ icon: Icon, label, value, tone }: StatusTileProps) {
     <motion.div
       whileHover={{ y: -2, scale: 1.02 }}
       transition={{ duration: 0.25 }}
-      className="group flex min-h-[58px] min-w-[148px] items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/35 hover:bg-white/[0.078] hover:shadow-[0_0_30px_rgba(248,113,113,0.18)]"
+      className="group flex min-h-[52px] min-w-[120px] items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/35 hover:bg-white/[0.078] hover:shadow-[0_0_30px_rgba(248,113,113,0.18)]"
     >
       <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-red-100 transition-all duration-300 group-hover:border-red-200/35 group-hover:text-white">
         <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ${toneClass}`} />
