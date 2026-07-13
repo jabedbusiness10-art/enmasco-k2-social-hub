@@ -220,6 +220,51 @@ enum PlatformStatus {
   PERMISSION_ERROR
 }
 
+// ===========================================================================
+// TASK-47 — Website ↔ Social Hub Integration
+// ===========================================================================
+
+enum CmsType {
+  WORDPRESS
+  NEXTJS
+  CUSTOM
+  HEADLESS
+  LARAVEL
+  STATIC
+}
+
+enum WebsiteStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+  SYNCING
+}
+
+model WebsiteConnection {
+  id            String   @id @default(cuid())
+  companyId     String?
+  websiteName   String
+  websiteUrl    String
+  cmsType       CmsType  @default(CUSTOM)
+  // Encrypted at rest (AES-256-GCM via lib/crypto). Stored as ciphertext.
+  apiKey        String
+  webhookSecret String
+  status        WebsiteStatus @default(CONNECTED)
+  // Health signals (live, recomputed on test/status).
+  online        Boolean  @default(true)
+  sslValid      Boolean  @default(true)
+  apiStatus     Boolean  @default(true)
+  webhookStatus Boolean  @default(true)
+  lastSync      DateTime?
+  syncFrequency String   @default("MANUAL") // MANUAL | HOURLY | DAILY | REALTIME
+  connectedBy   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([status])
+}
+
 enum MediaStatus {
   ACTIVE
   ARCHIVED

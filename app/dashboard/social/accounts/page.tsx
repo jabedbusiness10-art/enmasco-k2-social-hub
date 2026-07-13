@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { Plus, RefreshCw, Search, Loader2, Megaphone } from "lucide-react";
+import { Plus, RefreshCw, Search, Loader2, Megaphone, Globe } from "lucide-react";
 import type { CompanySocialAccount, SocialPlatform } from "@/types/company-social";
 import SocialStatCards from "@/components/company-social/SocialStatCards";
 import SocialAccountCard from "@/components/company-social/SocialAccountCard";
@@ -12,6 +12,9 @@ import AccountDetailModal from "@/components/company-social/AccountDetailModal";
 import ConnectModal from "@/components/company-social/ConnectModal";
 import HealthPanel from "@/components/company-social/HealthPanel";
 import ActivityTimeline from "@/components/company-social/ActivityTimeline";
+import WebsiteCard, { WebsiteConnectionPublic } from "@/components/company-social/WebsiteCard";
+import WebsiteConnectModal from "@/components/company-social/WebsiteConnectModal";
+import WebsiteDetailModal from "@/components/company-social/WebsiteDetailModal";
 
 const ROLES_CAN_MANAGE = ["CEO", "ADMIN"];
 
@@ -34,6 +37,11 @@ export default function CompanySocialPage() {
   const [detail, setDetail] = useState<CompanySocialAccount | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [refreshingAll, setRefreshingAll] = useState(false);
+
+  const [websites, setWebsites] = useState<WebsiteConnectionPublic[]>([]);
+  const [websiteBusyId, setWebsiteBusyId] = useState<string | null>(null);
+  const [websiteConnectOpen, setWebsiteConnectOpen] = useState(false);
+  const [websiteDetail, setWebsiteDetail] = useState<WebsiteConnectionPublic | null>(null);
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
@@ -155,6 +163,91 @@ export default function CompanySocialPage() {
     }
   }
 
+  // --- TASK-47 — Website connections ---
+  const loadWebsites = useCallback(async () => {
+    try {
+      const res = await fetch("/api/website/connect", { cache: "no-store" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Failed to load websites");
+      setWebsites(json.connections ?? []);
+    } catch (e: any) {
+      setError(e.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadWebsites();
+  }, [loadWebsites]);
+
+  async function handleWebsiteConnect(payload: any) {
+    const res = await fetch("/api/website/connect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error ?? "Website connection failed");
+    await loadWebsites();
+  }
+
+  async function handleWebsiteTest(id: string) {
+    setWebsiteBusyId(id);
+    try {
+      const res = await fetch(`/api/website/status/${id}`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Test failed");
+      await loadWebsites();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setWebsiteBusyId(null);
+    }
+  }
+
+  async function handleWebsiteSync(id: string) {
+    setWebsiteBusyId(id);
+    try {
+      const res = await fetch(`/api/website/sync/${id}`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Sync failed");
+      await loadWebsites();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setWebsiteBusyId(null);
+    }
+  }
+
+  async function handleWebsiteDisconnect(conn: WebsiteConnectionPublic) {
+    if (!confirm(`Disconnect ${conn.websiteName}?`)) return;
+    setWebsiteBusyId(conn.id);
+    try {
+      const res = await fetch(`/api/website/disconnect/${conn.id}`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Disconnect failed");
+      await loadWebsites();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setWebsiteBusyId(null);
+    }
+  }
+
+  async function handleWebsiteReconnect(conn: WebsiteConnectionPublic) {
+    setWebsiteBusyId(conn.id);
+    try {
+      // Re-test re-establishes the connection health.
+      const res = await fetch(`/api/website/status/${conn.id}`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Reconnect failed");
+      await loadWebsites();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setWebsiteBusyId(null);
+    }
+  }
+
   const stats = useMemo(() => {
     const connected = accounts.filter((a) => a.status !== "DISCONNECTED").length;
     const healthy = accounts.filter((a) => a.status === "CONNECTED").length;
@@ -226,6 +319,14 @@ export default function CompanySocialPage() {
               className="flex items-center gap-1.5 rounded-xl border border-[#0A66C2]/40 bg-[#0A66C2]/15 px-3.5 py-2 text-xs font-semibold text-[#9cc0f5] transition hover:bg-[#0A66C2]/25"
             >
               <LinkedinIcon className="h-4 w-4" /> Connect LinkedIn
+            </button>
+          )}
+          {canManage && (
+            <button
+              onClick={() => setWebsiteConnectOpen(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-emerald-400/40 bg-emerald-400/15 px-3.5 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-400/25"
+            >
+              <Globe className="h-4 w-4" /> Connect Website
             </button>
           )}
           {canManage && (
@@ -354,6 +455,19 @@ export default function CompanySocialPage() {
                   onDisconnect={handleDisconnect}
                 />
               ))}
+              {websites.map((conn) => (
+                <WebsiteCard
+                  key={conn.id}
+                  conn={conn}
+                  canManage={canManage}
+                  busy={websiteBusyId === conn.id}
+                  onView={setWebsiteDetail}
+                  onTest={handleWebsiteTest}
+                  onSync={handleWebsiteSync}
+                  onReconnect={handleWebsiteReconnect}
+                  onDisconnect={handleWebsiteDisconnect}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -377,6 +491,14 @@ export default function CompanySocialPage() {
         initialPlatform={reconnectTarget?.platform ?? null}
       />
       {detail && <AccountDetailModal account={detail} onClose={() => setDetail(null)} />}
+      <WebsiteConnectModal
+        open={websiteConnectOpen}
+        onClose={() => setWebsiteConnectOpen(false)}
+        onConnect={handleWebsiteConnect}
+      />
+      {websiteDetail && (
+        <WebsiteDetailModal conn={websiteDetail} onClose={() => setWebsiteDetail(null)} />
+      )}
     </div>
   );
 }
