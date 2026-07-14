@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
     favorite: searchParams.get("favorite") === "1",
     archived: searchParams.get("archived") === "1",
     trashed: searchParams.get("trashed") === "1",
+    collectionId: searchParams.get("collectionId") || undefined,
     sort: (searchParams.get("sort") as any) || "newest",
   });
   return NextResponse.json(assets);

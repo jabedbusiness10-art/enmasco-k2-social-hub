@@ -11,6 +11,8 @@ import DamDetailDrawer from "@/components/media/DamDetailDrawer";
 import DamUploadModal from "@/components/media/DamUploadModal";
 import DamBulkBar from "@/components/media/DamBulkBar";
 import DamActivityTimeline from "@/components/media/DamActivityTimeline";
+import TagManager from "@/components/media/TagManager";
+import CollectionSidebar from "@/components/media/CollectionSidebar";
 
 type Asset = {
   id: string;
@@ -53,6 +55,7 @@ export default function MediaPage() {
   const [openAsset, setOpenAsset] = useState<Asset | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [favOnly, setFavOnly] = useState(false);
+  const [collection, setCollection] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,6 +63,7 @@ export default function MediaPage() {
     if (search) qs.set("search", search);
     if (type) qs.set("type", type);
     if (folder) qs.set("folderId", folder);
+    if (collection) qs.set("collectionId", collection);
     if (favOnly) qs.set("favorite", "1");
     const [a, s, f, act] = await Promise.all([
       fetch(`/api/media?${qs}`).then((r) => r.json()),
@@ -72,7 +76,7 @@ export default function MediaPage() {
     setFolders(f.folders ?? []);
     setActivity(act.activity ?? []);
     setLoading(false);
-  }, [search, type, folder, favOnly]);
+  }, [search, type, folder, collection, favOnly]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -116,7 +120,7 @@ export default function MediaPage() {
 
       {stats && <DamKpiCards stats={stats} />}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_1fr_260px]">
         <DamFolderSidebar
           folders={folders}
           activeFolder={folder}
@@ -212,6 +216,11 @@ export default function MediaPage() {
               ))}
             </div>
           )}
+        </div>
+
+        <div className="hidden space-y-4 lg:block">
+          <CollectionSidebar activeId={collection} onSelect={(id) => setCollection(id)} />
+          <TagManager />
         </div>
       </div>
 

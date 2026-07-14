@@ -335,6 +335,13 @@ model MediaAsset {
   shares      MediaShare[]
   metadata    MediaMetadata[]
 
+  collectionItems CollectionItem[]
+  relationships    MediaRelationship[]
+  favorites        MediaFavorite[]
+  usages           MediaUsage[]
+  history          MediaHistory[]
+  labels           MediaLabel[]
+
   @@index([fileType])
   @@index([category])
   @@index([folderId])
@@ -394,12 +401,20 @@ model MediaShare {
 }
 
 model MediaCollection {
-  id        String   @id @default(cuid())
-  name      String
+  id          String   @id @default(cuid())
+  name        String
   description String?
+  parentId    String?  // TASK-55: nested collections
+  isPinned    Boolean  @default(false)
   createdById String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent      MediaCollection? @relation("CollectionTree", fields: [parentId], references: [id])
+  children    MediaCollection[] @relation("CollectionTree")
+  items       CollectionItem[]
+
+  @@index([parentId])
 }
 
 model MediaMetadata {
@@ -418,6 +433,80 @@ model MediaMetadata {
   @@index([assetId])
 }
 
+// ---- TASK-55: Media Tags & Collections (organization system) ----
+model CollectionItem {
+  id           String   @id @default(cuid())
+  collectionId String
+  assetId      String
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  collection MediaCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  asset      MediaAsset      @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@index([collectionId])
+  @@index([assetId])
+}
+
+model MediaRelationship {
+  id         String   @id @default(cuid())
+  assetId    String
+  context    String
+  refId      String?
+  refLabel   String?
+  createdAt  DateTime @default(now())
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@index([assetId])
+  @@index([context])
+}
+
+model MediaFavorite {
+  id         String   @id @default(cuid())
+  assetId    String
+  userId     String
+  pinned     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([assetId])
+}
+
+model MediaUsage {
+  id          String   @id @default(cuid())
+  assetId     String
+  context     String
+  usedAt      DateTime @default(now())
+  asset       MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@index([assetId])
+}
+
+model MediaHistory {
+  id        String   @id @default(cuid())
+  assetId   String
+  actorId   String
+  action    String
+  field     String?
+  fromValue String?
+  toValue   String?
+  createdAt DateTime @default(now())
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@index([assetId])
+}
+
+model MediaLabel {
+  id        String   @id @default(cuid())
+  assetId   String
+  label     String
+  source    String   @default("MANUAL")
+  confidence Float?
+  createdAt DateTime @default(now())
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@index([assetId])
+  @@index([label])
+}
 model Campaign {
   id          String    @id @default(cuid())
   title       String

@@ -12,6 +12,7 @@ export interface ListQuery {
   favorite?: boolean;
   archived?: boolean;
   trashed?: boolean;
+  collectionId?: string;
   sort?: "newest" | "oldest" | "name" | "largest" | "mostUsed";
   page?: number;
   pageSize?: number;
@@ -27,6 +28,11 @@ export const mediaService = {
       where.status = "TRASHED";
     } else if (!q.favorite && !q.archived) {
       where.status = { not: "TRASHED" };
+    }
+
+    if (q.collectionId) {
+      const items = await prisma.collectionItem.findMany({ where: { collectionId: q.collectionId }, select: { assetId: true } });
+      where.id = { in: items.map((x) => x.assetId) };
     }
 
     if (q.type) where.fileType = q.type;
@@ -148,5 +154,64 @@ export const mediaService = {
 
   async incrementUsage(id: string) {
     return prisma.mediaAsset.update({ where: { id }, data: { usageCount: { increment: 1 }, lastUsedAt: new Date() } });
+  },
+
+  // ---- TASK-55: Tags & Collections ----
+  async listTags() {
+    return prisma.mediaTag.findMany({ orderBy: { name: "asc" } });
+  },
+
+  async createTag(name: string, color?: string) {
+    return prisma.mediaTag.upsert({
+      where: { name },
+      update: { color: color ?? null },
+      create: { name, color: color ?? null },
+    });
+  },
+
+  async listCollections(parentId?: string | null) {
+    return prisma.mediaCollection.findMany({
+      where: parentId !== undefined ? { parentId } : {},
+      orderBy: [{ isPinned: "desc" }, { name: "asc" }],
+      include: { _count: { select: { items: true, children: true } } },
+    });
+  },
+
+  async createCollection(name: string, createdById: string, parentId?: string | null, description?: string) {
+    return prisma.mediaCollection.create({
+      data: { name, createdById, parentId: parentId ?? null, description: description ?? null },
+    });
+  },
+
+  async addToCollection(collectionId: string, assetId: string) {
+    const existing = await prisma.collectionItem.findFirst({ where: { collectionId, assetId } });
+    if (existing) return existing;
+    return prisma.collectionItem.create({ data: { collectionId, assetId } });
+  },
+
+  async listFavorites(userId: string) {
+    return prisma.mediaFavorite.findMany({ where: { userId }, include: { asset: true } });
+  },
+
+  async toggleFavorite(assetId: string, userId: string) {
+    const existing = await prisma.mediaFavorite.findFirst({ where: { assetId, userId } });
+    if (existing) {
+      await prisma.mediaFavorite.delete({ where: { id: existing.id } });
+      return { favorited: false };
+    }
+    await prisma.mediaFavorite.create({ data: { assetId, userId } });
+    return { favorited: true };
+  },
+
+  async history(assetId: string) {
+    return prisma.mediaHistory.findMany({ where: { assetId }, orderBy: { createdAt: "desc" }, take: 30 });
+  },
+
+  async relationships(assetId: string) {
+    return prisma.mediaRelationship.findMany({ where: { assetId }, orderBy: { createdAt: "desc" } });
+  },
+
+  async logHistory(assetId: string, actorId: string, action: string, field?: string, fromValue?: string, toValue?: string) {
+    return prisma.mediaHistory.create({ data: { assetId, actorId, action, field: field ?? null, fromValue: fromValue ?? null, toValue: toValue ?? null } });
   },
 };
