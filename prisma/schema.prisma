@@ -331,6 +331,10 @@ model MediaAsset {
   uploadedUser User?       @relation(fields: [uploadedById], references: [id])
   activities  MediaActivity[]
 
+  versions    MediaVersion[]
+  shares      MediaShare[]
+  metadata    MediaMetadata[]
+
   @@index([fileType])
   @@index([category])
   @@index([folderId])
@@ -352,6 +356,66 @@ model MediaActivity {
 
   @@index([assetId])
   @@index([createdAt])
+}
+
+// ---- TASK-54: additional DAM models (architecture-ready) ----
+model MediaTag {
+  id     String   @id @default(cuid())
+  name   String   @unique
+  color  String?  // hex for UI badge
+  createdAt DateTime @default(now())
+}
+
+model MediaVersion {
+  id        String   @id @default(cuid())
+  assetId   String
+  version   Int      @default(1)
+  fileName  String
+  fileSize  Int
+  url       String
+  note      String?
+  createdAt DateTime @default(now())
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@index([assetId])
+}
+
+model MediaShare {
+  id        String   @id @default(cuid())
+  assetId   String
+  token     String   @unique
+  createdById String
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@index([assetId])
+  @@index([token])
+}
+
+model MediaCollection {
+  id        String   @id @default(cuid())
+  name      String
+  description String?
+  createdById String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MediaMetadata {
+  id          String   @id @default(cuid())
+  assetId     String
+  width       Int?
+  height      Int?
+  duration    Float?
+  mimeType    String?
+  exif        String?  @db.Text // JSON, AI-label ready
+  aiTags      String[] @default([])
+  aiCaption   String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@index([assetId])
 }
 
 model Campaign {
