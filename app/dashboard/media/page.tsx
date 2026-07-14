@@ -218,7 +218,7 @@ export default function MediaPage() {
           )}
         </div>
 
-        <div className="hidden space-y-4 lg:block">
+        <div className="space-y-4">
           <CollectionSidebar activeId={collection} onSelect={(id) => setCollection(id)} />
           <TagManager />
         </div>
