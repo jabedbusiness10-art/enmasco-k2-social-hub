@@ -1,11 +1,28 @@
-import ModuleLanding from "@/components/layout/ModuleLanding";
+import PageHeader from "@/components/layout/PageHeader";
+import KanbanBoard from "@/components/team/KanbanBoard";
+import ActivityTimeline from "@/components/team/ActivityTimeline";
+import { requirePermission } from "@/lib/auth-server";
 
-export default function TeamPage() {
+export const dynamic = "force-dynamic";
+
+export default async function TeamPage() {
+  const auth = await requirePermission("VIEW_TEAM");
+  if (!auth.ok) return null;
+
   return (
-    <ModuleLanding
-      moduleKey="team"
-      title="Team"
-      description="Manage members, roles, duties, and activity across your organization."
-    />
+    <div className="space-y-5">
+      <PageHeader
+        title="Team Workspace"
+        description="Collaborate, assign, and track enterprise work in real time."
+      />
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <KanbanBoard />
+        </div>
+        <div>
+          <ActivityTimeline />
+        </div>
+      </div>
+    </div>
   );
 }
