@@ -10,6 +10,7 @@ import {
   BarChart3,
   Inbox,
   ShieldCheck,
+  Images,
   // social
   Link2,
   CalendarClock,
@@ -177,6 +178,18 @@ export const sidebarConfig: NavSection[] = [
       { label: "Facebook", href: "/dashboard/inbox/facebook", description: "Facebook messages and comments." },
       { label: "Instagram", href: "/dashboard/inbox/instagram", description: "Instagram messages and comments." },
       { label: "LinkedIn", href: "/dashboard/inbox/linkedin", description: "LinkedIn messages and comments." },
+    ],
+  },
+  {
+    key: "media",
+    label: "Media Library",
+    icon: Images,
+    href: "/dashboard/media",
+    crumb: "Media Library",
+    children: [
+      { label: "All Assets", href: "/dashboard/media", description: "Browse and manage all digital assets." },
+      { label: "Collections", href: "/dashboard/media", description: "Organize assets into nested collections." },
+      { label: "Tags", href: "/dashboard/media", description: "Tag and categorize assets for quick search." },
     ],
   },
   {
