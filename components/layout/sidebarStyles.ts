@@ -15,7 +15,7 @@ export const sidebarBaseItem =
   "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0";
 
 export const sidebarSectionTrigger = cva(
-  [sidebarBaseItem, "border border-white/10 bg-white/[0.04] hover:bg-white/[0.08]"],
+  [sidebarBaseItem, "border border-transparent bg-white/[0.04] hover:bg-white/[0.08]"],
   {
     variants: {
       state: {
@@ -36,7 +36,7 @@ export const sidebarItem = cva(
     variants: {
       variant: {
         // top-level section item
-        section: "border border-white/10 bg-white/[0.04] hover:bg-white/[0.08]",
+        section: "border border-transparent bg-white/[0.04] hover:bg-white/[0.08]",
         // nested submenu item (All Assets / Collections / Tags ...)
         subitem: "ml-1",
       },
