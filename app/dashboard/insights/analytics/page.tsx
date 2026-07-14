@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw, Download, CalendarRange, Filter, Check } from "lucide-react";
 import PlatformIcon from "@/components/content-planner/PlatformIcon";
-import { buildAnalytics, ANALYTICS_PLATFORMS } from "@/data/analytics";
-import type { DateRangeKey, PlatformKey } from "@/types/analytics";
+import type { DateRangeKey, PlatformKey, AnalyticsDataset } from "@/types/analytics";
 import KpiCards from "@/components/analytics/KpiCards";
 import ChartsGrid from "@/components/analytics/ChartsGrid";
 import PlatformCards from "@/components/analytics/PlatformCards";
@@ -23,27 +22,53 @@ const RANGES: { key: DateRangeKey; label: string }[] = [
   { key: "custom", label: "Custom Range" },
 ];
 
+const PLATFORM_FILTERS: PlatformKey[] = ["facebook", "instagram", "linkedin", "x", "youtube", "tiktok"];
+
 export default function LiveAnalyticsPage() {
   const [range, setRange] = useState<DateRangeKey>("30d");
   const [platforms, setPlatforms] = useState<PlatformKey[]>([]);
   const [platformOpen, setPlatformOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<AnalyticsDataset | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const data = useMemo(
-    () => buildAnalytics({ range, platforms }),
-    [range, platforms],
-  );
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/analytics/aggregate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ range, platforms }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Failed to load analytics");
+      // Map aggregated real data -> existing AnalyticsDataset shape
+      const { toDataset } = await import("@/lib/analytics/mapper");
+      setData(toDataset(json));
+    } catch (e: any) {
+      setError(e.message ?? "Failed");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [range, platforms]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const togglePlatform = (p: PlatformKey) =>
     setPlatforms((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]));
 
   const refresh = () => {
     setRefreshing(true);
-    // No fake delay — simulate an instant refresh of the (mock) dataset.
-    setTimeout(() => setRefreshing(false), 350);
+    load();
   };
 
   const exportReport = () => {
+    if (!data) return;
     const payload = JSON.stringify(data, null, 2);
     const blob = new Blob([payload], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -63,8 +88,8 @@ export default function LiveAnalyticsPage() {
         className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-3"
       >
         <div>
-          <h1 className="text-xl font-semibold text-white">Live Analytics Dashboard</h1>
-          <p className="text-xs text-white/45">Enterprise social performance — real-time company insights</p>
+          <h1 className="text-xl font-semibold text-white">Enterprise Intelligence Center</h1>
+          <p className="text-xs text-white/45">Real-time company insights · auto-refresh 60s</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -95,7 +120,7 @@ export default function LiveAnalyticsPage() {
             </button>
             {platformOpen && (
               <div className="absolute right-0 z-30 mt-1 w-44 rounded-xl border border-white/10 bg-[#0e0f17] p-2 shadow-2xl">
-                {ANALYTICS_PLATFORMS.map((p) => {
+                {PLATFORM_FILTERS.map((p) => {
                   const active = platforms.includes(p);
                   return (
                     <button
@@ -138,20 +163,34 @@ export default function LiveAnalyticsPage() {
 
       {/* Body */}
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-        <KpiCards kpi={data.kpi} />
-        <ChartsGrid data={data} />
-        <PlatformCards items={data.platformAnalytics} />
-
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-          <div className="xl:col-span-2 space-y-4">
-            <TopContentTable items={data.topContent} />
-            <AudiencePanel audience={data.audience} />
+        {error && (
+          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-200">
+            {error}
           </div>
+        )}
+        {loading && !data ? (
           <div className="space-y-4">
-            <AiInsightsPanel ai={data.ai} />
-            <ActivityFeed items={data.activity} />
+            <div className="h-28 animate-pulse rounded-2xl bg-white/[0.04]" />
+            <div className="h-64 animate-pulse rounded-2xl bg-white/[0.04]" />
+            <div className="h-40 animate-pulse rounded-2xl bg-white/[0.04]" />
           </div>
-        </div>
+        ) : data ? (
+          <>
+            <KpiCards kpi={data.kpi} />
+            <ChartsGrid data={data} />
+            <PlatformCards items={data.platformAnalytics} />
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+              <div className="xl:col-span-2 space-y-4">
+                <TopContentTable items={data.topContent} />
+                <AudiencePanel audience={data.audience} />
+              </div>
+              <div className="space-y-4">
+                <AiInsightsPanel ai={data.ai} />
+                <ActivityFeed items={data.activity} />
+              </div>
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );

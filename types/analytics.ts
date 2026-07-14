@@ -64,6 +64,10 @@ export interface PlatformAnalytics {
   /** Period-over-period growth as a percentage. */
   growthPct: number;
   status: PlatformStatus;
+  /** TASK-51: false when no real API/credentials exist (show "No Data Available"). */
+  available?: boolean;
+  /** ISO timestamp of last successful sync, or null. */
+  lastSync?: string | null;
 }
 
 export interface TopContent {
