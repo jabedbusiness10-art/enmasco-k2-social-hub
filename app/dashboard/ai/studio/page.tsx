@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, LayoutDashboard, CalendarRange, Library, History, Settings, Sparkles, Bot, BarChart3, Zap, Image as ImageIcon } from "lucide-react";
+import { MessageSquare, LayoutDashboard, CalendarRange, Library, History, Settings, Sparkles, Bot, BarChart3, Zap, Image as ImageIcon, BookOpen, Server } from "lucide-react";
 import K2Chat from "@/components/ai/K2Chat";
 import ContentPlanner from "@/components/ai/ContentPlanner";
 import PromptLibrary from "@/components/ai/PromptLibrary";
@@ -11,8 +11,10 @@ import SocialAssistant from "@/components/ai/SocialAssistant";
 import AnalyticsPanel from "@/components/ai/AnalyticsPanel";
 import AutomationPanel from "@/components/ai/AutomationPanel";
 import ImageAssistant from "@/components/ai/ImageAssistant";
+import ProviderStatus from "@/components/ai/ProviderStatus";
+import KnowledgeBase from "@/components/ai/KnowledgeBase";
 
-type Tab = "chat" | "dashboard" | "assistant" | "planner" | "analytics" | "automation" | "image" | "prompts" | "history" | "settings";
+type Tab = "chat" | "dashboard" | "assistant" | "planner" | "analytics" | "automation" | "image" | "prompts" | "knowledge" | "providers" | "history" | "settings";
 
 const NAV: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "chat", label: "K2Kai Chat", icon: <MessageSquare className="h-4 w-4" /> },
@@ -23,6 +25,8 @@ const NAV: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "automation", label: "Automation", icon: <Zap className="h-4 w-4" /> },
   { id: "image", label: "Image Assistant", icon: <ImageIcon className="h-4 w-4" /> },
   { id: "prompts", label: "Prompt Library", icon: <Library className="h-4 w-4" /> },
+  { id: "knowledge", label: "Knowledge Base", icon: <BookOpen className="h-4 w-4" /> },
+  { id: "providers", label: "Provider Status", icon: <Server className="h-4 w-4" /> },
   { id: "history", label: "History", icon: <History className="h-4 w-4" /> },
   { id: "settings", label: "AI Settings", icon: <Settings className="h-4 w-4" /> },
 ];
@@ -121,6 +125,8 @@ export default function AiStudioPage() {
         {tab === "automation" && <div className="h-full overflow-y-auto pr-1"><AutomationPanel /></div>}
         {tab === "image" && <div className="h-full overflow-y-auto pr-1"><ImageAssistant /></div>}
         {tab === "prompts" && <div className="h-full overflow-y-auto pr-1"><PromptLibrary /></div>}
+        {tab === "knowledge" && <div className="h-full overflow-y-auto pr-1"><KnowledgeBase /></div>}
+        {tab === "providers" && <div className="h-full overflow-y-auto pr-1"><ProviderStatus /></div>}
         {tab === "history" && <HistoryTab />}
         {tab === "settings" && <div className="h-full overflow-y-auto pr-1"><AISettingsForm /></div>}
       </div>

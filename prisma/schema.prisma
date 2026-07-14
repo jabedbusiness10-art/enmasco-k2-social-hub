@@ -1046,7 +1046,36 @@ model AISettings {
   streaming     Boolean  @default(true)
   systemPrompt  String   @default("You are K2Kai, the enterprise AI copilot for ENMASCO K2 SOCIAL.")
   defaultLanguage String @default("en")
+  knowledgeEnabled Boolean @default(true)
+  safetyMode    Boolean @default(true)
+  debugMode     Boolean @default(false)
   updatedAt     DateTime @updatedAt
+}
+
+// ---- TASK-52: Company Knowledge Base ----
+model KnowledgeCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  documents   KnowledgeDocument[]
+  createdAt   DateTime @default(now())
+}
+
+model KnowledgeDocument {
+  id         String   @id @default(cuid())
+  category   KnowledgeCategory @relation(fields: [categoryId], references: [id])
+  categoryId String
+  title      String
+  content    String   @db.Text
+  source     String?  // e.g. "Product Catalog", "Warranty Policy"
+  tags       String[] @default([])
+  isPublished Boolean @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([isPublished])
 }
 
 
