@@ -25,10 +25,11 @@ export default function ProviderStatus() {
       .then((r) => r.json())
       .then((j) => {
         const active = j?.provider ?? "mock";
-        // The manager reports status; we mirror it client-side for display.
+        const configured = Boolean(j?.providerConfigured);
+        // OpenRouter/OpenAI show online only when the active provider is configured.
         const known: ProviderInfo[] = [
-          { id: "openrouter", label: "OpenRouter", configured: true, status: active === "openrouter" ? "online" : "offline" },
-          { id: "openai", label: "OpenAI", configured: false, status: active === "openai" ? "online" : "offline" },
+          { id: "openrouter", label: "OpenRouter", configured: active === "openrouter" ? configured : false, status: active === "openrouter" ? (configured ? "online" : "demo") : "offline" },
+          { id: "openai", label: "OpenAI", configured: active === "openai" ? configured : false, status: active === "openai" ? (configured ? "online" : "demo") : "offline" },
           { id: "gemini", label: "Google Gemini", configured: false, status: "offline" },
           { id: "claude", label: "Anthropic Claude", configured: false, status: "offline" },
           { id: "ollama", label: "Local LLM (Ollama)", configured: false, status: "offline" },
