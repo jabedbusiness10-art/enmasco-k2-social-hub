@@ -3,6 +3,7 @@ import { requirePermission } from "@/lib/auth-server";
 import { mediaService } from "@/services/media/mediaService";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function PATCH(
   req: NextRequest,
