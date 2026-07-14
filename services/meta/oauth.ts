@@ -15,14 +15,6 @@ const META_GRAPH_BASE = "https://graph.facebook.com/v21.0";
 export const META_SCOPES = [
   "pages_show_list",
   "pages_read_engagement",
-  "pages_manage_posts",
-  "pages_manage_metadata",
-  "pages_read_user_content",
-  "instagram_basic",
-  "instagram_content_publish",
-  "instagram_manage_comments",
-  "instagram_manage_messages",
-  "business_management",
   "public_profile",
 ].join(",");
 

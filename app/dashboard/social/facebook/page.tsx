@@ -6,7 +6,7 @@ import PageHeader from "@/components/layout/PageHeader";
 
 interface FbData {
   page: { id: string; name: string; fanCount: number | null; followersCount: number | null; category: string | null; link: string | null; about: string | null };
-  posts: { id: string; message: string; createdTime: string | null; url: string | null; likes: number; comments: { message: string; from: string | null }[] }[];
+  posts: { id: string; message: string; createdTime: string | null; url: string | null; likes: number; comments: { message: string; from: string | null }[]; mediaType: string | null; mediaUrl: string | null; mediaTitle: string | null }[];
   conversations: { id: string; snippet: string; updatedTime: string | null }[];
   fetchedAt: string;
 }
@@ -95,6 +95,16 @@ export default function FacebookLivePage() {
                 {data.posts.length === 0 && <div className="text-sm text-white/40">No posts found (or requires pages_read_user_content permission for post content).</div>}
                 {data.posts.map((p) => (
                   <div key={p.id} className="rounded-xl border border-white/5 bg-black/20 p-3">
+                    {p.mediaUrl && (
+                      <div className="mb-2 overflow-hidden rounded-lg">
+                        {p.mediaType === "video" ? (
+                          <video src={p.mediaUrl} controls className="w-full max-h-64 rounded-lg" />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.mediaUrl} alt={p.mediaTitle ?? "post media"} className="w-full max-h-64 rounded-lg object-cover" />
+                        )}
+                      </div>
+                    )}
                     <p className="text-sm text-white/80 whitespace-pre-wrap line-clamp-4">{p.message || "(no caption)"}</p>
                     <div className="mt-2 flex items-center gap-3 text-xs text-white/40">
                       <span>♥ {p.likes}</span>

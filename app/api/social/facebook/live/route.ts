@@ -28,7 +28,11 @@ export async function GET(req: NextRequest) {
 
   try {
     const info = await gq(pageId, token, "fields=name,fan_count,followers_count,category,link");
-    const postsRaw = await gq(`${pageId}/posts`, token, "fields=message,created_time,permalink_url&limit=8").catch(() => ({ data: [] }));
+    // Base posts always work. Enriched call (likes/attachments) needs pages_read_engagement
+    // which dev-mode tokens may lack - fall back gracefully so posts still render.
+    const basePosts = await gq(`${pageId}/posts`, token, "fields=message,created_time,permalink_url&limit=8").catch(() => ({ data: [] }));
+    const enriched = await gq(`${pageId}/posts`, token, "fields=message,created_time,permalink_url,attachments{media_type,media,url,title},likes.limit(0).summary(true)&limit=8").catch(() => null);
+    const postsRaw = enriched && enriched.data ? enriched : basePosts;
     const convsRaw = await gq(`${pageId}/conversations`, token, "fields=id,snippet,updated_time&limit=10").catch(() => ({ data: [] }));
 
     if (info.error) {
@@ -45,14 +49,21 @@ export async function GET(req: NextRequest) {
         link: info.link ?? fb.profileUrl ?? null,
         about: null,
       },
-      posts: (postsRaw.data ?? []).map((p: any) => ({
-        id: p.id,
-        message: p.message ?? "",
-        createdTime: p.created_time ?? null,
-        url: p.permalink_url ?? null,
-        likes: p.likes?.summary?.total_count ?? 0,
-        comments: [],
-      })),
+      posts: (postsRaw.data ?? []).map((p: any) => {
+        const att = p.attachments?.data?.[0];
+        const media = att?.media ?? null;
+        return {
+          id: p.id,
+          message: p.message ?? "",
+          createdTime: p.created_time ?? null,
+          url: p.permalink_url ?? null,
+          likes: p.likes?.summary?.total_count ?? 0,
+          comments: [],
+          mediaType: att?.media_type ?? null,
+          mediaUrl: media?.src ?? att?.url ?? (typeof media === "string" ? media : null),
+          mediaTitle: att?.title ?? null,
+        };
+      }),
       conversations: (convsRaw.data ?? []).map((c: any) => ({
         id: c.id,
         snippet: c.snippet ?? "",
