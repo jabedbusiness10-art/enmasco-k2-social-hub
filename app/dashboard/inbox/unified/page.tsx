@@ -180,7 +180,7 @@ export default function InboxPage() {
           {/* right: profile + AI */}
           <aside className="flex flex-col gap-3">
             <CustomerProfile profile={profile} />
-            <AIReplyPanel onApply={handleAI} />
+            <AIReplyPanel onApply={handleAI} customerMessage={activeMessages.filter((m) => m.sender === "CUSTOMER").slice(-1)[0]?.text ?? active?.lastMessage ?? ""} />
           </aside>
         </section>
       </div>

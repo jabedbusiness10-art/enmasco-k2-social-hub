@@ -66,6 +66,38 @@ function buildMockReply(prompt: string, opts: GenerateOptions): string {
 }
 
 // ---------------------------------------------------------------------------
+// OpenRouter provider (OpenAI-compatible API, any model e.g. tencent/hy3)
+// ---------------------------------------------------------------------------
+class OpenRouterProvider implements AIProvider {
+  id = "openrouter";
+  label = "OpenRouter";
+  isConfigured = Boolean(process.env.OPENROUTER_API_KEY);
+
+  async *streamChat(messages: ChatMessage[], opts: GenerateOptions): AsyncIterable<string> {
+    if (!this.isConfigured) {
+      yield* new MockProvider().streamChat(messages, opts);
+      return;
+    }
+    const OpenAI = (await import("openai")).default;
+    const client = new OpenAI({
+      apiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: "https://openrouter.ai/api/v1",
+    });
+    const stream = await client.chat.completions.create({
+      model: opts.model ?? process.env.AI_MODEL ?? "tencent/hy3",
+      temperature: opts.temperature ?? 0.7,
+      max_tokens: opts.maxTokens ?? 1024,
+      stream: true,
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+    });
+    for await (const chunk of stream) {
+      const delta = chunk.choices?.[0]?.delta?.content;
+      if (delta) yield delta;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // OpenAI provider (lazy import so missing SDK never crashes the app).
 // ---------------------------------------------------------------------------
 class OpenAIProvider implements AIProvider {
@@ -103,6 +135,9 @@ export function getAIProvider(): AIProvider {
   if (cached) return cached;
   const requested = (process.env.AI_PROVIDER ?? "mock").toLowerCase();
   switch (requested) {
+    case "openrouter":
+      cached = new OpenRouterProvider();
+      break;
     case "openai":
       cached = new OpenAIProvider();
       break;
