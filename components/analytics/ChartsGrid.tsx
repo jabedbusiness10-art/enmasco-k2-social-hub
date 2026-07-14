@@ -12,11 +12,22 @@ import PlatformIcon from "@/components/content-planner/PlatformIcon";
 const REACH_COLOR = "#38BDF8";
 const ENG_COLOR = "#FB7185";
 
+const NO_DATA = (
+  <div className="flex h-32 items-center justify-center text-[11px] text-white/35">
+    No Data Available
+  </div>
+);
+
 function trendDelta(series: { value: number }[]): number {
   if (series.length < 2) return 0;
   const last = series[series.length - 1].value;
-  const prev = series[series.length - 8 < 0 ? 0 : series.length - 8].value || 1;
+  const prev = series[series.length - 2].value || 1;
   return ((last - prev) / prev) * 100;
+}
+
+function lastFollowers(series: { label: string; followers: number }[]): string {
+  if (!series.length) return "—";
+  return full(series[series.length - 1].followers);
 }
 
 export default function ChartsGrid({ data }: { data: AnalyticsDataset }) {
@@ -26,34 +37,65 @@ export default function ChartsGrid({ data }: { data: AnalyticsDataset }) {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <Panel title="Reach Trend" subtitle={`${compact(data.kpi.totalReach)} total reach`} action={<DeltaChip v={reachDelta} />}>
-        <SparkLine data={data.reachTrend} color={REACH_COLOR} area />
+        {data.reachTrend.length ? (
+          <SparkLine data={data.reachTrend} color={REACH_COLOR} area />
+        ) : (
+          NO_DATA
+        )}
       </Panel>
 
       <Panel title="Engagement Trend" subtitle={`${compact(data.kpi.totalEngagement)} total engagements`} action={<DeltaChip v={engDelta} />}>
-        <SparkLine data={data.engagementTrend} color={ENG_COLOR} area />
+        {data.engagementTrend.length ? (
+          <SparkLine data={data.engagementTrend} color={ENG_COLOR} area />
+        ) : (
+          NO_DATA
+        )}
       </Panel>
 
       <Panel title="Platform Performance" subtitle="Reach by platform">
-        <MiniBars
-          height={200}
-          data={data.platformPerf.map((p) => ({
-            label: p.platform.slice(0, 3),
-            value: p.reach,
-            color: "linear-gradient(180deg,#38BDF8,#FB7185)",
-          }))}
-        />
+        {data.platformPerf.some((p) => p.reach > 0) ? (
+          <MiniBars
+            height={200}
+            data={data.platformPerf.map((p) => ({
+              label: p.platform.slice(0, 3),
+              value: p.reach,
+              color: "linear-gradient(180deg,#38BDF8,#FB7185)",
+            }))}
+          />
+        ) : (
+          <div className="flex h-48 items-center justify-center text-[11px] text-white/35">
+            No Data Available
+          </div>
+        )}
       </Panel>
 
       <Panel title="Content Distribution" subtitle="Posts by platform">
-        <DonutChart data={data.distribution} />
+        {data.distribution.length ? (
+          <DonutChart data={data.distribution} />
+        ) : (
+          <div className="flex h-48 items-center justify-center text-[11px] text-white/35">
+            No Data Available
+          </div>
+        )}
       </Panel>
 
       <Panel title="Posting Activity Heatmap" subtitle="Intensity by day & hour" className="lg:col-span-2">
         <Heatmap matrix={data.heatmap} />
       </Panel>
 
-      <Panel title="Audience Growth Timeline" subtitle={`${full(data.audienceGrowth[data.audienceGrowth.length - 1].followers)} followers`} className="lg:col-span-2">
-        <SparkLine data={data.audienceGrowth.map((g) => ({ label: g.label, value: g.followers }))} color="#34D399" />
+      <Panel
+        title="Audience Growth Timeline"
+        subtitle={`${lastFollowers(data.audienceGrowth)} followers`}
+        className="lg:col-span-2"
+      >
+        {data.audienceGrowth.length ? (
+          <SparkLine
+            data={data.audienceGrowth.map((g) => ({ label: g.label, value: g.followers }))}
+            color="#34D399"
+          />
+        ) : (
+          NO_DATA
+        )}
       </Panel>
     </div>
   );
@@ -62,7 +104,11 @@ export default function ChartsGrid({ data }: { data: AnalyticsDataset }) {
 function DeltaChip({ v }: { v: number }) {
   const up = v >= 0;
   return (
-    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${up ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"}`}>
+    <span
+      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+        up ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"
+      }`}
+    >
       {up ? "▲" : "▼"} {Math.abs(v).toFixed(1)}%
     </span>
   );
