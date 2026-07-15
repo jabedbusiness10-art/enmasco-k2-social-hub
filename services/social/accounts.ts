@@ -197,13 +197,43 @@ export async function getDecryptedToken(id: string): Promise<string | null> {
 }
 
 export async function refreshAccount(id: string): Promise<SocialAccountPublic> {
-  // Real OAuth refresh would exchange the refreshToken with the provider here.
-  // Architecture-ready: token is decrypted, refreshed, re-encrypted.
-  const row = await prisma.companySocialAccount.update({
+  const row = await prisma.companySocialAccount.findUnique({ where: { id } });
+  if (!row) throw new Error("Account not found");
+
+  // YouTube (Google) — real refresh via refresh token.
+  if (row.provider === "youtube") {
+    const refreshToken = row.refreshToken ? decrypt(row.refreshToken) : null;
+    if (!refreshToken) {
+      // No refresh token stored → cannot refresh; mark expiring.
+      const updated = await prisma.companySocialAccount.update({
+        where: { id },
+        data: { lastSyncAt: new Date(), accessTokenStatus: "EXPIRING", status: "EXPIRING_SOON" },
+      });
+      return toPublic(updated);
+    }
+    const { refreshAccessToken, tokenExpiryInfo } = await import("@/services/youtube/oauth");
+    const fresh = await refreshAccessToken(refreshToken);
+    const { expiresAt, status } = tokenExpiryInfo(fresh.expires_in);
+    const updated = await prisma.companySocialAccount.update({
+      where: { id },
+      data: {
+        accessToken: encrypt(fresh.access_token),
+        refreshToken: fresh.refresh_token ? encrypt(fresh.refresh_token) : row.refreshToken,
+        expiresAt: expiresAt ?? row.expiresAt,
+        accessTokenStatus: status,
+        status: "CONNECTED",
+        lastSyncAt: new Date(),
+      },
+    });
+    return toPublic(updated);
+  }
+
+  // Architecture-ready: Meta/LinkedIn refresh hooks go here. For now bump sync.
+  const updated = await prisma.companySocialAccount.update({
     where: { id },
     data: { lastSyncAt: new Date(), status: "CONNECTED" },
   });
-  return toPublic(row);
+  return toPublic(updated);
 }
 
 export async function disconnectAccount(id: string): Promise<void> {
