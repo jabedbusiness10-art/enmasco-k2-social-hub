@@ -198,7 +198,8 @@ export const sidebarConfig: NavSection[] = [
     icon: Bell,
     href: "/dashboard/notifications",
     crumb: "Notification Center",
-    children: [],
+    expandable: false,
+    children: [{ label: "Notification Center", href: "/dashboard/notifications" }],
   },
   {
     key: "admin",
