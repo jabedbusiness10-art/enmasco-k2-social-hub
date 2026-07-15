@@ -4,25 +4,13 @@ import { ReactNode } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import InfoBar from "@/components/layout/InfoBar";
+import CommandPalette from "@/components/search/CommandPalette";
 import { LAYOUT_CLASSES } from "@/lib/layout-tokens";
 
 /**
  * AppShell — the ONE global enterprise shell for every /dashboard/* route.
- * Architecture (Foundation v1.0):
- *   <AppShell>
- *     Sidebar          (fixed width, independent scroll)
- *     + (flex-1 column)
- *       TopBar         (global header, starts AFTER sidebar)
- *       InfoBar        (enterprise info ticker, framework only)
- *       Main Content   (independent scroll)
- *     Notification Layer
- *     Modal Layer
- *
- * Scroll strategy (PART 8):
- *   - Sidebar: independent (overflow-y-auto on its nav)
- *   - Main:    independent (overflow-y-auto on <main>)
- *   - Body:    no scroll (root h-[100dvh] overflow-hidden)
- * No double scrollbars, no nested scrolling.
+ * Sidebar (fixed) + TopBar + InfoBar + Main, plus the global
+ * Command Palette (CTRL/CMD+K) mounted once for the whole app.
  */
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -35,6 +23,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+      <CommandPalette />
     </div>
   );
 }
