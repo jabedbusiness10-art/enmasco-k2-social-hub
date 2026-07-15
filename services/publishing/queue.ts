@@ -1,32 +1,32 @@
 import { prisma } from "@/lib/db";
+import { enqueue as bullEnqueue, getQueue as bullGetQueue, QUEUE_NAMES } from "@/lib/queue/queue";
+import { REDIS_READY } from "@/lib/queue/connection";
 
 /**
- * TASK-48 — Publishing Queue abstraction.
+ * TASK-57 — Publishing Queue.
  *
- * The spec calls for BullMQ + Redis. The current environment has neither
- * installed nor a Redis URL, so we ship a DATABASE-BACKED queue that works
- * end-to-end today (no external dependency, no mock). The `PublishingQueue`
- * interface is stable: when Redis/BullMQ is configured, swap `DbQueue` for a
- * `BullMQQueue` adapter (same interface) — nothing else changes.
+ * Previously a DB-backed-only queue (TASK-48). Now it delegates to the central
+ * BullMQ engine (lib/queue) when Redis is configured, and falls back to the
+ * DB-backed implementation otherwise. The `PublishingQueue` interface is kept
+ * stable so services/publishing/service.ts (enqueuePublish) is unchanged.
  */
 
 export type JobHandler = (payload: any) => Promise<void>;
 
 export interface PublishingQueue {
   enqueue(name: string, payload: any, opts?: { runAt?: Date; priority?: number }): Promise<string>;
-  /** Pull the next due job (state QUEUED and runAt <= now), lock it, return id+payload or null. */
   dequeue(name: string): Promise<{ id: string; payload: any } | null>;
   complete(id: string): Promise<void>;
   fail(id: string, error: string): Promise<void>;
-  /** Retry a failed job (increment attempts; re-queue if under maxAttempts). */
   retry(id: string): Promise<boolean>;
   size(name: string): Promise<number>;
 }
 
-function isRedisConfigured(): boolean {
-  return !!(process.env.REDIS_URL || process.env.REDIS_HOST);
-}
+export const QUEUE_NAME = QUEUE_NAMES.PUBLISH;
 
+// ---------------------------------------------------------------------------
+// DB-backed fallback (used when Redis is absent)
+// ---------------------------------------------------------------------------
 class DbQueue implements PublishingQueue {
   async enqueue(name: string, payload: any, opts?: { runAt?: Date; priority?: number }): Promise<string> {
     const row = await prisma.queue.create({
@@ -56,10 +56,7 @@ class DbQueue implements PublishingQueue {
   }
 
   async complete(id: string): Promise<void> {
-    await prisma.queue.update({
-      where: { id },
-      data: { state: "DONE", finishedAt: new Date() },
-    });
+    await prisma.queue.update({ where: { id }, data: { state: "DONE", finishedAt: new Date() } });
   }
 
   async fail(id: string, error: string): Promise<void> {
@@ -93,18 +90,41 @@ class DbQueue implements PublishingQueue {
   }
 }
 
-// BullMQ adapter placeholder (enabled automatically when Redis is configured).
-// Kept minimal so the swap is a one-liner in `getQueue()`.
-// class BullMQQueue implements PublishingQueue { ... }
+// ---------------------------------------------------------------------------
+// BullMQ-backed implementation (used when Redis is configured)
+// ---------------------------------------------------------------------------
+class BullMQPubQueue implements PublishingQueue {
+  async enqueue(name: string, payload: any, opts?: { runAt?: Date; priority?: number }): Promise<string> {
+    const delay = opts?.runAt ? Math.max(0, opts.runAt.getTime() - Date.now()) : 0;
+    const job = await bullEnqueue(QUEUE_NAME, name, payload, { priority: opts?.priority, delay });
+    return job.id ?? "";
+  }
+  // dequeue/complete/fail/retry are managed by the BullMQ worker; these are no-ops
+  // for the publish-by-postId flow (the worker calls executePublish directly).
+  async dequeue(): Promise<{ id: string; payload: any } | null> {
+    return null;
+  }
+  async complete(): Promise<void> {}
+  async fail(): Promise<void> {}
+  async retry(): Promise<boolean> {
+    return false;
+  }
+  async size(): Promise<number> {
+    try {
+      const q = bullGetQueue(QUEUE_NAME);
+      return (await q.getWaitingCount()) + (await q.getActiveCount());
+    } catch {
+      return 0;
+    }
+  }
+}
 
 let _queue: PublishingQueue | null = null;
 
-/** Returns the active queue implementation. DB-backed by default; BullMQ when Redis is present. */
 export function getQueue(): PublishingQueue {
   if (_queue) return _queue;
-  // if (isRedisConfigured()) _queue = new BullMQQueue(); else
-  _queue = new DbQueue();
+  _queue = REDIS_READY ? new BullMQPubQueue() : new DbQueue();
   return _queue;
 }
 
-export const QUEUE_NAME = "publishing";
+export { REDIS_READY };

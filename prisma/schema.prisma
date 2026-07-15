@@ -653,6 +653,23 @@ enum QueueState {
   CANCELLED
 }
 
+enum QueueJobStatus {
+  WAITING
+  ACTIVE
+  COMPLETED
+  FAILED
+  DELAYED
+  PAUSED
+  STALLED
+}
+
+enum WorkerStatus {
+  IDLE
+  PROCESSING
+  PAUSED
+  OFFLINE
+}
+
 model PostPlatform {
   id           String       @id @default(cuid())
   postId       String
@@ -1628,4 +1645,103 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ===========================================================================
+// TASK-57 — Enterprise Background Queue Engine (BullMQ + Redis) — audit models
+// BullMQ is the source of truth for live job processing; these tables provide
+// durable, queryable history + monitoring (independent of Redis retention).
+// ===========================================================================
+
+model QueueJob {
+  id          String      @id @default(cuid())
+  queue       String // e.g. "publish", "ai", "notification", "token" ...
+  name        String // job type, e.g. "facebook-publish"
+  jobId       String // BullMQ job id (when Redis-backed)
+  payload     String // JSON (serialized args), encrypted if sensitive
+  status      QueueJobStatus @default(WAITING)
+  priority    Int         @default(0)
+  attempts    Int         @default(0)
+  maxAttempts Int         @default(3)
+  progress    Int         @default(0)
+  lastError   String?
+  result      String? // JSON result summary
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  processingMs Int?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  retries     RetryHistory[]
+
+  @@index([queue])
+  @@index([status])
+  @@index([createdAt])
+  @@index([jobId])
+}
+
+model QueueWorker {
+  id           String   @id @default(cuid())
+  name         String // worker instance name
+  queue        String
+  pid          Int
+  status       WorkerStatus @default(IDLE)
+  startedAt    DateTime @default(now())
+  lastHeartbeat DateTime @default(now())
+  jobsProcessed Int      @default(0)
+  jobsFailed   Int      @default(0)
+  updatedAt    DateTime @updatedAt
+}
+
+model WorkerHeartbeat {
+  id        String   @id @default(cuid())
+  workerId  String
+  queue     String
+  status    WorkerStatus
+  cpu       Float?
+  memoryMb  Float?
+  timestamp DateTime @default(now())
+
+  @@index([workerId])
+  @@index([timestamp])
+}
+
+model QueueMetric {
+  id        String   @id @default(cuid())
+  queue     String
+  metric    String // waiting | active | completed | failed | delayed
+  value     Int
+  timestamp DateTime @default(now())
+
+  @@index([queue])
+  @@index([metric])
+  @@index([timestamp])
+}
+
+model FailedJob {
+  id          String   @id @default(cuid())
+  queue       String
+  name        String
+  jobId       String?
+  payload     String?
+  error       String
+  attempts    Int
+  failedAt    DateTime @default(now())
+  recoveredAt DateTime?
+
+  @@index([queue])
+  @@index([failedAt])
+}
+
+model RetryHistory {
+  id          String   @id @default(cuid())
+  jobId       String
+  queue       String
+  attempt     Int
+  error       String?
+  retriedAt   DateTime @default(now())
+
+  job QueueJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
 }

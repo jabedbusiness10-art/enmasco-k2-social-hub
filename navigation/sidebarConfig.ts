@@ -11,6 +11,7 @@ import {
   Inbox,
   ShieldCheck,
   Images,
+  Layers,
   // social
   Link2,
   CalendarClock,
@@ -165,6 +166,18 @@ export const sidebarConfig: NavSection[] = [
       { label: "Audience", href: "/dashboard/insights/audience", description: "Audience demographics and growth." },
       { label: "Reports", href: "/dashboard/insights/reports", description: "Generate and export performance reports." },
       { label: "Live Analytics", href: "/dashboard/insights/live", description: "Real-time analytics as events happen." },
+    ],
+  },
+  {
+    key: "queue",
+    label: "Queue Engine",
+    icon: Layers,
+    href: "/dashboard/queue",
+    crumb: "Queue Engine",
+    children: [
+      { label: "Overview", href: "/dashboard/queue", description: "Real-time BullMQ + Redis queue monitoring." },
+      { label: "Failed Jobs", href: "/dashboard/queue?tab=failed", description: "Recover failed jobs." },
+      { label: "Live Activity", href: "/dashboard/queue?tab=activity", description: "Live job event stream." },
     ],
   },
   {
