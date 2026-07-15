@@ -1,7 +1,7 @@
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import DashboardGrid from "@/components/dashboard/DashboardGrid";
-import HeroPanel from "@/components/dashboard/HeroPanel";
+import HeroPanel from "@/components/dashboard/heroPanel";
 
 export default function Home() {
   return (
