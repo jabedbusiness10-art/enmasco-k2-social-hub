@@ -38,11 +38,19 @@ export function middleware(request: NextRequest) {
   }
 
   // --- Auth guard ---
+  // Pages -> redirect to /login.  API routes -> 401 JSON (not a redirect,
+  // so API consumers get a real error, not an HTML login page).
   if (!isPublic(path)) {
     const session =
       request.cookies.get("next-auth.session-token") ||
       request.cookies.get("__Secure-next-auth.session-token");
     if (!session) {
+      if (path.startsWith("/api/")) {
+        return new NextResponse(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { "content-type": "application/json" } }
+        );
+      }
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
