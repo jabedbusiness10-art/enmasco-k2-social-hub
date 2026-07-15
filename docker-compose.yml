@@ -1,0 +1,103 @@
+# ============================================================
+# TASK-59.3 — One-command production stack.
+#   docker compose up -d --build
+#
+# Services:
+#   postgres  — primary datastore (Prisma 7 / pg driver adapter)
+#   redis      — BullMQ broker (absent => app uses DB queue fallback)
+#   web        — Next.js production server (role=web)
+#   worker     — BullMQ background job workers (role=worker)
+#   scheduler  — repeatable BullMQ jobs (role=scheduler)
+#
+# Copy .env.local -> .env and fill REAL secrets before deploying.
+# ============================================================
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-k2kai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-k2kai}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-k2kai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    restart: unless-stopped
+    container_name: k2kai-web
+    environment:
+      ROLE: web
+      DATABASE_URL: postgresql://${POSTGRES_USER:-k2kai}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-k2kai}?schema=public
+      NODE_ENV: production
+      # All other vars (NEXTAUTH_*, META_*, REDIS_URL, etc.) are read
+      # from the .env file mounted below.
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    build: .
+    restart: unless-stopped
+    container_name: k2kai-worker
+    environment:
+      ROLE: worker
+      DATABASE_URL: postgresql://${POSTGRES_USER:-k2kai}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-k2kai}?schema=public
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    build: .
+    restart: unless-stopped
+    container_name: k2kai-scheduler
+    environment:
+      ROLE: scheduler
+      DATABASE_URL: postgresql://${POSTGRES_USER:-k2kai}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-k2kai}?schema=public
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Authenticated app area is not indexed
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /login
+
+Sitemap: https://app.k2kai.com/sitemap.xml

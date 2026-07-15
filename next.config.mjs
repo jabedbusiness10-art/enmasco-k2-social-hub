@@ -3,15 +3,79 @@ import { config } from "dotenv";
 config({ path: ".env.local", override: true });
 if (!process.env.DATABASE_URL) config({ path: ".env", override: true });
 
+/**
+ * TASK-59.2 / TASK-59.7 — Production configuration.
+ * - Security headers: CSP, HSTS, X-Content-Type-Options, XSS, Referrer-Policy,
+ *   Permissions-Policy, frame-deny. Tuned for a Next.js App Router app that also
+ *   serves a Socket.IO messenger bridge (ws) and Cloudinary media.
+ * - reactStrictMode on.
+ * - Images: remote patterns for Cloudinary + platform CDNs.
+ * - Powered-by header removed.
+ */
+const isProd = process.env.NODE_ENV === "production";
+
+const securityHeaders = [
+  { key: "X-DNS-Prefetch-Control", value: "on" },
+  { key: "X-XSS-Protection", value: "1; mode=block" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+  },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' wss: https:",
+      "frame-src 'self' https://www.youtube.com https://www.facebook.com",
+      "worker-src 'self' blob:",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; "),
+  },
+  ...(isProd
+    ? [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=63072000; includeSubDomains; preload",
+        },
+      ]
+    : []),
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
   env: {
     DATABASE_URL: process.env.DATABASE_URL || "",
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ];
+  },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "*.fbcdn.net" },
+      { protocol: "https", hostname: "*.instagram.com" },
+      { protocol: "https", hostname: "*.googleusercontent.com" },
+      { protocol: "https", hostname: "media.licdn.com" },
+    ],
+  },
   async redirects() {
     return [
-      // Old top-level routes → new /dashboard/* architecture
       { source: "/scheduler", destination: "/dashboard/social/publisher", permanent: true },
       { source: "/planner", destination: "/dashboard/social/planner", permanent: true },
       { source: "/content-planner", destination: "/dashboard/social/planner", permanent: true },

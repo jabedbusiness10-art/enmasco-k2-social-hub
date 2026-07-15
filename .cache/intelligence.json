@@ -1,0 +1,389 @@
+{
+  "updatedAt": 1784119084710,
+  "items": [
+    {
+      "id": "Google AI:https://blog.google/products-and-platforms/products/search/google-images-25th-anniversary/",
+      "source": "Google AI",
+      "title": "Celebrating 25 years of visual search innovation",
+      "link": "https://blog.google/products-and-platforms/products/search/google-images-25th-anniversary/",
+      "published": "Tue, 14 Jul 2026 16:00:00 +0000",
+      "summary": "&lt;img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Google_Images_25th_hero.max-600x600.format-webp.webp\"&gt;Google Images is turning 25. Here’s a look back at some major milestones — and new way"
+    },
+    {
+      "id": "OpenAI:https://openai.com/index/managing-ai-investments-in-agentic-era",
+      "source": "OpenAI",
+      "title": "How to manage AI investments in the agentic era",
+      "link": "https://openai.com/index/managing-ai-investments-in-agentic-era",
+      "published": "Tue, 14 Jul 2026 10:00:00 GMT",
+      "summary": "Learn how enterprises can manage AI investments in the agentic era by measuring useful work per dollar, improving efficiency, and scaling high-value workflows."
+    },
+    {
+      "id": "OpenAI:https://openai.com/academy/codex-for-work/how-data-science-teams-use-codex",
+      "source": "OpenAI",
+      "title": "How data science teams use ChatGPT Work",
+      "link": "https://openai.com/academy/codex-for-work/how-data-science-teams-use-codex",
+      "published": "Tue, 14 Jul 2026 00:00:00 GMT",
+      "summary": "See how data science teams can use ChatGPT Work to build root-cause briefs, impact readouts, KPI memos, scoped analyses, and dashboard specs from real work inputs."
+    },
+    {
+      "id": "OpenAI:https://openai.com/academy/codex-for-work/how-sales-teams-use-codex",
+      "source": "OpenAI",
+      "title": "How sales teams use ChatGPT Work",
+      "link": "https://openai.com/academy/codex-for-work/how-sales-teams-use-codex",
+      "published": "Tue, 14 Jul 2026 00:00:00 GMT",
+      "summary": "See how sales teams can use ChatGPT Work to create pipeline briefs, meeting prep packets, forecast reviews, account plans, and stalled-deal diagnoses from real work inputs."
+    },
+    {
+      "id": "AWS:https://aws.amazon.com/blogs/aws/amazon-sqs-turns-20-two-decades-of-reliable-messaging-at-scale/",
+      "source": "AWS",
+      "title": "Amazon SQS turns 20: Two decades of reliable messaging at scale",
+      "link": "https://aws.amazon.com/blogs/aws/amazon-sqs-turns-20-two-decades-of-reliable-messaging-at-scale/",
+      "published": "Mon, 13 Jul 2026 18:13:57 +0000",
+      "summary": "On July 13, 2006, we launched Amazon Simple Queue Service (Amazon SQS) as one of the first three services available to customers, alongside Amazon EC2 and Amazon S3. We had learned firsthand that distributed systems need"
+    },
+    {
+      "id": "AWS:https://aws.amazon.com/blogs/aws/aws-weekly-roundup-aws-builder-center-at-one-year-network-scanning-in-security-hub-loom-for-aws-and-more-july-13-2026/",
+      "source": "AWS",
+      "title": "AWS Weekly Roundup: AWS Builder Center at 1 year, Network Scanning in Security Hub, Loom for AWS, and more (July 13, 2026)",
+      "link": "https://aws.amazon.com/blogs/aws/aws-weekly-roundup-aws-builder-center-at-one-year-network-scanning-in-security-hub-loom-for-aws-and-more-july-13-2026/",
+      "published": "Mon, 13 Jul 2026 16:18:20 +0000",
+      "summary": "AWS Builder Center turned one year old last week. Launched on July 9, 2025, the platform has grown from a community hub with Wishlist voting, community profiles, and a toolbox into a full ecosystem with sandbox environme"
+    },
+    {
+      "id": "OpenAI:https://openai.com/index/deutsche-telekom",
+      "source": "OpenAI",
+      "title": "How Deutsche Telekom is rewiring telecommunications with AI",
+      "link": "https://openai.com/index/deutsche-telekom",
+      "published": "Fri, 10 Jul 2026 07:00:00 GMT",
+      "summary": "How Deutsche Telekom is becoming an AI-native telco with OpenAI-transforming customer service, employee workflows, network operations, and the future of voice."
+    },
+    {
+      "id": "OpenAI:https://openai.com/academy/getting-started",
+      "source": "OpenAI",
+      "title": "Getting started with ChatGPT",
+      "link": "https://openai.com/academy/getting-started",
+      "published": "Fri, 10 Jul 2026 00:00:00 GMT",
+      "summary": "Learn how to use ChatGPT, start your first conversation, and discover simple ways to write, brainstorm, and solve problems with AI."
+    },
+    {
+      "id": "Azure:https://azure.microsoft.com/en-us/blog/frontier-models-and-production-agents-advancing-microsoft-foundry-for-the-agentic-era/",
+      "source": "Azure",
+      "title": "Frontier models and production agents: Advancing Microsoft Foundry for the agentic era",
+      "link": "https://azure.microsoft.com/en-us/blog/frontier-models-and-production-agents-advancing-microsoft-foundry-for-the-agentic-era/",
+      "published": "Thu, 09 Jul 2026 17:00:00 +0000",
+      "summary": "Introducing OpenAI's latest frontier model series, the Asia Pacific Data Zone, and product agent capabilities, all generally available in Microsoft Foundry.\nThe post Frontier models and production agents: Advancing Micro"
+    },
+    {
+      "id": "OpenAI:https://openai.com/index/gpt-5-6-preferred-model-microsoft-365-copilot",
+      "source": "OpenAI",
+      "title": "GPT-5.6 is now the preferred model in Microsoft 365 Copilot",
+      "link": "https://openai.com/index/gpt-5-6-preferred-model-microsoft-365-copilot",
+      "published": "Thu, 09 Jul 2026 13:00:00 GMT",
+      "summary": "Learn how GPT-5.6 powers Microsoft 365 Copilot with stronger AI capabilities across Word, Excel, PowerPoint, Chat, and Cowork for faster, higher-quality work."
+    },
+    {
+      "id": "OpenAI:https://openai.com/index/gpt-5-6",
+      "source": "OpenAI",
+      "title": "GPT-5.6: Frontier intelligence that scales with your ambition",
+      "link": "https://openai.com/index/gpt-5-6",
+      "published": "Thu, 09 Jul 2026 10:00:00 GMT",
+      "summary": "More intelligence from every token, stronger performance per dollar, and more capability on demand for your hardest work."
+    },
+    {
+      "id": "OpenAI:https://openai.com/index/bio-bug-bounty",
+      "source": "OpenAI",
+      "title": "GPT-5.5 Bio Bug Bounty",
+      "link": "https://openai.com/index/bio-bug-bounty",
+      "published": "Thu, 09 Jul 2026 10:00:00 GMT",
+      "summary": "Details about the OpenAI Bio Bounty program"
+    },
+    {
+      "id": "Azure:https://azure.microsoft.com/en-us/blog/built-to-bounce-back-how-azure-resiliency-evolved/",
+      "source": "Azure",
+      "title": "Built to bounce back: How Azure resiliency evolved",
+      "link": "https://azure.microsoft.com/en-us/blog/built-to-bounce-back-how-azure-resiliency-evolved/",
+      "published": "Wed, 08 Jul 2026 16:00:00 +0000",
+      "summary": "Cloud resiliency is about ensuring systems can adapt, recover, and keep functioning within real-world constraints.\nThe post Built to bounce back: How Azure resiliency evolved appeared first on Microsoft Azure Blog."
+    },
+    {
+      "id": "Azure:https://azure.microsoft.com/en-us/blog/external-key-management-for-azure-managed-hsm-is-now-in-public-preview/",
+      "source": "Azure",
+      "title": "External key management for Azure Managed HSM is now in public preview",
+      "link": "https://azure.microsoft.com/en-us/blog/external-key-management-for-azure-managed-hsm-is-now-in-public-preview/",
+      "published": "Tue, 07 Jul 2026 16:00:00 +0000",
+      "summary": "Azure Key Vault Managed Hardware Security Module (HSM) provides strong sovereignty over your encryption keys. Keys are generated and stored in a single-tenant, FIPS 140-3 Level 3 HSM that only you control: Microsoft has "
+    },
+    {
+      "id": "Google AI:https://blog.google/innovation-and-ai/technology/developers-tools/expanding-managed-agents-gemini-api/",
+      "source": "Google AI",
+      "title": "Expanding Managed Agents in Gemini API:  background tasks, remote MCP and more",
+      "link": "https://blog.google/innovation-and-ai/technology/developers-tools/expanding-managed-agents-gemini-api/",
+      "published": "Tue, 07 Jul 2026 08:54:00 +0000",
+      "summary": "&lt;img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Managed_agents_feature_bundle_l.max-600x600.format-webp.webp\"&gt;We’re announcing new capabilities in Managed Agents in Gemini API so developer"
+    },
+    {
+      "id": "AWS:https://aws.amazon.com/blogs/aws/aws-weekly-roundup-claude-sonnet-5-on-aws-amazon-workspaces-for-ai-agents-aws-service-availability-updates-and-more-july-6-2026/",
+      "source": "AWS",
+      "title": "AWS Weekly Roundup: Claude Sonnet 5 on AWS, Amazon WorkSpaces for AI agents, AWS service availability updates, and more (July 6, 2026)",
+      "link": "https://aws.amazon.com/blogs/aws/aws-weekly-roundup-claude-sonnet-5-on-aws-amazon-workspaces-for-ai-agents-aws-service-availability-updates-and-more-july-6-2026/",
+      "published": "Mon, 06 Jul 2026 15:46:43 +0000",
+      "summary": "A couple of editions ago I wrote about what I find so energizing about working with startups. Last week I got a fresh dose of it: I spent a few days with the AWS Startups team, listening to stories of founders talking ab"
+    },
+    {
+      "id": "Microsoft:https://blogs.microsoft.com/blog/2026/07/06/the-latest-in-our-company-transformation/",
+      "source": "Microsoft",
+      "title": "The latest in our company transformation",
+      "link": "https://blogs.microsoft.com/blog/2026/07/06/the-latest-in-our-company-transformation/",
+      "published": "Mon, 06 Jul 2026 13:30:28 +0000",
+      "summary": "Amy Coleman, EVP and Chief People Officer, shared the following communication with employees today. When I stepped into this role, I promised to communicate more openly with you and share the &#8220;why&#8221; behind our"
+    },
+    {
+      "id": "Azure:https://azure.microsoft.com/en-us/blog/meet-brain-the-ai-system-behind-azure-reliability/",
+      "source": "Azure",
+      "title": "Meet Brain: The AI system behind Azure reliability",
+      "link": "https://azure.microsoft.com/en-us/blog/meet-brain-the-ai-system-behind-azure-reliability/",
+      "published": "Thu, 02 Jul 2026 16:00:00 +0000",
+      "summary": "Learn how Microsoft is building a digital twin of Azure Service Health and why it changes how hyperscale operates.\nThe post Meet Brain: The AI system behind Azure reliability appeared first on Microsoft Azure Blog."
+    },
+    {
+      "id": "Microsoft:https://blogs.microsoft.com/blog/2026/07/02/microsoft-frontier-company-ai-engineering-that-amplifies-and-protects-your-intelligence/",
+      "source": "Microsoft",
+      "title": "Microsoft Frontier Company: AI engineering that amplifies and protects your intelligence",
+      "link": "https://blogs.microsoft.com/blog/2026/07/02/microsoft-frontier-company-ai-engineering-that-amplifies-and-protects-your-intelligence/",
+      "published": "Thu, 02 Jul 2026 12:59:05 +0000",
+      "summary": "The pace of AI adoption is moving incredibly fast. Customers have moved well beyond experimentation and understand the importance of adopting AI to transform their business. They are now concentrating on delivering measu"
+    },
+    {
+      "id": "Google AI:https://blog.google/innovation-and-ai/technology/ai/google-ai-updates-june-2026/",
+      "source": "Google AI",
+      "title": "The latest AI news we announced in June 2026",
+      "link": "https://blog.google/innovation-and-ai/technology/ai/google-ai-updates-june-2026/",
+      "published": "Wed, 01 Jul 2026 18:15:00 +0000",
+      "summary": "&lt;img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/260701_ICYMI-June-AI_Thumb.max-600x600.format-webp.webp\"&gt;Here are Google’s latest AI updates from June 2026."
+    },
+    {
+      "id": "AWS:https://aws.amazon.com/blogs/aws/upgrade-amazon-eks-clusters-with-confidence-using-kubernetes-version-rollbacks/",
+      "source": "AWS",
+      "title": "Upgrade Amazon EKS clusters with confidence using Kubernetes version rollbacks",
+      "link": "https://aws.amazon.com/blogs/aws/upgrade-amazon-eks-clusters-with-confidence-using-kubernetes-version-rollbacks/",
+      "published": "Wed, 01 Jul 2026 17:20:30 +0000",
+      "summary": "Learn how Kubernetes version rollbacks for Amazon EKS let you reverse cluster upgrades within seven days. This new feature provides a safety net for upgrade failures—no cluster rebuilds required—turning Kubernetes versio"
+    },
+    {
+      "id": "Google AI:https://blog.google/products-and-platforms/products/education/nyc-ai-summit/",
+      "source": "Google AI",
+      "title": "New York City educators and industry leaders gathered at Google’s offices to shape the future of AI in classrooms.",
+      "link": "https://blog.google/products-and-platforms/products/education/nyc-ai-summit/",
+      "published": "Wed, 01 Jul 2026 16:00:00 +0000",
+      "summary": "&lt;img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Summit_Photo_1.max-600x600.format-webp.webp\"&gt;Google, the New York Jobs CEO Council and Urban Assembly hosted an AI summit for 150 education "
+    },
+    {
+      "id": "Azure:https://azure.microsoft.com/en-us/blog/proving-application-resilience-on-azure-with-chaos-studio/",
+      "source": "Azure",
+      "title": "Proving application resilience on Azure with Chaos Studio",
+      "link": "https://azure.microsoft.com/en-us/blog/proving-application-resilience-on-azure-with-chaos-studio/",
+      "published": "Wed, 01 Jul 2026 16:00:00 +0000",
+      "summary": "Azure Chaos Studio helps organizations validate application resilience by simulating outages, failovers, network disruptions, and infrastructure failures before they impact production.\nThe post Proving application resili"
+    },
+    {
+      "id": "AWS:https://aws.amazon.com/blogs/aws/accelerate-your-infrastructure-deployments-by-up-to-4x-with-aws-cloudformation-express-mode/",
+      "source": "AWS",
+      "title": "Accelerate your infrastructure deployments by up to 4x with AWS CloudFormation Express mode",
+      "link": "https://aws.amazon.com/blogs/aws/accelerate-your-infrastructure-deployments-by-up-to-4x-with-aws-cloudformation-express-mode/",
+      "published": "Tue, 30 Jun 2026 21:30:33 +0000",
+      "summary": "AWS CloudFormation speeds up infrastructure deployment with Express mode, enabling AI agents and developers to receive deployment confirmation in seconds and iterate faster. Available in all commercial Regions at no addi"
+    },
+    {
+      "id": "AWS:https://aws.amazon.com/blogs/aws/amazon-ec2-c9g-and-c9gd-instances-powered-by-aws-graviton5-processors-are-now-available/",
+      "source": "AWS",
+      "title": "Amazon EC2 C9g and C9gd instances powered by AWS Graviton5 processors are now available",
+      "link": "https://aws.amazon.com/blogs/aws/amazon-ec2-c9g-and-c9gd-instances-powered-by-aws-graviton5-processors-are-now-available/",
+      "published": "Tue, 30 Jun 2026 20:56:44 +0000",
+      "summary": "Amazon EC2 C9g and C9gd instances, powered by AWS Graviton5, are now generally available. They deliver up to 25% better compute performance than Graviton4-based instances, 5x larger cache, fastest memory of any processor"
+    },
+    {
+      "id": "AWS:https://aws.amazon.com/blogs/aws/automate-public-tls-certificate-issuance-with-acme-support-in-aws-certificate-manager/",
+      "source": "AWS",
+      "title": "Automate public TLS certificate issuance with ACME support in AWS Certificate Manager",
+      "link": "https://aws.amazon.com/blogs/aws/automate-public-tls-certificate-issuance-with-acme-support-in-aws-certificate-manager/",
+      "published": "Tue, 30 Jun 2026 20:15:11 +0000",
+      "summary": "AWS Certificate Manager now supports the ACME protocol for public TLS certificates, enabling automated issuance and renewal through any ACMEv2-compatible client on any workload. Administrators get centralized governance,"
+    },
+    {
+      "id": "Azure:https://azure.microsoft.com/en-us/blog/azure-iaas-how-to-design-build-and-optimize-cloud-infrastructure-for-long-term-cost-optimization-efficiency/",
+      "source": "Azure",
+      "title": "Azure IaaS: How to design, build, and optimize cloud infrastructure for long-term cost efficiency",
+      "link": "https://azure.microsoft.com/en-us/blog/azure-iaas-how-to-design-build-and-optimize-cloud-infrastructure-for-long-term-cost-optimization-efficiency/",
+      "published": "Tue, 30 Jun 2026 16:00:00 +0000",
+      "summary": "As organizations modernize infrastructure, migrate mission-critical workloads, build cloud-native applications, and scale AI—cost efficiency remains a foundational principle of cloud architectures.\nThe post Azure IaaS: H"
+    },
+    {
+      "id": "Google AI:https://blog.google/company-news/inside-google/around-the-globe/google-europe/united-kingdom/unlocking-britains-next-era-of-productivity-building-a-nation-of-ai-trailblazers/",
+      "source": "Google AI",
+      "title": "Unlocking Britain’s next era of productivity: Building a nation of AI trailblazers",
+      "link": "https://blog.google/company-news/inside-google/around-the-globe/google-europe/united-kingdom/unlocking-britains-next-era-of-productivity-building-a-nation-of-ai-trailblazers/",
+      "published": "Tue, 30 Jun 2026 06:00:00 +0000",
+      "summary": "&lt;img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Gemini_Generated_Image_k2dxu1k2.max-600x600.format-webp.webp\"&gt;Google UK shares its latest Economic Impact Report and how to enable more peop"
+    },
+    {
+      "id": "Azure:https://azure.microsoft.com/en-us/blog/claude-in-microsoft-foundry-is-now-generally-available/",
+      "source": "Azure",
+      "title": "Claude in Microsoft Foundry is now generally available",
+      "link": "https://azure.microsoft.com/en-us/blog/claude-in-microsoft-foundry-is-now-generally-available/",
+      "published": "Mon, 29 Jun 2026 17:00:00 +0000",
+      "summary": "Claude in Microsoft Foundry is now generally available, hosted on Azure, and running on NVIDIA GB300 Blackwell Ultra, giving teams a faster path from agent experimentation to production.\nThe post Claude in Microsoft Foun"
+    },
+    {
+      "id": "AWS:https://aws.amazon.com/blogs/aws/aws-weekly-roundup-agentic-cx-designer-for-amazon-connect-customer-ec2-ami-watermarks-open-governance-for-mysql-and-more-june-29-2026/",
+      "source": "AWS",
+      "title": "AWS Weekly Roundup: Agentic CX designer for Amazon Connect Customer, EC2 AMI Watermarks, Open Governance for MySQL, and more (June 29, 2026)",
+      "link": "https://aws.amazon.com/blogs/aws/aws-weekly-roundup-agentic-cx-designer-for-amazon-connect-customer-ec2-ami-watermarks-open-governance-for-mysql-and-more-june-29-2026/",
+      "published": "Mon, 29 Jun 2026 16:30:30 +0000",
+      "summary": "It has been a busy stretch on the AWS Summit circuit. At the New York City Summit, I delivered a workshop called Building AI architectures with AWS Serverless, and it was a lot of fun watching builders wire up agents and"
+    },
+    {
+      "id": "Google AI:https://blog.google/innovation-and-ai/technology/ai/full-stack-ai-explainer/",
+      "source": "Google AI",
+      "title": "Ask an AI expert: What exactly is the full stack?",
+      "link": "https://blog.google/innovation-and-ai/technology/ai/full-stack-ai-explainer/",
+      "published": "Mon, 29 Jun 2026 16:00:00 +0000",
+      "summary": "&lt;img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Full_Stack.max-600x600.format-webp.webp\"&gt;A Google expert explains what it means to take a full-stack approach to AI and why it’s been the fo"
+    },
+    {
+      "id": "Azure:https://www.microsoft.com/en-us/microsoft-cloud/blog/2026/06/29/the-2026-agent-confidence-index-where-300-builders-see-real-momentum/",
+      "source": "Azure",
+      "title": "The 2026 Agent Confidence Index: Where 300 builders see real momentum",
+      "link": "https://www.microsoft.com/en-us/microsoft-cloud/blog/2026/06/29/the-2026-agent-confidence-index-where-300-builders-see-real-momentum/",
+      "published": "Mon, 29 Jun 2026 15:15:00 +0000",
+      "summary": "At Microsoft, building trustworthy AI agents is as critical as building powerful ones. New research from the 2026 Agent Confidence Index shows where teams trust agents today—and why human judgment remains the defining sk"
+    },
+    {
+      "id": "Google AI:https://blog.google/products-and-platforms/products/search/google-finance-updates-june-2026/",
+      "source": "Google AI",
+      "title": "Our latest Google Finance upgrades, including a new app",
+      "link": "https://blog.google/products-and-platforms/products/search/google-finance-updates-june-2026/",
+      "published": "Thu, 25 Jun 2026 16:00:00 +0000",
+      "summary": "&lt;img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Google_Finance_blog_image_June_.max-600x600.format-webp.webp\"&gt;The new Google Finance is coming out of beta and launching a new Android app."
+    },
+    {
+      "id": "Microsoft:https://blogs.microsoft.com/blog/2026/06/24/inside-microsofts-two-decade-push-to-cut-water-intensity-while-scaling-for-growth/",
+      "source": "Microsoft",
+      "title": "Inside Microsoft’s two-decade push to cut water intensity while scaling for growth",
+      "link": "https://blogs.microsoft.com/blog/2026/06/24/inside-microsofts-two-decade-push-to-cut-water-intensity-while-scaling-for-growth/",
+      "published": "Wed, 24 Jun 2026 12:01:13 +0000",
+      "summary": "As demand for cloud and AI services continues to grow, datacenters are becoming more essential than ever. Communities also want to better understand how this infrastructure affects local resources, particularly water. At"
+    },
+    {
+      "id": "Microsoft:https://blogs.microsoft.com/blog/2026/06/23/rethinking-cloud-operations-with-agentic-observability/",
+      "source": "Microsoft",
+      "title": "Rethinking cloud operations with agentic observability",
+      "link": "https://blogs.microsoft.com/blog/2026/06/23/rethinking-cloud-operations-with-agentic-observability/",
+      "published": "Tue, 23 Jun 2026 15:45:05 +0000",
+      "summary": "Cloud operations are entering a new era as AI-driven and autonomous agents become a larger part of modern software systems. As software becomes increasingly agentic, the challenge is no longer just managing greater scale"
+    },
+    {
+      "id": "Microsoft:https://blogs.microsoft.com/blog/2026/06/22/powering-the-next-wave-of-ai-expanding-capacity-with-our-new-datacenter-in-pecos/",
+      "source": "Microsoft",
+      "title": "Powering the next wave of AI: Expanding capacity with our new datacenter in Pecos",
+      "link": "https://blogs.microsoft.com/blog/2026/06/22/powering-the-next-wave-of-ai-expanding-capacity-with-our-new-datacenter-in-pecos/",
+      "published": "Mon, 22 Jun 2026 12:06:39 +0000",
+      "summary": "Today, Microsoft is announcing one of the largest single capacity additions in our history. In Pecos, Texas, we will build a new datacenter campus, expanding our global datacenter capacity by approximately 2 gigawatts (G"
+    },
+    {
+      "id": "Meta Developers:https://developers.facebook.com/blog/post/2026/06/30/developer-tools-mcp/",
+      "source": "Meta Developers",
+      "title": "Announcing Developer Tools MCP: Explore and debug your Meta app integrations from your AI agent",
+      "link": "https://developers.facebook.com/blog/post/2026/06/30/developer-tools-mcp/",
+      "published": "2026-06-18T23:13:54+00:00",
+      "summary": "Developer Tools MCP connects your AI coding agent to Meta's developer platform — discover APIs, troubleshoot errors, check app health, and manage compliance without leaving your editor."
+    },
+    {
+      "id": "Google AI:https://blog.google/innovation-and-ai/models-and-research/google-research/amie-for-disease-management-in-nature/",
+      "source": "Google AI",
+      "title": "New research shows how AMIE, our medical AI, could help manage health conditions.",
+      "link": "https://blog.google/innovation-and-ai/models-and-research/google-research/amie-for-disease-management-in-nature/",
+      "published": "Wed, 17 Jun 2026 15:00:00 +0000",
+      "summary": "&lt;img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/AMIE_Mx_Nature_Social_Visual_Va.max-600x600.format-webp.webp\"&gt;Research in “Nature” shows our conversational AI system matches primary care p"
+    },
+    {
+      "id": "Microsoft:https://blogs.microsoft.com/blog/2026/06/16/achieving-success-with-ai/",
+      "source": "Microsoft",
+      "title": "Achieving success with AI",
+      "link": "https://blogs.microsoft.com/blog/2026/06/16/achieving-success-with-ai/",
+      "published": "Tue, 16 Jun 2026 15:00:02 +0000",
+      "summary": "The two most important elements in any AI solution are Intelligence + Trust. I first made this statement in November at our Ignite conference and my conviction is strengthened by every conversation I have with customers."
+    },
+    {
+      "id": "Meta Developers:https://developers.facebook.com/blog/post/2026/06/15/tokenless-access-to-meta-oembed-apis/",
+      "source": "Meta Developers",
+      "title": "Introducing Tokenless Access to Meta oEmbed APIs",
+      "link": "https://developers.facebook.com/blog/post/2026/06/15/tokenless-access-to-meta-oembed-apis/",
+      "published": "2026-06-08T17:25:31+00:00",
+      "summary": "You can now call Meta oEmbed APIs to embed public Facebook, Threads, and Instagram content without an access token. App Review will no longer be required to embed basic technical functionality only."
+    },
+    {
+      "id": "Microsoft:https://blogs.microsoft.com/blog/2026/06/02/ai-alone-wont-change-your-business-the-system-running-it-will/",
+      "source": "Microsoft",
+      "title": "AI alone won&#8217;t change your business. The system running it will.",
+      "link": "https://blogs.microsoft.com/blog/2026/06/02/ai-alone-wont-change-your-business-the-system-running-it-will/",
+      "published": "Tue, 02 Jun 2026 19:00:13 +0000",
+      "summary": "AI has arrived in the enterprise, and the shift is happening all at once. Every function, every role, every workflow is being reshaped. At the same time, a new class of organizations is emerging, one that will look funda"
+    },
+    {
+      "id": "Microsoft:https://blogs.microsoft.com/blog/2026/06/02/microsoft-build-2026-be-yourself-at-work/",
+      "source": "Microsoft",
+      "title": "Microsoft Build 2026: Be yourself at work",
+      "link": "https://blogs.microsoft.com/blog/2026/06/02/microsoft-build-2026-be-yourself-at-work/",
+      "published": "Tue, 02 Jun 2026 18:54:13 +0000",
+      "summary": "Platforms shift when developers build. We explore, choose tools, dream, create. This platform shift comes with more information than ever, ready at your fingertips. This shift, it’s about building fast AND THEN: it’s abo"
+    },
+    {
+      "id": "Meta Developers:https://developers.facebook.com/blog/post/2026/05/13/meta-ai-developer-assistant-now-live-for-business-messaging/",
+      "source": "Meta Developers",
+      "title": "Meta AI Developer Assistant now live for  Business Messaging",
+      "link": "https://developers.facebook.com/blog/post/2026/05/13/meta-ai-developer-assistant-now-live-for-business-messaging/",
+      "published": "2026-05-12T23:27:55+00:00",
+      "summary": "اليوم، نقدم مساعد المطوّر في Meta AI لمطوّري واتساب للأعمال وموفري الخدمات الفنية. هو مساعد مدعوم من الذكاء الاصطناعي يتواجد مع المطوّرين في النقاط التي يتعذر عليهم تخطيها، ويقدم لهم إرشادات سياقية، ويساعدهم على استكشاف "
+    },
+    {
+      "id": "Meta Developers:https://developers.facebook.com/blog/post/2026/05/14/embedded-signup-v4/",
+      "source": "Meta Developers",
+      "title": "Embedded signup v4",
+      "link": "https://developers.facebook.com/blog/post/2026/05/14/embedded-signup-v4/",
+      "published": "2026-05-12T19:55:04+00:00",
+      "summary": "Upgrade to Meta’s streamlined, unified onboarding experience before the deadline on October 15, 2026"
+    },
+    {
+      "id": "Meta Developers:https://developers.facebook.com/blog/post/2026/04/29/introducing-ads-cli/",
+      "source": "Meta Developers",
+      "title": "Introducing Ads CLI",
+      "link": "https://developers.facebook.com/blog/post/2026/04/29/introducing-ads-cli/",
+      "published": "2026-04-28T17:46:23+00:00",
+      "summary": "Today we're introducing the Meta ads CLI, a command-line tool for developers to manage Meta ad campaigns. Developers and AI agents working with the Meta Marketing API can now create, edit, and analyze campaigns directly "
+    },
+    {
+      "id": "Meta Developers:https://developers.facebook.com/blog/post/2026/04/28/updating-our-transparency-requirements-for-ad-buying-solutions/",
+      "source": "Meta Developers",
+      "title": "Meta Ad-Buying Transparency Policy Updates",
+      "link": "https://developers.facebook.com/blog/post/2026/04/28/updating-our-transparency-requirements-for-ad-buying-solutions/",
+      "published": "2026-04-21T17:33:46+00:00",
+      "summary": "To provide greater clarity for advertisers and developers that use our ad-buying solutions, we’re updating the Developer Policies related to Ads transparency and account structure. These updates reflect feedback from our"
+    },
+    {
+      "id": "Meta Developers:https://developers.facebook.com/blog/post/2026/04/22/instagram-api-updates-for-partnerships-metrics-collaboration-and-engagement/",
+      "source": "Meta Developers",
+      "title": "Build the future with Meta",
+      "link": "https://developers.facebook.com/blog/post/2026/04/22/instagram-api-updates-for-partnerships-metrics-collaboration-and-engagement/",
+      "published": "2026-04-17T22:57:38+00:00",
+      "summary": "This April, we're introducing several new API features and improvements to help developers and partners streamline branded content workflows, better measure content performance, access collaborative media, and manage eng"
+    },
+    {
+      "id": "Meta Developers:https://developers.facebook.com/blog/post/2026/04/14/whats-new-in-the-threads-api/",
+      "source": "Meta Developers",
+      "title": "What's new in the Threads API",
+      "link": "https://developers.facebook.com/blog/post/2026/04/14/whats-new-in-the-threads-api/",
+      "published": "2026-04-10T16:20:46+00:00",
+      "summary": "We're excited to share a major set of updates to the Threads API. These improvements make it easier for developers, creators, and brands to publish, discover, and manage content, while unlocking new creative and integrat"
+    }
+  ]
+}

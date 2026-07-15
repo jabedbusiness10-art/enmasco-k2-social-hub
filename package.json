@@ -5,9 +5,15 @@
   "scripts": {
     "dev": "node -r dotenv/config ./node_modules/next/dist/bin/next dev",
     "messenger:ws": "tsx server/messenger-socket.mts",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "build": "prisma generate && next build",
+    "start": "node -r dotenv/config ./node_modules/next/dist/bin/next start",
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "migrate:deploy": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "worker": "cross-env ROLE=worker tsx server/queue-worker.ts",
+    "scheduler": "cross-env ROLE=scheduler tsx server/scheduler.ts",
+    "validate:env": "tsx -e \"import('./lib/env/validate').then(m=>{const r=m.validateEnv(); if(!r.ok) process.exit(1);})\""
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -44,6 +50,7 @@
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "autoprefixer": "^10.4.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8.0.0",
     "eslint-config-next": "^15.0.0",
     "postcss": "^8.4.0",
