@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { publishToPlatform, type PublishInput, type PublishTarget } from "./engine";
 import { getQueue, QUEUE_NAME } from "./queue";
+import { notifyPublish } from "@/lib/notifications";
 
 /**
  * TASK-48 — Publishing coordinator.
@@ -177,6 +178,20 @@ export async function executePublish(postId: string): Promise<{ results: any[] }
 
   const allOk = results.every((r) => r.ok);
   await prisma.post.update({ where: { id: postId }, data: { status: allOk ? "PUBLISHED" : "FAILED", publishedAt: new Date() } });
+
+  // publish notification through the centralized engine
+  try {
+    await notifyPublish({
+      userId: post.createdById,
+      type: "PUBLISH",
+      priority: allOk ? "MEDIUM" : "HIGH",
+      title: allOk ? "Publishing Successful" : "Publishing Failed",
+      body: allOk ? `"${post.title || "Post"}" published to ${results.length} platform(s).` : `"${post.title || "Post"}" failed on ${results.filter((r) => !r.ok).map((r) => r.platform).join(", ")}.`,
+      entity: postId, entityType: "POST",
+      platform: results[0]?.platform,
+    });
+  } catch {}
+
   return { results };
 }
 

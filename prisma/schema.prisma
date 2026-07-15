@@ -64,19 +64,13 @@ enum JobStatus {
   FAILED
 }
 
-enum NotificationType {
-  SYSTEM
-  APPROVAL
-  AUTOMATION
-  AI
-  MARKETING
-  SECURITY
-}
-
-enum NotificationPriority {
-  LOW
-  MEDIUM
-  HIGH
+model OnlinePresence {
+  userId     String        @id
+  status     PresenceStatus @default(ONLINE)
+  lastSeen   DateTime      @default(now())
+  socketId   String?
+  updatedAt  DateTime      @updatedAt
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Role {
@@ -117,6 +111,9 @@ model User {
 
   posts         Post[]
   notifications Notification[]
+  notificationReads NotificationRead[]
+  notificationArchives NotificationArchive[]
+  notificationPreferences NotificationPreference[]
   auditLogs     AuditLog[]
   conversations AIConversation[]
   scheduledPosts ScheduledPost[]
@@ -1101,38 +1098,155 @@ model ConversationNotification {
   createdAt      DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([isRead])
-  @@index([createdAt])
 }
 
-model OnlinePresence {
-  userId     String        @id
-  status     PresenceStatus @default(ONLINE)
-  lastSeen   DateTime      @default(now())
-  socketId   String?
-  updatedAt  DateTime      @updatedAt
-  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum NotificationType {
+  SOCIAL
+  PUBLISH
+  AI
+  MEDIA
+  TEAM
+  ANALYTICS
+  SECURITY
+  SYSTEM
+  MARKETING
+  APPROVAL
+  AUTOMATION
+}
+
+enum NotificationPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum NotificationCategory {
+  SOCIAL
+  PUBLISHING
+  AI
+  MEDIA
+  ASSIGNMENTS
+  ANALYTICS
+  SECURITY
+  SYSTEM
+  MENTIONS
+  MESSAGES
 }
 
 model Notification {
   id        String              @id @default(cuid())
   type      NotificationType
+  category  NotificationCategory @default(SYSTEM)
   priority  NotificationPriority @default(MEDIUM)
   title     String
   body      String?
+  module    String?
+  platform  String?
+  entity    String?
+  entityType String?
+  department String?
+  senderId  String?
+  senderName String?
   isRead    Boolean             @default(false)
+  isArchived Boolean            @default(false)
   meta      String?
   createdAt DateTime            @default(now())
   userId    String
 
+  reads     NotificationRead[]
+  archives  NotificationArchive[]
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([type])
+  @@index([category])
   @@index([isRead])
   @@index([createdAt])
+}
+
+model NotificationRead {
+  id     String   @id @default(cuid())
+  notificationId String
+  userId String
+  readAt DateTime @default(now())
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([notificationId])
+  @@index([userId])
+}
+
+model NotificationArchive {
+  id     String   @id @default(cuid())
+  notificationId String
+  userId String
+  archivedAt DateTime @default(now())
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([notificationId])
+  @@index([userId])
+}
+
+model NotificationPreference {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  desktop   Boolean  @default(true)
+  browser   Boolean  @default(true)
+  email     Boolean  @default(false)
+  sound     Boolean  @default(false)
+  mentions  Boolean  @default(true)
+  assignments Boolean @default(true)
+  publishing Boolean  @default(true)
+  ai        Boolean  @default(true)
+  security  Boolean  @default(true)
+  digest    String   @default("DAILY")
+  quietFrom String?
+  quietTo   String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model NotificationChannel {
+  id     String   @id @default(cuid())
+  name   String   @unique
+  kind   String
+  enabled Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model NotificationEvent {
+  id        String   @id @default(cuid())
+  type      NotificationType
+  category  NotificationCategory @default(SYSTEM)
+  priority  NotificationPriority @default(MEDIUM)
+  module    String?
+  platform  String?
+  title     String
+  body      String?
+  entity    String?
+  entityType String?
+  senderId  String?
+  senderName String?
+  department String?
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+  @@index([type])
+}
+
+model SystemEvent {
+  id        String   @id @default(cuid())
+  source    String
+  action    String
+  status    String
+  message   String?
+  userId    String?
+  refId     String?
+  refType   String?
+  meta      String?
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+  @@index([source])
 }
 
 model Workflow {

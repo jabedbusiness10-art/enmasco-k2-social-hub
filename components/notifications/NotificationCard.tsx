@@ -1,41 +1,44 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { Notification } from "@/types/notification";
+import PriorityBadge from "./PriorityBadge";
 
-type NotificationCardProps = {
-  notification: Notification;
-  onOpen: (id: string) => void;
+const categoryColor: Record<string, string> = {
+  SOCIAL: "text-sky-300", PUBLISHING: "text-emerald-300", AI: "text-violet-300",
+  MEDIA: "text-amber-300", ASSIGNMENTS: "text-rose-300", ANALYTICS: "text-cyan-300",
+  SECURITY: "text-red-300", SYSTEM: "text-white/60", MENTIONS: "text-sky-300", MESSAGES: "text-sky-300",
 };
 
-const priorityClass: Record<string, string> = {
-  HIGH: "border-red-500/40 text-red-200",
-  MEDIUM: "border-amber-500/40 text-amber-200",
-  LOW: "border-white/20 text-white/80",
-};
-
-export default function NotificationCard({ notification, onOpen }: NotificationCardProps) {
+export default function NotificationCard({ notification, onOpen, onRead, onArchive }: any) {
+  const n = notification;
+  const go = () => {
+    if (!n.isRead) onRead?.(n.id);
+    onOpen?.(n);
+  };
   return (
-    <motion.button
-      onClick={() => onOpen(notification.id)}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -1, scale: 1.01 }}
-      className={`flex w-full items-start gap-3 rounded-2xl border bg-white/[0.04] p-3 text-left transition ${notification.read ? "border-white/5 text-white/60" : "border-white/10 text-white/90"}`}
+    <motion.div
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -1, scale: 1.005 }}
+      className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left transition ${n.isRead ? "border-white/5 bg-white/[0.02]" : "border-sky-400/20 bg-sky-400/[0.06]"}`}
     >
-      <div className="mt-0.5 h-8 w-8 rounded-full border border-white/10 bg-white/5" />
-      <div className="flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-sm font-semibold">{notification.title}</div>
-          <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${priorityClass[notification.priority] || priorityClass.LOW}`}>{notification.priority}</span>
+      <div className="mt-0.5 h-9 w-9 shrink-0 rounded-full border border-white/10 bg-white/5" />
+      <button onClick={go} className="flex-1 text-left">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`text-[11px] font-semibold uppercase ${categoryColor[n.category ?? "SYSTEM"] || "text-white/60"}`}>{n.category ?? "SYSTEM"}</span>
+          <PriorityBadge priority={n.priority} />
+          {n.platform && <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-white/60">{n.platform}</span>}
         </div>
-        <div className="mt-1 text-xs text-white/60">{notification.description}</div>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-white/60">
-          <span className="rounded-full border border-white/10 px-2 py-1">{notification.platform}</span>
-          <span>{notification.createdAt}</span>
-          {!notification.read && <span className="rounded-full border border-sky-500/30 px-2 py-1 text-sky-200">Unread</span>}
+        <div className="mt-1 text-sm font-semibold text-white">{n.title}</div>
+        {n.body && <div className="mt-0.5 text-xs text-white/60">{n.body}</div>}
+        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-white/40">
+          <span>{new Date(n.createdAt).toLocaleString()}</span>
+          {n.senderName && <span>· {n.senderName}</span>}
+          {!n.isRead && <span className="rounded-full border border-sky-500/30 px-1.5 py-0.5 text-sky-200">Unread</span>}
         </div>
-      </div>
-    </motion.button>
+      </button>
+      {onArchive && (
+        <button onClick={() => onArchive(n.id)} className="self-center rounded-lg border border-white/10 px-2 py-1 text-[10px] text-white/50 hover:bg-white/5">Archive</button>
+      )}
+    </motion.div>
   );
 }

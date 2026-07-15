@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth-server";
 import { uploadService } from "@/services/media/uploadService";
+import { notifyMedia } from "@/lib/notifications";
 
 export const runtime = "nodejs";
 
@@ -34,6 +35,13 @@ export async function POST(req: NextRequest) {
       tags,
     });
     created.push(asset);
+    try {
+      await notifyMedia({
+        userId: perm.user!.id, type: "MEDIA", priority: "LOW",
+        title: "Upload Complete", body: `${asset.originalName || asset.fileName} added to Media Library.`,
+        entity: asset.id, entityType: "ASSET", senderName: perm.user!.name,
+      });
+    } catch {}
   }
 
   return NextResponse.json({ assets: created }, { status: 201 });

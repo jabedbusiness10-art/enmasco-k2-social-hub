@@ -23,12 +23,13 @@ export default function NotificationsPage() {
   const selectedNotification = notifications.find((n) => n.id === selectedId) ?? null;
 
   const filtered = notifications.filter((notification) => {
+    const t = notification.type as string;
     if (activeTab === "All") return true;
     if (activeTab === "Unread") return !notification.read;
-    if (activeTab === "Mentions") return notification.type === "MESSAGE";
-    if (activeTab === "Approvals") return notification.type === "APPROVAL";
-    if (activeTab === "Automation") return notification.type === "AUTOMATION" || notification.type === "WORKFLOW";
-    if (activeTab === "System") return notification.type === "SYSTEM" || notification.type === "SECURITY";
+    if (activeTab === "Mentions") return t === "MESSAGE";
+    if (activeTab === "Approvals") return t === "APPROVAL";
+    if (activeTab === "Automation") return t === "AUTOMATION" || t === "WORKFLOW";
+    if (activeTab === "System") return t === "SYSTEM" || t === "SECURITY";
     return true;
   });
 

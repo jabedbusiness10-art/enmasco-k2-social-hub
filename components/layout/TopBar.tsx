@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Bell,
   BrainCircuit,
   CloudSun,
   Radio,
   UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 type EnterpriseTopNavProps = {
   className?: string;
@@ -122,18 +122,7 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
             tone="amber"
           />
 
-          <motion.button
-            type="button"
-            whileHover={{ y: -2, scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            className="group relative flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.055] text-white/76 shadow-[0_14px_34px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/35 hover:bg-red-400/[0.09] hover:text-white hover:shadow-[0_0_30px_rgba(248,113,113,0.24)] focus:outline-none focus-visible:ring-2 focus-visible:ring-red-200/60"
-            aria-label="Notifications: 3 unread"
-          >
-            <Bell className="h-5 w-5 transition-transform duration-300 group-hover:-rotate-6" strokeWidth={1.8} />
-            <span className="absolute right-2 top-2 flex h-5 min-w-5 items-center justify-center rounded-full border border-red-100/30 bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-[0_0_18px_rgba(239,68,68,0.65)]">
-              3
-            </span>
-          </motion.button>
+          <NotificationBell />
 
           <motion.div
             whileHover={{ y: -2, scale: 1.01 }}
