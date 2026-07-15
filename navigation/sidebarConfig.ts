@@ -243,6 +243,7 @@ export const sidebarConfig: NavSection[] = [
       { label: "Notifications", href: "/dashboard/admin/notifications", description: "Global notification preferences." },
       { label: "Backup & Restore", href: "/dashboard/admin/backup", description: "Backup data and restore from snapshots." },
       { label: "System Health", href: "/dashboard/admin/system-health", description: "Servers, queues, and system status." },
+      { label: "Monitoring & Health", href: "/dashboard/monitoring", description: "Enterprise operational command center." },
     ],
   },
 ];
