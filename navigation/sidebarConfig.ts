@@ -169,6 +169,17 @@ export const sidebarConfig: NavSection[] = [
     ],
   },
   {
+    key: "executive",
+    label: "Executive",
+    icon: LayoutDashboard,
+    href: "/dashboard/executive",
+    crumb: "Executive",
+    children: [
+      { label: "Overview", href: "/dashboard/executive", description: "Unified CEO / management command center." },
+      { label: "Live Activity", href: "/dashboard/executive", description: "Real-time cross-module activity." },
+    ],
+  },
+  {
     key: "queue",
     label: "Queue Engine",
     icon: Layers,
