@@ -17,11 +17,16 @@ type SidebarItemProps = {
 
 export default function SidebarItem({ isActive, icon, label, href, subitem, onClick }: SidebarItemProps) {
   const pathname = usePathname();
-  const active = href
-    ? href === "/"
-      ? pathname === "/"
-      : pathname.startsWith(href)
-    : !!isActive;
+  // Submenu items get their active state from the parent section (exact route
+  // match), NOT from pathname.startsWith — startsWith wrongly activates every
+  // child that shares a prefix/href (e.g. Media Library's 3 identical links).
+  const active = subitem
+    ? !!isActive
+    : href
+      ? href === "/"
+        ? pathname === "/"
+        : pathname.startsWith(href)
+      : !!isActive;
 
   const content = (
     <motion.span

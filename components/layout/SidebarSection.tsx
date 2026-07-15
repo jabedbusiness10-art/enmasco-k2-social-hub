@@ -112,14 +112,25 @@ export default function SidebarSection({
             className="overflow-hidden pl-3"
           >
             <div className="space-y-1 py-1">
-              {section.children.map((child) => (
-                <SidebarItem
-                  key={`${section.key}-${child.label}`}
-                  label={child.label}
-                  href={child.href}
-                  subitem
-                />
-              ))}
+              {section.children.map((child, idx) => {
+                // exact route match — first child whose href equals the
+                // current path wins. Siblings sharing the same href (e.g.
+                // Media Library's All Assets / Collections / Tags all point to
+                // /dashboard/media) will NOT all light up — only the first.
+                const activeIndex = section.children.findIndex((c) =>
+                  c.href === "/" ? pathname === "/" : pathname === c.href,
+                );
+                const childActive = idx === activeIndex;
+                return (
+                  <SidebarItem
+                    key={`${section.key}-${child.label}`}
+                    label={child.label}
+                    href={child.href}
+                    subitem
+                    isActive={childActive}
+                  />
+                );
+              })}
             </div>
           </motion.div>
         )}
