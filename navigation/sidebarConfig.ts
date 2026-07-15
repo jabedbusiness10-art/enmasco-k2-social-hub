@@ -176,7 +176,7 @@ export const sidebarConfig: NavSection[] = [
     crumb: "Executive",
     children: [
       { label: "Overview", href: "/dashboard/executive", description: "Unified CEO / management command center." },
-      { label: "Live Activity", href: "/dashboard/executive", description: "Real-time cross-module activity." },
+      { label: "Activity Feed", href: "/dashboard/executive/activity-feed", description: "Global enterprise timeline across all modules." },
     ],
   },
   {
@@ -187,8 +187,10 @@ export const sidebarConfig: NavSection[] = [
     crumb: "Queue Engine",
     children: [
       { label: "Overview", href: "/dashboard/queue", description: "Real-time BullMQ + Redis queue monitoring." },
-      { label: "Failed Jobs", href: "/dashboard/queue?tab=failed", description: "Recover failed jobs." },
-      { label: "Live Activity", href: "/dashboard/queue?tab=activity", description: "Live job event stream." },
+      { label: "Jobs", href: "/dashboard/queue/jobs", description: "All job audit records across queues." },
+      { label: "Failed Jobs", href: "/dashboard/queue/failed", description: "Recover failed jobs." },
+      { label: "Workers", href: "/dashboard/queue/workers", description: "Background worker instances + health." },
+      { label: "Queue Health", href: "/dashboard/queue/health", description: "Redis, BullMQ, scheduler and subsystem health." },
     ],
   },
   {
