@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { Plus, RefreshCw, Search, Loader2, Megaphone, Globe } from "lucide-react";
+import { Plus, RefreshCw, Search, Loader2, Megaphone, Globe, Play } from "lucide-react";
 import type { CompanySocialAccount, SocialPlatform } from "@/types/company-social";
 import SocialStatCards from "@/components/company-social/SocialStatCards";
 import SocialAccountCard from "@/components/company-social/SocialAccountCard";
@@ -18,6 +18,15 @@ import WebsiteDetailModal from "@/components/company-social/WebsiteDetailModal";
 
 const ROLES_CAN_MANAGE = ["CEO", "ADMIN"];
 
+// TASK-57 — lightweight YouTube glyph (lucide-react has no YouTube brand icon).
+function YoutubeGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z" />
+    </svg>
+  );
+}
+
 type Filter = "ALL" | "CONNECTED" | "EXPIRING_SOON" | "DISCONNECTED";
 type Sort = "newest" | "oldest" | "platform";
 
@@ -28,6 +37,7 @@ export default function CompanySocialPage() {
   const canManage = ROLES_CAN_MANAGE.includes(role);
   const [metaStatus, setMetaStatus] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
   const [linkedinStatus, setLinkedinStatus] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
+  const [youtubeStatus, setYoutubeStatus] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
 
   const [accounts, setAccounts] = useState<CompanySocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,12 +105,30 @@ export default function CompanySocialPage() {
     window.history.replaceState({}, "", "/dashboard/social/accounts");
   }, [searchParams]);
 
+  // TASK-57 — surface YouTube (Google) OAuth result from callback redirect query.
+  useEffect(() => {
+    const yt = searchParams.get("youtube");
+    if (!yt) return;
+    if (yt === "success") setYoutubeStatus({ kind: "success", msg: "YouTube channel connected successfully." });
+    else if (yt === "error") {
+      const reason = searchParams.get("reason") ?? "Connection failed";
+      setYoutubeStatus({ kind: "error", msg: reason });
+    } else if (yt === "unauthorized") {
+      setYoutubeStatus({ kind: "error", msg: "You are not authorized to connect YouTube." });
+    }
+    window.history.replaceState({}, "", "/dashboard/social/accounts");
+  }, [searchParams]);
+
   function connectWithMeta() {
     window.location.href = "/api/social/meta/auth";
   }
 
   function connectWithLinkedIn() {
     window.location.href = "/api/social/linkedin/connect";
+  }
+
+  function connectWithYouTube() {
+    window.location.href = "/api/social/youtube/auth";
   }
 
   async function handleConnect(payload: any) {
@@ -323,6 +351,14 @@ export default function CompanySocialPage() {
           )}
           {canManage && (
             <button
+              onClick={connectWithYouTube}
+              className="flex items-center gap-1.5 rounded-xl border border-[#FF0000]/40 bg-[#FF0000]/15 px-3.5 py-2 text-xs font-semibold text-[#ff9b9b] transition hover:bg-[#FF0000]/25"
+            >
+              <YoutubeGlyph className="h-4 w-4" /> Connect YouTube
+            </button>
+          )}
+          {canManage && (
+            <button
               onClick={() => setWebsiteConnectOpen(true)}
               className="flex items-center gap-1.5 rounded-xl border border-emerald-400/40 bg-emerald-400/15 px-3.5 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-400/25"
             >
@@ -368,6 +404,18 @@ export default function CompanySocialPage() {
           }`}
         >
           {linkedinStatus.msg}
+        </div>
+      )}
+
+      {youtubeStatus && (
+        <div
+          className={`rounded-xl border px-4 py-2 text-xs ${
+            youtubeStatus.kind === "success"
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+              : "border-rose-500/30 bg-rose-500/10 text-rose-300"
+          }`}
+        >
+          {youtubeStatus.msg}
         </div>
       )}
 

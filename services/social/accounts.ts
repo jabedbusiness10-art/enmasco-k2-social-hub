@@ -377,3 +377,55 @@ export async function refreshLinkedInAccount(
   });
   return toPublic(updated);
 }
+
+/**
+ * TASK-57 — Persist a YouTube (Google) connection.
+ * Reuses the shared connectAccount layer (tokens encrypted at rest).
+ */
+export interface YouTubeConnectionInput {
+  channel: {
+    id: string;
+    title: string;
+    handle: string | null;
+    customUrl: string | null;
+    thumbnail: string | null;
+    subscriberCount?: string | null;
+    viewCount?: string | null;
+    videoCount?: string | null;
+  };
+  accessToken: string;
+  refreshToken: string | null;
+  permissions: string[];
+  expiresAt: string | null;
+  connectedBy: string;
+  connectedById?: string | null;
+}
+
+export async function connectYouTubeAccount(
+  input: YouTubeConnectionInput,
+): Promise<SocialAccountPublic> {
+  const handle = input.channel.handle
+    ? input.channel.handle.replace(/^@/, "")
+    : input.channel.customUrl
+      ? input.channel.customUrl.replace(/^@/, "")
+      : input.channel.id;
+
+  return connectAccount({
+    platform: "YOUTUBE",
+    accountName: input.channel.title,
+    accountHandle: handle,
+    accountId: input.channel.id,
+    username: input.channel.handle ?? null,
+    profileUrl: input.channel.customUrl
+      ? `https://www.youtube.com/${input.channel.customUrl}`
+      : `https://www.youtube.com/channel/${input.channel.id}`,
+    accessToken: input.accessToken,
+    refreshToken: input.refreshToken ?? null,
+    expiresAt: input.expiresAt,
+    permissions: input.permissions ?? [],
+    accessTokenStatus: input.expiresAt ? "ACTIVE" : "ACTIVE",
+    provider: "youtube",
+    connectedBy: input.connectedBy,
+    connectedById: input.connectedById ?? null,
+  });
+}
