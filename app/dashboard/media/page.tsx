@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Grid3x3, List, LayoutGrid, Upload, Search, Star, SlidersHorizontal, Trash2, Archive, X } from "lucide-react";
+import { Grid3x3, List, LayoutGrid, Upload, Search, Star, SlidersHorizontal, Trash2, Archive, X, Layers, Tag as TagIcon } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
 import DamKpiCards from "@/components/media/DamKpiCards";
 import DamFolderSidebar from "@/components/media/DamFolderSidebar";
@@ -13,6 +14,8 @@ import DamBulkBar from "@/components/media/DamBulkBar";
 import DamActivityTimeline from "@/components/media/DamActivityTimeline";
 import TagManager from "@/components/media/TagManager";
 import CollectionSidebar from "@/components/media/CollectionSidebar";
+import CollectionsView from "@/components/media/CollectionsView";
+import TagsView from "@/components/media/TagsView";
 
 type Asset = {
   id: string;
@@ -42,6 +45,13 @@ const VIEWS = [
 const TYPES = ["IMAGE", "VIDEO", "DOCUMENT", "LOGO", "BRAND_ASSET"];
 
 export default function MediaPage() {
+  const router = useRouter();
+  const sp = useSearchParams();
+  const tab = (sp.get("view") as "assets" | "collections" | "tags") || "assets";
+  const setTab = (v: "assets" | "collections" | "tags") => {
+    router.push(`/dashboard/media?view=${v}`, { scroll: false });
+  };
+
   const [assets, setAssets] = useState<Asset[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [folders, setFolders] = useState<any[]>([]);
@@ -120,6 +130,19 @@ export default function MediaPage() {
 
       {stats && <DamKpiCards stats={stats} />}
 
+      {/* View tabs */}
+      <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/[0.03] p-1 w-fit">
+        {([{ k: "assets", label: "All Assets", Icon: Grid3x3 }, { k: "collections", label: "Collections", Icon: Layers }, { k: "tags", label: "Tags", Icon: TagIcon }] as const).map((t) => (
+          <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium ${tab === t.k ? "bg-sky-500/20 text-white" : "text-white/55 hover:text-white"}`}>
+            <t.Icon className="h-3.5 w-3.5" /> {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "collections" && <CollectionsView />}
+      {tab === "tags" && <TagsView />}
+
+      {tab === "assets" && (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_1fr_260px]">
         <DamFolderSidebar
           folders={folders}
@@ -223,6 +246,7 @@ export default function MediaPage() {
           <TagManager />
         </div>
       </div>
+      )}
 
       {/* Activity */}
       {activity.length > 0 && <DamActivityTimeline activity={activity} />}

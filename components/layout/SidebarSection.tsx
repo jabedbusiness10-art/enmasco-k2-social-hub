@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, LucideIcon } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import SidebarItem from "./SidebarItem";
 import { sidebarSectionTrigger } from "./sidebarStyles";
 
@@ -40,12 +40,23 @@ export default function SidebarSection({
 }: SidebarSectionProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Match a child href that may carry a ?view= query. usePathname() excludes
+  // the search string, so compare path + the child's view param explicitly.
+  const childMatches = (href: string) => {
+    const [path, query] = href.split("?");
+    if (pathname !== path) return false;
+    if (!query) return true;
+    const params = new URLSearchParams(query);
+    const view = params.get("view");
+    if (!view) return true;
+    return searchParams.get("view") === view;
+  };
 
   const isExpandable = section.expandable !== false;
   const expanded = expandedKeys.has(section.key);
-  const hasActiveChild = section.children.some((child) =>
-    child.href === "/" ? pathname === "/" : pathname.startsWith(child.href),
-  );
+  const hasActiveChild = section.children.some((child) => childMatches(child.href));
 
   const handleClick = () => {
     if (collapsed) return;
@@ -113,13 +124,11 @@ export default function SidebarSection({
           >
             <div className="space-y-1 py-1">
               {section.children.map((child, idx) => {
-                // exact route match — first child whose href equals the
-                // current path wins. Siblings sharing the same href (e.g.
-                // Media Library's All Assets / Collections / Tags all point to
-                // /dashboard/media) will NOT all light up — only the first.
-                const activeIndex = section.children.findIndex((c) =>
-                  c.href === "/" ? pathname === "/" : pathname === c.href,
-                );
+                // exact route + view match — only the child whose href (path +
+                // ?view=) equals the current location is highlighted. Siblings
+                // sharing the same base path but different view do NOT all
+                // light up.
+                const activeIndex = section.children.findIndex((c) => childMatches(c.href));
                 const childActive = idx === activeIndex;
                 return (
                   <SidebarItem

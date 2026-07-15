@@ -187,9 +187,9 @@ export const sidebarConfig: NavSection[] = [
     href: "/dashboard/media",
     crumb: "Media Library",
     children: [
-      { label: "All Assets", href: "/dashboard/media", description: "Browse and manage all digital assets." },
-      { label: "Collections", href: "/dashboard/media", description: "Organize assets into nested collections." },
-      { label: "Tags", href: "/dashboard/media", description: "Tag and categorize assets for quick search." },
+      { label: "All Assets", href: "/dashboard/media?view=assets", description: "Browse and manage all digital assets." },
+      { label: "Collections", href: "/dashboard/media?view=collections", description: "Organize assets into nested collections." },
+      { label: "Tags", href: "/dashboard/media?view=tags", description: "Tag and categorize assets for quick search." },
     ],
   },
   {

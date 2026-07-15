@@ -214,4 +214,81 @@ export const mediaService = {
   async logHistory(assetId: string, actorId: string, action: string, field?: string, fromValue?: string, toValue?: string) {
     return prisma.mediaHistory.create({ data: { assetId, actorId, action, field: field ?? null, fromValue: fromValue ?? null, toValue: toValue ?? null } });
   },
+
+  // ---- TASK-56: full Collections / Tags / Archive ----
+  async patchCollection(id: string, data: { name?: string; description?: string; parentId?: string | null; isPinned?: boolean }) {
+    return prisma.mediaCollection.update({ where: { id }, data });
+  },
+
+  async deleteCollection(id: string) {
+    return prisma.mediaCollection.delete({ where: { id } });
+  },
+
+  async removeFromCollection(collectionId: string, assetId: string) {
+    return prisma.collectionItem.deleteMany({ where: { collectionId, assetId } });
+  },
+
+  async collectionAssets(collectionId: string) {
+    const items = await prisma.collectionItem.findMany({
+      where: { collectionId },
+      include: { asset: true },
+      orderBy: { order: "asc" },
+    });
+    return items.map((i: any) => i.asset);
+  },
+
+  async patchTag(id: string, data: { name?: string; color?: string }) {
+    return prisma.mediaTag.update({ where: { id }, data });
+  },
+
+  async deleteTag(id: string) {
+    return prisma.mediaTag.delete({ where: { id } });
+  },
+
+  async mergeTag(fromId: string, toId: string) {
+    const fromTag = await prisma.mediaTag.findUnique({ where: { id: fromId } });
+    const toTag = await prisma.mediaTag.findUnique({ where: { id: toId } });
+    if (!fromTag || !toTag) throw new Error("tag not found");
+    const fromName = fromTag.name;
+    const toName = toTag.name;
+    // move all assetTags from -> to
+    const from = await prisma.mediaAssetTag.findMany({ where: { tagId: fromId } });
+    for (const t of from) {
+      await prisma.mediaAssetTag.upsert({
+        where: { assetId_tagId: { assetId: t.assetId, tagId: toId } },
+        update: {},
+        create: { assetId: t.assetId, tagId: toId },
+      });
+    }
+    // also merge inline tags on MediaAsset
+    const assets = await prisma.mediaAsset.findMany({ where: { tags: { has: fromName } } });
+    for (const a of assets) {
+      const next = Array.from(new Set([...a.tags.filter((x: string) => x !== fromName), toName]));
+      await prisma.mediaAsset.update({ where: { id: a.id }, data: { tags: next } });
+    }
+    await prisma.mediaTag.delete({ where: { id: fromId } });
+    return { mergedInto: toId };
+  },
+
+  async archiveAsset(id: string, archivedBy: string, reason?: string) {
+    await prisma.mediaArchive.create({ data: { assetId: id, archivedBy, reason: reason ?? null } });
+    return prisma.mediaAsset.update({ where: { id }, data: { status: "ARCHIVED", archivedAt: new Date() } });
+  },
+
+  async restoreAsset(id: string) {
+    await prisma.mediaArchive.updateMany({ where: { assetId: id, restoredAt: null }, data: { restoredAt: new Date() } });
+    return prisma.mediaAsset.update({ where: { id }, data: { status: "ACTIVE", archivedAt: null } });
+  },
+
+  async tagAsset(assetId: string, tagId: string) {
+    return prisma.mediaAssetTag.upsert({
+      where: { assetId_tagId: { assetId, tagId } },
+      update: {},
+      create: { assetId, tagId },
+    });
+  },
+
+  async untagAsset(assetId: string, tagId: string) {
+    return prisma.mediaAssetTag.deleteMany({ where: { assetId, tagId } });
+  },
 };
