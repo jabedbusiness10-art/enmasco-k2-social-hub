@@ -16,6 +16,7 @@ import TagManager from "@/components/media/TagManager";
 import CollectionSidebar from "@/components/media/CollectionSidebar";
 import CollectionsView from "@/components/media/CollectionsView";
 import TagsView from "@/components/media/TagsView";
+import { formatBytes } from "@/components/media/DamAssetCard";
 
 type Asset = {
   id: string;
@@ -66,6 +67,12 @@ export default function MediaPage() {
   const [showUpload, setShowUpload] = useState(false);
   const [favOnly, setFavOnly] = useState(false);
   const [collection, setCollection] = useState<string | null>(null);
+  const [archivedOnly, setArchivedOnly] = useState(false);
+  const [unusedOnly, setUnusedOnly] = useState(false);
+  const [aiOnly, setAiOnly] = useState(false);
+  const [platform, setPlatform] = useState("");
+  const [campaign, setCampaign] = useState("");
+  const [analytics, setAnalytics] = useState<any>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -75,18 +82,25 @@ export default function MediaPage() {
     if (folder) qs.set("folderId", folder);
     if (collection) qs.set("collectionId", collection);
     if (favOnly) qs.set("favorite", "1");
-    const [a, s, f, act] = await Promise.all([
+    if (archivedOnly) qs.set("archived", "1");
+    if (unusedOnly) qs.set("unused", "1");
+    if (aiOnly) qs.set("ai", "1");
+    if (platform) qs.set("platform", platform);
+    if (campaign) qs.set("campaign", campaign);
+    const [a, s, f, act, an] = await Promise.all([
       fetch(`/api/media?${qs}`).then((r) => r.json()),
       fetch("/api/media?view=stats").then((r) => r.json()),
       fetch("/api/media/folders").then((r) => r.json()),
       fetch("/api/media?view=activity&limit=12").then((r) => r.json()),
+      fetch("/api/media?view=analytics").then((r) => r.json()),
     ]);
     setAssets(a.assets ?? []);
     setStats(s.stats ?? null);
     setFolders(f.folders ?? []);
     setActivity(act.activity ?? []);
+    setAnalytics(an.analytics ?? null);
     setLoading(false);
-  }, [search, type, folder, collection, favOnly]);
+  }, [search, type, folder, collection, favOnly, archivedOnly, unusedOnly, aiOnly, platform, campaign]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -104,11 +118,22 @@ export default function MediaPage() {
   };
 
   const onBulk = async (action: string, opts: any = {}) => {
-    await fetch("/api/media/bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: selected, action, ...opts }),
-    });
+    if (action === "restore") {
+      for (const id of selected) await fetch(`/api/media/${id}/archive`, { method: "DELETE" });
+    } else if (action === "duplicate") {
+      await fetch("/api/media/bulk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: selected, action: "duplicate" }) });
+    } else if (action === "share") {
+      const urls = selected.map((id) => { const a = assets.find((x) => x.id === id); return a ? window.location.origin + a.url : ""; }).filter(Boolean);
+      if (navigator.clipboard) await navigator.clipboard.writeText(urls.join("\n"));
+    } else if (action === "download") {
+      for (const id of selected) { const a = assets.find((x) => x.id === id); if (a) window.open(a.url.startsWith("http") ? a.url : `http://localhost:3000${a.url}`, "_blank"); }
+    } else {
+      await fetch("/api/media/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selected, action, ...opts }),
+      });
+    }
     setSelected([]);
     load();
   };
@@ -129,6 +154,40 @@ export default function MediaPage() {
       />
 
       {stats && <DamKpiCards stats={stats} />}
+
+      {analytics && (
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/45">Monthly Upload Trend</div>
+            <div className="flex h-24 items-end gap-1.5">
+              {(analytics.monthly || []).map((m: any) => {
+                const max = Math.max(1, ...(analytics.monthly || []).map((x: any) => x.count));
+                return <div key={m.month} className="flex flex-1 flex-col items-center gap-1" title={`${m.month}: ${m.count} assets`}>
+                  <div className="w-full rounded-t bg-gradient-to-t from-sky-500/30 to-sky-400/80" style={{ height: `${Math.max(6, (m.count / max) * 100)}%` }} />
+                  <span className="text-[8px] text-white/35">{m.month.slice(2)}</span>
+                </div>;
+              })}
+              {(!analytics.monthly || analytics.monthly.length === 0) && <div className="text-[11px] text-white/40">No data yet.</div>}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/45">Largest Files</div>
+            <div className="space-y-1.5">
+              {(analytics.largest || []).map((f: any) => (
+                <div key={f.id} className="flex items-center justify-between text-[11px]">
+                  <span className="truncate text-white/70">{f.originalName}</span>
+                  <span className="text-white/45">{formatBytes(f.fileSize)}</span>
+                </div>
+              ))}
+              {(!analytics.largest || analytics.largest.length === 0) && <div className="text-[11px] text-white/40">No files.</div>}
+            </div>
+            <div className="mt-2 flex gap-3 text-[10px] text-white/45">
+              <span>Collections: <b className="text-white/80">{analytics.collections}</b></span>
+              <span>Tags: <b className="text-white/80">{analytics.tags}</b></span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* View tabs */}
       <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/[0.03] p-1 w-fit">
@@ -183,6 +242,13 @@ export default function MediaPage() {
             >
               <Star className="h-3.5 w-3.5" /> Fav
             </button>
+            <select value={platform} onChange={(e) => setPlatform(e.target.value)} className="h-9 rounded-xl border border-white/10 bg-white/[0.06] px-2 text-xs text-white outline-none">
+              <option value="">All Platforms</option>
+              {["facebook", "instagram", "linkedin", "youtube", "x"].map((p) => <option key={p} value={p} className="capitalize">{p}</option>)}
+            </select>
+            <button onClick={() => setArchivedOnly((v) => !v)} className={`flex h-9 items-center gap-1 rounded-xl border px-2.5 text-xs ${archivedOnly ? "border-sky-400/40 bg-sky-400/10 text-sky-200" : "border-white/10 bg-white/5 text-white/60"}`}>Archived</button>
+            <button onClick={() => setUnusedOnly((v) => !v)} className={`flex h-9 items-center gap-1 rounded-xl border px-2.5 text-xs ${unusedOnly ? "border-sky-400/40 bg-sky-400/10 text-sky-200" : "border-white/10 bg-white/5 text-white/60"}`}>Unused</button>
+            <button onClick={() => setAiOnly((v) => !v)} className={`flex h-9 items-center gap-1 rounded-xl border px-2.5 text-xs ${aiOnly ? "border-sky-400/40 bg-sky-400/10 text-sky-200" : "border-white/10 bg-white/5 text-white/60"}`}>AI</button>
             <div className="flex rounded-xl border border-white/10 bg-white/5 p-0.5">
               {VIEWS.map((v) => (
                 <button

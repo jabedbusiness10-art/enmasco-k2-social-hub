@@ -14,7 +14,7 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const { originalName, category, tags, description, favorited, folderId, status } = body;
+  const { originalName, category, tags, description, favorited, folderId, status, platforms, campaign, aiGenerated, scheduledPosts } = body;
 
   const data: any = {};
   if (typeof originalName === "string") data.originalName = originalName;
@@ -25,6 +25,10 @@ export async function PATCH(
   if (folderId !== undefined) {
     data.folderId = folderId === "" || folderId === "root" ? null : folderId;
   }
+  if (Array.isArray(platforms)) data.platforms = platforms;
+  if (typeof campaign === "string") data.campaign = campaign || null;
+  if (typeof aiGenerated === "boolean") data.aiGenerated = aiGenerated;
+  if (scheduledPosts !== undefined) data.scheduledPosts = scheduledPosts;
   if (typeof status === "string") {
     data.status = status;
     if (status === "ARCHIVED") data.archivedAt = new Date();

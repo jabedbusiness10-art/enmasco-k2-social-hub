@@ -322,6 +322,10 @@ model MediaAsset {
   uploadedBy    String
   uploadedById  String?
   folderId      String?
+  platforms     String[]    @default([]) // facebook, instagram, linkedin, youtube, x
+  campaign      String?
+  aiGenerated   Boolean     @default(false)
+  scheduledPosts Json?       // [{platform, scheduledAt, postId}]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   deletedAt     DateTime?

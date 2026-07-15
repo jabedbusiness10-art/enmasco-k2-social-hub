@@ -12,6 +12,12 @@ export interface ListQuery {
   favorite?: boolean;
   archived?: boolean;
   trashed?: boolean;
+  unused?: boolean;
+  aiGenerated?: boolean;
+  platform?: string;
+  campaign?: string;
+  dateFrom?: string;
+  sizeMin?: number;
   collectionId?: string;
   sort?: "newest" | "oldest" | "name" | "largest" | "mostUsed";
   page?: number;
@@ -46,12 +52,22 @@ export const mediaService = {
     if (q.uploadedBy) where.uploadedById = q.uploadedBy;
     if (q.tags && q.tags.length) where.tags = { hasSome: q.tags };
 
+    if (q.archived) where.status = "ARCHIVED";
+    if (q.unused) where.usageCount = 0;
+    if (q.aiGenerated) where.aiGenerated = true;
+    if (q.platform) where.platforms = { has: q.platform };
+    if (q.campaign) where.campaign = { contains: q.campaign, mode: "insensitive" };
+    if (q.dateFrom) where.createdAt = { gte: new Date(q.dateFrom) };
+    if (q.sizeMin) where.fileSize = { gte: q.sizeMin };
+
     if (q.search) {
       where.OR = [
         { originalName: { contains: q.search, mode: "insensitive" } },
         { fileName: { contains: q.search, mode: "insensitive" } },
         { tags: { has: q.search } },
         { uploadedBy: { contains: q.search, mode: "insensitive" } },
+        { campaign: { contains: q.search, mode: "insensitive" } },
+        { platforms: { has: q.search } },
         { folder: { name: { contains: q.search, mode: "insensitive" } } },
       ];
     }
@@ -95,18 +111,55 @@ export const mediaService = {
     };
   },
 
-  async activity(limit = 20) {
-    return prisma.mediaActivity.findMany({ orderBy: { createdAt: "desc" }, take: limit });
+  async storageAnalytics() {
+    const [assets, collections, tags] = await Promise.all([
+      prisma.mediaAsset.findMany({ where: { deletedAt: null, status: { not: "TRASHED" } }, select: { id: true, fileSize: true, createdAt: true, originalName: true, fileType: true, url: true } }),
+      prisma.mediaCollection.count(),
+      prisma.mediaTag.count(),
+    ]);
+    const byMonth: Record<string, { count: number; bytes: number }> = {};
+    for (const a of assets) {
+      const key = new Date(a.createdAt).toISOString().slice(0, 7);
+      if (!byMonth[key]) byMonth[key] = { count: 0, bytes: 0 };
+      byMonth[key].count += 1;
+      byMonth[key].bytes += a.fileSize;
+    }
+    const monthly = Object.entries(byMonth).sort((x, y) => x[0].localeCompare(y[0])).map(([month, v]) => ({ month, ...v }));
+    const largest = [...assets].sort((a, b) => b.fileSize - a.fileSize).slice(0, 5);
+    const usedBytes = assets.reduce((s, a) => s + a.fileSize, 0);
+    return { total: assets.length, collections, tags, usedBytes, monthly, largest };
   },
 
   async get(id: string) {
     return prisma.mediaAsset.findUnique({ where: { id } });
   },
 
+  async activity(limit = 20) {
+    return prisma.mediaActivity.findMany({ orderBy: { createdAt: "desc" }, take: limit });
+  },
+
   async patch(id: string, data: any, actor: { userId: string; userName: string }) {
     const current = await prisma.mediaAsset.findUnique({ where: { id } });
     if (!current) return null;
     const next = await prisma.mediaAsset.update({ where: { id }, data });
+
+    // sync inline tags -> normalized MediaAssetTag
+    if (Array.isArray(data.tags)) {
+      const existing = await prisma.mediaAssetTag.findMany({ where: { assetId: id } });
+      const keep = existing.filter((t: any) => data.tags.includes(t.tagId ? t.tagId : ""));
+      // create tag rows for any tag name present
+      for (const name of data.tags) {
+        const tag = await prisma.mediaTag.upsert({ where: { name }, update: {}, create: { name } });
+        await prisma.mediaAssetTag.upsert({
+          where: { assetId_tagId: { assetId: id, tagId: tag.id } },
+          update: {},
+          create: { assetId: id, tagId: tag.id },
+        });
+      }
+      // remove tag rows not in new list
+      const tagIds = (await Promise.all(data.tags.map(async (n: string) => (await prisma.mediaTag.findUnique({ where: { name: n } }))?.id))).filter(Boolean);
+      await prisma.mediaAssetTag.deleteMany({ where: { assetId: id, tagId: { notIn: tagIds } } });
+    }
 
     // activity log for meaningful changes
     if (data.favorited !== undefined) this.log(id, actor, "FAVORITE", data.favorited ? "added" : "removed");
@@ -122,7 +175,7 @@ export const mediaService = {
     return prisma.mediaActivity.create({ data: { assetId, userId: actor.userId, userName: actor.userName, action, meta: meta ?? null } });
   },
 
-  async bulk(ids: string[], action: "delete" | "archive" | "restore" | "move" | "tag" | "favorite", opts: any, actor: { userId: string; userName: string }) {
+  async bulk(ids: string[], action: "delete" | "archive" | "restore" | "move" | "tag" | "favorite" | "collection" | "duplicate", opts: any, actor: { userId: string; userName: string }) {
     if (action === "delete") {
       await prisma.mediaAsset.updateMany({ where: { id: { in: ids } }, data: { status: "TRASHED", deletedAt: new Date() } });
     } else if (action === "archive") {
@@ -137,6 +190,24 @@ export const mediaService = {
       for (const id of ids) {
         const a = await prisma.mediaAsset.findUnique({ where: { id }, select: { tags: true } });
         if (a) await prisma.mediaAsset.update({ where: { id }, data: { tags: Array.from(new Set([...a.tags, ...opts.tags])) } });
+      }
+    } else if (action === "collection" && opts.collectionId) {
+      for (const id of ids) await this.addToCollection(opts.collectionId, id);
+    } else if (action === "duplicate") {
+      for (const id of ids) {
+        const src = await prisma.mediaAsset.findUnique({ where: { id } });
+        if (src) {
+          await prisma.mediaAsset.create({
+            data: {
+              fileName: src.fileName, originalName: `${src.originalName} (copy)`, fileType: src.fileType,
+              mimeType: src.mimeType, fileSize: src.fileSize, cloudinaryId: src.cloudinaryId, url: src.url,
+              width: src.width, height: src.height, duration: src.duration, extension: src.extension,
+              category: src.category, tags: src.tags, description: src.description, uploadedBy: src.uploadedBy,
+              uploadedById: src.uploadedById, folderId: src.folderId, platforms: src.platforms, campaign: src.campaign,
+              aiGenerated: src.aiGenerated,
+            },
+          });
+        }
       }
     }
     return { ok: true, count: ids.length };

@@ -19,6 +19,10 @@ export async function GET(req: NextRequest) {
     const activity = await mediaService.activity(Number(searchParams.get("limit") || 20));
     return NextResponse.json({ activity });
   }
+  if (view === "analytics") {
+    const analytics = await mediaService.storageAnalytics();
+    return NextResponse.json({ analytics });
+  }
 
   const assets = await mediaService.list({
     search: searchParams.get("search")?.trim() || undefined,
@@ -29,6 +33,10 @@ export async function GET(req: NextRequest) {
     uploadedBy: searchParams.get("uploadedBy")?.trim() || undefined,
     favorite: searchParams.get("favorite") === "1",
     archived: searchParams.get("archived") === "1",
+    unused: searchParams.get("unused") === "1",
+    aiGenerated: searchParams.get("ai") === "1",
+    platform: searchParams.get("platform")?.trim() || undefined,
+    campaign: searchParams.get("campaign")?.trim() || undefined,
     trashed: searchParams.get("trashed") === "1",
     collectionId: searchParams.get("collectionId") || undefined,
     sort: (searchParams.get("sort") as any) || "newest",
