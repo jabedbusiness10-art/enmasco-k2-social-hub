@@ -42,3 +42,5 @@ tsconfig.tsbuildinfo
 # user-uploaded media (local fallback)
 public/uploads/
 .tunnel/
+.cache/
+node_modules
