@@ -136,6 +136,12 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
+  // TASK-62 security relations
+  userExtraRoles     UserRoleLink[]
+  userPermOverride  UserPermissionOverride[]
+  userLoginHistory  LoginHistory[]
+  userTrustedDevices TrustedDevice[]
+
   @@index([roleId])
   @@index([departmentId])
   @@index([status])
@@ -1571,12 +1577,24 @@ model Analytics {
 model AuditLog {
   id         String    @id @default(cuid())
   action     String
+  actionType String?   // e.g. LOGIN, LOGOUT, PERMISSION_UPDATE, MEDIA_DELETE
+  module     String?   // e.g. MEDIA, AUTH, QUEUE, SECURITY
+  resource   String?   // resource name/identifier
   entityName String?
   entityId   String?
   oldValue   String?
   newValue   String?
   ip         String?
   userAgent  String?
+  browser    String?
+  os         String?
+  device     String?
+  country    String?
+  city       String?
+  status     String?   // SUCCESS | FAILURE | BLOCKED
+  severity   String?   // INFO | LOW | MEDIUM | HIGH | CRITICAL
+  durationMs Int?
+  metadata   Json?
   createdAt  DateTime  @default(now())
   createdById String
 
@@ -1585,6 +1603,9 @@ model AuditLog {
   @@index([entityName])
   @@index([entityId])
   @@index([createdById])
+  @@index([actionType])
+  @@index([module])
+  @@index([severity])
   @@index([createdAt])
 }
 
@@ -1629,14 +1650,25 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
+  id            String    @id @default(cuid())
+  sessionToken  String    @unique
+  userId        String
+  expires       DateTime
+  ip            String?
+  userAgent     String?
+  browser       String?
+  os            String?
+  device        String?
+  country       String?
+  city          String?
+  isCurrent     Boolean   @default(false)
+  lastActivityAt DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([expires])
 }
 
 model VerificationToken {
@@ -1744,4 +1776,173 @@ model RetryHistory {
   job QueueJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([jobId])
+}
+
+// ============================================================================
+// TASK-62 — Enterprise Security Audit & Role-Based Permissions
+// Additive models. DB-driven RBAC complements the static ROLE_PERMISSIONS map
+// in services/auth/permissions.ts (merged at runtime by lib/security/permissions.ts).
+// ============================================================================
+
+/// Permission catalog (the universe of grantable permissions).
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g. VIEW_DASHBOARD, MEDIA_DELETE
+  category    String   // DASHBOARD | SOCIAL | MEDIA | ... | SECURITY
+  description String?
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+}
+
+/// Per-role permission grants (allow/deny) — overrides/extends static defaults.
+model RolePermission {
+  id         String   @id @default(cuid())
+  role       UserRole
+  permission String
+  access     String   @default("ALLOW") // ALLOW | DENY
+  createdAt  DateTime @default(now())
+
+  permissionRef Permission? @relation(fields: [permission], references: [name])
+
+  @@unique([role, permission])
+  @@index([role])
+  @@index([permission])
+}
+
+/// Optional additional roles for a user (primary role remains User.role).
+model UserRoleLink {
+  id        String   @id @default(cuid())
+  userId    String
+  role      UserRole
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@index([userId])
+}
+
+/// Per-user permission override (fine-grained, on top of role grants).
+model UserPermissionOverride {
+  id         String   @id @default(cuid())
+  userId     String
+  permission String
+  access     String   @default("ALLOW") // ALLOW | DENY
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permission])
+  @@index([userId])
+}
+
+/// API access log (every authenticated /api/* call is recorded by middleware).
+model ApiAccessLog {
+  id           String   @id @default(cuid())
+  endpoint     String
+  method       String
+  statusCode   Int
+  executionMs  Int?
+  userId       String?
+  userEmail    String?
+  ip           String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([endpoint])
+  @@index([statusCode])
+  @@index([createdAt])
+}
+
+/// Login / logout / session history per user.
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  email     String
+  result    String   // SUCCESS | FAILURE | LOGOUT | EXPIRED | BLOCKED
+  ip        String?
+  userAgent String?
+  browser   String?
+  os        String?
+  country   String?
+  city      String?
+  reason    String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([result])
+  @@index([createdAt])
+}
+
+/// Security events timeline (critical/high/medium/low).
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  severity  String   // CRITICAL | HIGH | MEDIUM | LOW
+  type      String   // PERMISSION_CHANGED | SUSPICIOUS_LOGIN | ...
+  title     String
+  message   String?
+  userId    String?
+  userEmail String?
+  ip        String?
+  metadata  Json?
+  resolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([severity])
+  @@index([type])
+  @@index([resolved])
+  @@index([createdAt])
+}
+
+/// Trusted devices for 2FA-ready device management.
+model TrustedDevice {
+  id           String   @id @default(cuid())
+  userId       String
+  fingerprint  String
+  name         String?
+  browser      String?
+  os           String?
+  ip           String?
+  lastUsedAt   DateTime @default(now())
+  trustedAt    DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fingerprint])
+  @@index([userId])
+}
+
+/// Blocked IPs (auto or manual).
+model BlockedIP {
+  id        String   @id @default(cuid())
+  ip        String   @unique
+  reason    String?
+  source    String   @default("MANUAL") // MANUAL | AUTO
+  blockedBy String?
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([ip])
+}
+
+/// Password policy (single active row; 2FA-ready flags).
+model PasswordPolicy {
+  id                  String   @id @default(cuid())
+  minLength           Int      @default(8)
+  requireUppercase    Boolean  @default(true)
+  requireLowercase    Boolean  @default(true)
+  requireNumber       Boolean  @default(true)
+  requireSpecial      Boolean  @default(false)
+  expirationDays      Int?     // null = never
+  historyCount        Int      @default(0) // 2FA-ready: password history depth
+  twoFactorEnabled    Boolean  @default(false) // 2FA-ready (infra only, not forced)
+  twoFactorMethods    String   @default("AUTHENTICATOR,EMAIL_OTP,RECOVERY_CODES") // 2FA-ready
+  active              Boolean  @default(true)
+  updatedAt           DateTime @updatedAt
+  updatedById         String?
 }

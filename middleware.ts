@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
 const publicPaths = ["/login", "/unauthorized", "/", "/api/auth", "/api/health", "/api/system", "/healthz"];
 
@@ -23,7 +24,16 @@ function rateLimited(ip: string): boolean {
   return hits.length > MAX_PER_WINDOW;
 }
 
-export function middleware(request: NextRequest) {
+// TASK-62 — route-level role guard (defense in depth alongside page/API checks)
+const ADMIN_PREFIXES = ["/dashboard/admin", "/dashboard/monitoring", "/dashboard/queue"];
+const EXECUTIVE_PREFIX = "/dashboard/executive";
+const EXPORT_PREFIX = "/dashboard/insights/reports";
+
+function needsAdmin(path: string) {
+  return ADMIN_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
+}
+
+export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // --- Rate limit API routes (skip public auth + health) ---
@@ -38,8 +48,6 @@ export function middleware(request: NextRequest) {
   }
 
   // --- Auth guard ---
-  // Pages -> redirect to /login.  API routes -> 401 JSON (not a redirect,
-  // so API consumers get a real error, not an HTML login page).
   if (!isPublic(path)) {
     const session =
       request.cookies.get("next-auth.session-token") ||
@@ -53,9 +61,24 @@ export function middleware(request: NextRequest) {
       }
       return NextResponse.redirect(new URL("/login", request.url));
     }
+
+    // --- Role guard (decode JWT) ---
+    if (needsAdmin(path) || path.startsWith(EXECUTIVE_PREFIX) || path.startsWith(EXPORT_PREFIX)) {
+      const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+      const role = (token?.role as string) || "";
+      const isAdmin = role === "CEO" || role === "ADMIN";
+      if (!isAdmin) {
+        if (path.startsWith("/api/")) {
+          return new NextResponse(
+            JSON.stringify({ error: "Forbidden: admin access required" }),
+            { status: 403, headers: { "content-type": "application/json" } }
+          );
+        }
+        return NextResponse.redirect(new URL("/unauthorized", request.url));
+      }
+    }
   }
 
-  // --- Security headers are applied in next.config; add HSTS hint on root ---
   const res = NextResponse.next();
   return res;
 }
