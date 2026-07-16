@@ -127,3 +127,40 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ---- TASK-66F: Premium animated cyber-red hero title ----
+   CSS-only flowing gradient (no JS). GPU-friendly background-position
+   animation. Tuned clamp() guarantees the full title stays on ONE line
+   and never clips/overflows at any viewport width. */
+.cyber-title-flow {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+  font-size: clamp(1.5rem, 3.6vw, 4.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  background-image: linear-gradient(90deg, #ff2748, #ff4d6d, #ff6b8a, #ff2f55, #ff2748);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 18px rgba(255, 60, 90, 0.18);
+  animation: cyberTitleFlow 12s linear infinite;
+}
+
+@keyframes cyberTitleFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cyber-title-flow {
+    animation: none;
+  }
+}

@@ -52,14 +52,14 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
+          className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
         >
-          <div>
+          <div className="min-w-0">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.055] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-red-100/80 backdrop-blur-xl">
               <span className="h-1.5 w-1.5 rounded-full bg-red-300 shadow-[0_0_14px_rgba(252,165,165,0.9)]" />
               WELCOME BACK
             </div>
-            <h1 className="bg-gradient-to-r from-[#ff5f6d] via-[#ff2e63] to-[#b3123f] bg-clip-text text-4xl font-bold leading-none tracking-[0.04em] text-transparent drop-shadow-[0_2px_24px_rgba(255,46,99,0.25)] sm:text-5xl lg:text-6xl">
+            <h1 className="cyber-title-flow">
               Enma Security Trading Company
             </h1>
             <p className="mt-3 text-lg font-medium tracking-normal text-white/75 sm:text-xl lg:text-2xl">
