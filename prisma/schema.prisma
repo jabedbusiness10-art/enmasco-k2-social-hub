@@ -1946,3 +1946,144 @@ model PasswordPolicy {
   updatedAt           DateTime @updatedAt
   updatedById         String?
 }
+
+// ============================================================================
+// TASK-63 — Enterprise Backup & Disaster Recovery
+// Additive models. Real backup jobs, snapshots, schedules, storage, restores.
+// ============================================================================
+
+model BackupJob {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   // DATABASE | MEDIA | USER | ANALYTICS | QUEUE | NOTIFICATION | CONFIG | SETTINGS
+  mode            String   @default("MANUAL") // MANUAL | SCHEDULED | INCREMENTAL | FULL
+  status          String   @default("QUEUED") // QUEUED | RUNNING | COMPLETED | FAILED | VERIFYING
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationMs       Int?
+  sizeBytes       Int?
+  compressionRatio Float?
+  checksum        String?
+  storageProvider String   @default("LOCAL") // LOCAL | S3 | R2 | AZURE | GCS | B2
+  storagePath     String?
+  queueJobId      String?  // BullMQ job id when Redis-backed
+  createdById     String?
+  verified        Boolean  @default(false)
+  verifiedAt      DateTime?
+  metadata        Json?
+  error           String?
+  scheduleId      String?
+  createdAt       DateTime @default(now())
+
+  schedule        BackupSchedule? @relation(fields: [scheduleId], references: [id])
+  snapshots       BackupSnapshot[]
+  verifications   BackupVerification[]
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model BackupSnapshot {
+  id          String   @id @default(cuid())
+  backupJobId String
+  type        String
+  path        String?
+  sizeBytes   Int?
+  checksum    String?
+  createdAt   DateTime @default(now())
+
+  backupJob   BackupJob @relation(fields: [backupJobId], references: [id], onDelete: Cascade)
+
+  @@index([backupJobId])
+}
+
+model BackupSchedule {
+  id            String   @id @default(cuid())
+  name          String
+  type          String   // backup type to run
+  frequency     String   // HOURLY | DAILY | WEEKLY | MONTHLY | CUSTOM
+  cron          String?  // custom cron expression
+  enabled       Boolean  @default(true)
+  paused        Boolean  @default(false)
+  retentionCount Int      @default(7)
+  lastRunAt     DateTime?
+  nextRunAt     DateTime?
+  createdById   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  jobs          BackupJob[]
+
+  @@index([enabled])
+  @@index([nextRunAt])
+}
+
+model BackupStorage {
+  id           String   @id @default(cuid())
+  provider     String   @default("LOCAL") // LOCAL | S3 | R2 | AZURE | GCS | B2
+  configured   Boolean  @default(false)
+  totalBytes   Int      @default(0)
+  usedBytes    Int      @default(0)
+  availableBytes Int    @default(0)
+  bucket       String?  // bucket/container name (never secrets)
+  region       String?
+  updatedAt    DateTime @updatedAt
+}
+
+model RestoreJob {
+  id           String   @id @default(cuid())
+  backupJobId  String
+  scope        String   // DATABASE | MEDIA | SETTINGS | EVERYTHING
+  status       String   @default("QUEUED") // QUEUED | RUNNING | COMPLETED | FAILED
+  startedAt    DateTime?
+  completedAt  DateTime?
+  durationMs   Int?
+  requestedById String?
+  report       Json?
+  error        String?
+  createdAt    DateTime @default(now())
+
+  @@index([status])
+  @@index([backupJobId])
+}
+
+model RecoveryLog {
+  id           String   @id @default(cuid())
+  type         String   // BACKUP_CREATED | BACKUP_FAILED | BACKUP_VERIFIED | RESTORE_STARTED | RESTORE_COMPLETED | RESTORE_FAILED | VERIFICATION_FAILED | STORAGE_WARNING
+  message      String
+  severity     String   @default("INFO") // INFO | WARNING | CRITICAL
+  backupJobId  String?
+  restoreJobId String?
+  createdById  String?
+  createdAt    DateTime @default(now())
+
+  @@index([type])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model BackupRetentionPolicy {
+  id             String   @id @default(cuid())
+  keepLast       Int      @default(7)
+  archiveCritical Boolean @default(true)
+  autoCleanup    Boolean  @default(true)
+  active         Boolean  @default(true)
+  updatedById    String?
+  updatedAt      DateTime @updatedAt
+}
+
+model BackupVerification {
+  id               String   @id @default(cuid())
+  backupJobId      String
+  status           String   // PASSED | FAILED
+  checksumExpected String?
+  checksumActual   String?
+  details          String?
+  verifiedAt       DateTime @default(now())
+
+  backupJob        BackupJob @relation(fields: [backupJobId], references: [id], onDelete: Cascade)
+
+  @@index([backupJobId])
+  @@index([status])
+}

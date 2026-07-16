@@ -24,6 +24,7 @@ export const QUEUE_NAMES = {
   CLEANUP: "cleanup",
   EMAIL: "email",
   SYNC: "sync",
+  BACKUP: "backup",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -55,6 +56,9 @@ export const JOB_TYPES = {
   "webhook:instagram": `${QUEUE_NAMES.WEBHOOK}`,
   "cleanup:temp": `${QUEUE_NAMES.CLEANUP}`,
   "cleanup:logs": `${QUEUE_NAMES.CLEANUP}`,
+  "backup:run": `${QUEUE_NAMES.BACKUP}`,
+  "backup:restore": `${QUEUE_NAMES.BACKUP}`,
+  "backup:verify": `${QUEUE_NAMES.BACKUP}`,
 } as const;
 
 const connection = () => getRedisConnection();

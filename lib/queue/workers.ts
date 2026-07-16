@@ -23,6 +23,7 @@ const CONCURRENCY: Record<string, number> = {
   cleanup: 2,
   email: 2,
   sync: 2,
+  backup: 2,
 };
 
 let workerSeq = 0;
