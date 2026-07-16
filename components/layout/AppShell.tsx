@@ -23,10 +23,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <LocaleProvider>
         <div className="flex h-[100dvh] w-full overflow-hidden bg-[#030305] text-white">
           <Sidebar />
-          <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <TopBar />
             <InfoBar />
-            <main className={`${LAYOUT_CLASSES.contentWrapper} flex-1 overflow-y-auto overflow-x-hidden`}>
+            <main className={`${LAYOUT_CLASSES.contentWrapper} min-h-0 flex-1 overflow-y-auto overflow-x-hidden`}>
               {children}
             </main>
           </div>

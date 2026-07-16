@@ -114,7 +114,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      <nav className="mt-4 flex-1 space-y-1 px-3">
+      <nav className="mt-4 min-h-0 flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-3">
         {sidebarConfig.map((section) => (
           <SidebarSection
             key={section.key}
