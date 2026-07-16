@@ -2092,3 +2092,27 @@ model BackupVerification {
   @@index([backupJobId])
   @@index([status])
 }
+
+// TASK-66B — Real persistence for the Team > Members module.
+// Dedicated table so employee records survive refresh and are independent
+// of the auth User table (no impact on auth/RBAC).
+enum MemberStatus {
+  ACTIVE
+  AWAY
+  OFFLINE
+}
+
+model TeamMember {
+  id          String       @id @default(cuid())
+  name        String
+  email       String       @unique
+  department  String?
+  role        String?
+  status      MemberStatus @default(ACTIVE)
+  avatar      String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status])
+  @@index([department])
+}

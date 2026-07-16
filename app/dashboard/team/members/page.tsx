@@ -4,7 +4,7 @@ import EmployeeTable from "@/components/dashboard/EmployeeTable";
 import ProfileDrawer from "@/components/dashboard/ProfileDrawer";
 import UserModal from "@/components/dashboard/UserModal";
 import { Stagger, StaggerItem } from "@/components/anim/motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type User = {
   id: string;
@@ -15,19 +15,29 @@ type User = {
   status: "Active" | "Away" | "Offline";
 };
 
-const demo: User[] = [
-  { id: "1", name: "MD Kazim", email: "md.kazim@enmasco.com", department: "Engineering", role: "Chief Executive Officer (CEO)", status: "Active" },
-  { id: "2", name: "Sara Khan", email: "sara@enmasco.com", department: "Product", role: "Manager", status: "Away" },
-  { id: "3", name: "Rafi Ahmed", email: "rafi@enmasco.com", department: "Security", role: "Analyst", status: "Offline" },
-  { id: "4", name: "Nusrat Jahan", email: "nusrat@enmasco.com", department: "HR", role: "Lead", status: "Active" },
-];
-
 export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>(demo);
-  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // TASK-66B — load real team members from the database on page load.
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetch("/api/users", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!active) return;
+        setUsers(Array.isArray(data?.users) ? data.users : []);
+      })
+      .catch(() => active && setUsers([]))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const openCreate = () => {
     setEditingUser(null);
@@ -48,11 +58,28 @@ export default function UsersPage() {
 
   const handleSave = async (payload: Partial<User> & { id?: string }) => {
     if (payload.id) {
-      await fetch(`/api/users/${payload.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      setUsers((prev) => prev.map((u) => (u.id === payload.id ? { ...u, ...payload } : u)));
+      const res = await fetch(`/api/users/${payload.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const saved = await res.json();
+      setUsers((prev) => prev.map((u) => (u.id === payload.id ? (saved?.id ? saved : { ...u, ...payload }) : u)));
     } else {
-      await fetch(`/api/users`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      setUsers((prev) => [...prev, { ...(payload as User), id: `${Date.now()}` }]);
+      const res = await fetch(`/api/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const created = await res.json();
+      if (created?.id) {
+        setUsers((prev) => [...prev, created]);
+      } else {
+        // Fallback: refetch to stay in sync with the database.
+        const r = await fetch("/api/users", { cache: "no-store" });
+        const data = await r.json();
+        if (Array.isArray(data?.users)) setUsers(data.users);
+      }
     }
     setModalOpen(false);
   };
@@ -74,12 +101,18 @@ export default function UsersPage() {
         </div>
       </StaggerItem>
       <StaggerItem>
-        <EmployeeTable
-          data={users}
-          onRowClick={setSelectedUser}
-          onEdit={openEdit}
-          onDelete={handleDelete}
-        />
+        {loading ? (
+          <div className="w-full rounded-xl border border-slate-700/50 bg-slate-800/40 p-8 text-center text-sm text-slate-400">
+            Loading team members…
+          </div>
+        ) : (
+          <EmployeeTable
+            data={users}
+            onRowClick={setSelectedUser}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+          />
+        )}
       </StaggerItem>
       <ProfileDrawer isOpen={!!selectedUser} onClose={() => setSelectedUser(null)} user={selectedUser ?? undefined} />
       <UserModal isOpen={modalOpen} onClose={() => setModalOpen(false)} user={editingUser ?? undefined} onSave={handleSave} />
