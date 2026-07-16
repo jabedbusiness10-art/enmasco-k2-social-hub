@@ -52,9 +52,9 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+          className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
         >
-          <div className="min-w-0">
+          <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.055] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-red-100/80 backdrop-blur-xl">
               <span className="h-1.5 w-1.5 rounded-full bg-red-300 shadow-[0_0_14px_rgba(252,165,165,0.9)]" />
               WELCOME BACK

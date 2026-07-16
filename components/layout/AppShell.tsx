@@ -27,9 +27,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <TopBar />
             <InfoBar />
-            <main className={`${LAYOUT_CLASSES.contentWrapper} min-h-0 flex-1 overflow-y-auto overflow-x-hidden`}>
-              <motion.div layoutScroll className="contents">{children}</motion.div>
-            </main>
+            <motion.main className={`${LAYOUT_CLASSES.contentWrapper} min-h-0 flex-1 overflow-y-auto overflow-x-hidden`} layoutScroll>
+              {children}
+            </motion.main>
           </div>
           <CommandPalette />
         </div>
