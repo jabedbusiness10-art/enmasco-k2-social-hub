@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "K2KAI সোশাল ফ্লো",
+    "save": "সংরক্ষণ",
+    "cancel": "বাতিল",
+    "delete": "মুছে ফেলুন",
+    "edit": "সম্পাদনা",
+    "create": "তৈরি করুন",
+    "search": "অনুসন্ধান",
+    "loading": "লোড হচ্ছে…",
+    "empty": "কোনো ডেটা নেই",
+    "confirm": "নিশ্চিত করুন",
+    "back": "ফিরে যান",
+    "next": "পরবর্তী",
+    "close": "বন্ধ করুন",
+    "actions": "ক্রিয়াকলাপ",
+    "status": "অবস্থা",
+    "all": "সব",
+    "yes": "হ্যাঁ",
+    "no": "না"
+  },
+  "dashboard": {
+    "title": "ড্যাশবোর্ড",
+    "overview": "ওভারভিউ",
+    "quickActions": "দ্রুত কাজ",
+    "recentActivity": "সাম্প্রতিক কার্যকলাপ",
+    "welcome": "ফিরে আসার জন্য স্বাগতম",
+    "commandPalette": "অনুসন্ধান করতে Ctrl/Cmd + K চাপুন"
+  },
+  "analytics": { "title": "অ্যানালিটিক্স", "reach": "রিচ", "engagement": "এনগেজমেন্ট", "followers": "ফলোয়ার্স", "noData": "কোনো অ্যানালিটিক্স ডেটা নেই" },
+  "media": { "title": "মিডিয়া লাইব্রেরি", "upload": "আপলোড", "collections": "কালেকশন", "tags": "ট্যাগ", "noMedia": "এখনও কোনো মিডিয়া নেই" },
+  "notifications": { "title": "নোটিফিকেশন", "markAllRead": "সব পড়া হিসেবে চিহ্নিত করুন", "empty": "আপনার কোনো নোটিফিকেশন নেই" },
+  "security": { "title": "সিকিউরিটি সেন্টার", "overview": "সিকিউরিটি ওভারভিউ", "auditLogs": "অডিট লগ", "sessions": "সক্রিয় সেশন", "permissions": "ইউজার পারমিশন" },
+  "backup": { "title": "ব্যাকআপ সেন্টার", "createBackup": "ব্যাকআপ তৈরি", "restore": "রিস্টোর", "schedules": "সময়সূচি", "storage": "স্টোরেজ", "recoveryLogs": "রিকভারি লগ" },
+  "queue": { "title": "কিউ ইঞ্জিন", "jobs": "জব", "workers": "ওয়ার্কার", "health": "কিউ হেলথ", "noLiveQueues": "কোনো লাইভ কিউ নেই (Redis সেট নয়)" },
+  "settings": {
+    "title": "সেটিংস",
+    "language": "ভাষা",
+    "timezone": "টাইমজোন",
+    "dateFormat": "তারিখ ফরম্যাট",
+    "timeFormat": "সময় ফরম্যাট",
+    "currency": "মুদ্রা",
+    "firstDayOfWeek": "সপ্তাহের প্রথম দিন"
+  },
+  "localization": {
+    "title": "লোকালাইজেশন",
+    "languageManager": "ভাষা ম্যানেজার",
+    "translationCenter": "ট্রান্সলেশন সেন্টার",
+    "localeSettings": "লোকেল সেটিংস",
+    "coverage": "ট্রান্সলেশন কভারেজ",
+    "missingKeys": "অনুপস্থিত কী",
+    "rtlPreview": "RTL প্রিভিউ",
+    "sourceLanguage": "সোর্স ভাষা",
+    "neverOverwrite": "মূল কন্টেন্ট কখনও ওভাররাইট হয় না"
+  }
+}

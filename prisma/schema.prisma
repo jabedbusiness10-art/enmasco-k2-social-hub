@@ -109,6 +109,11 @@ model User {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
+  // TASK-65 — i18n / localization preferences
+  language      String   @default("en")
+  timezone      String   @default("UTC")
+  locale        String?  @default("en")
+
   posts         Post[]
   notifications Notification[]
   notificationReads NotificationRead[]

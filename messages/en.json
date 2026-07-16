@@ -1,0 +1,91 @@
+{
+  "common": {
+    "appName": "K2KAI Social Flow",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading…",
+    "empty": "No data available",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "actions": "Actions",
+    "status": "Status",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview",
+    "quickActions": "Quick Actions",
+    "recentActivity": "Recent Activity",
+    "welcome": "Welcome back",
+    "commandPalette": "Press Ctrl/Cmd + K to search"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "reach": "Reach",
+    "engagement": "Engagement",
+    "followers": "Followers",
+    "noData": "No analytics data available"
+  },
+  "media": {
+    "title": "Media Library",
+    "upload": "Upload",
+    "collections": "Collections",
+    "tags": "Tags",
+    "noMedia": "No media assets yet"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "You have no notifications"
+  },
+  "security": {
+    "title": "Security Center",
+    "overview": "Security Overview",
+    "auditLogs": "Audit Logs",
+    "sessions": "Active Sessions",
+    "permissions": "User Permissions"
+  },
+  "backup": {
+    "title": "Backup Center",
+    "createBackup": "Create Backup",
+    "restore": "Restore",
+    "schedules": "Schedules",
+    "storage": "Storage",
+    "recoveryLogs": "Recovery Logs"
+  },
+  "queue": {
+    "title": "Queue Engine",
+    "jobs": "Jobs",
+    "workers": "Workers",
+    "health": "Queue Health",
+    "noLiveQueues": "No live queues (Redis not configured)"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "timezone": "Timezone",
+    "dateFormat": "Date Format",
+    "timeFormat": "Time Format",
+    "currency": "Currency",
+    "firstDayOfWeek": "First Day of Week"
+  },
+  "localization": {
+    "title": "Localization",
+    "languageManager": "Language Manager",
+    "translationCenter": "Translation Center",
+    "localeSettings": "Locale Settings",
+    "coverage": "Translation Coverage",
+    "missingKeys": "Missing Keys",
+    "rtlPreview": "RTL Preview",
+    "sourceLanguage": "Source Language",
+    "neverOverwrite": "Original content is never overwritten"
+  }
+}

@@ -151,3 +151,19 @@ export function getAIProvider(): AIProvider {
 export function tokenEstimate(text: string): number {
   return estimateTokens(text);
 }
+
+/**
+ * TASK-65 — AI translation via the active provider.
+ * Never mutates caller state; returns only the translated string.
+ * Falls back to a clearly-labeled echo when no provider is configured.
+ */
+export async function translateText(text: string, targetLang: string, sourceLang = "en"): Promise<string> {
+  if (!text || !text.trim()) return text;
+  const provider = getAIProvider();
+  const system = `You are a professional enterprise localization engine for K2KAI Social Flow (ENMASCO). Translate the user's text from ${sourceLang} to ${targetLang}. Preserve meaning, tone, brand names (K2KAI, ENMASCO), hashtags, emojis, and placeholders. Respond with ONLY the translated text, no quotes, no commentary.`;
+  let out = "";
+  for await (const chunk of provider.streamChat([{ role: "user", content: text }], { systemPrompt: system, temperature: 0.3, maxTokens: 1024 })) {
+    out += chunk;
+  }
+  return out.trim() || text;
+}

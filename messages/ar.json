@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "K2KAI تدفق التواصل",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "search": "بحث",
+    "loading": "جارٍ التحميل…",
+    "empty": "لا توجد بيانات متاحة",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "close": "إغلاق",
+    "actions": "الإجراءات",
+    "status": "الحالة",
+    "all": "الكل",
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "overview": "نظرة عامة",
+    "quickActions": "إجراءات سريعة",
+    "recentActivity": "النشاط الأخير",
+    "welcome": "مرحباً بعودتك",
+    "commandPalette": "اضغط Ctrl/Cmd + K للبحث"
+  },
+  "analytics": { "title": "التحليلات", "reach": "الوصول", "engagement": "التفاعل", "followers": "المتابعون", "noData": "لا توجد بيانات تحليلات" },
+  "media": { "title": "مكتبة الوسائط", "upload": "رفع", "collections": "المجموعات", "tags": "الوسوم", "noMedia": "لا توجد أصول وسائط بعد" },
+  "notifications": { "title": "الإشعارات", "markAllRead": "تعليم الكل كمقروء", "empty": "ليس لديك إشعارات" },
+  "security": { "title": "مركز الأمان", "overview": "نظرة أمنية عامة", "auditLogs": "سجلات التدقيق", "sessions": "الجلسات النشطة", "permissions": "صلاحيات المستخدمين" },
+  "backup": { "title": "مركز النسخ الاحتياطي", "createBackup": "إنشاء نسخة", "restore": "استعادة", "schedules": "الجدولة", "storage": "التخزين", "recoveryLogs": "سجلات الاسترداد" },
+  "queue": { "title": "محرك الطوابير", "jobs": "المهام", "workers": "العاملون", "health": "صحة الطابور", "noLiveQueues": "لا توجد طوابير مباشرة (Redis غير مهيأ)" },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "timezone": "المنطقة الزمنية",
+    "dateFormat": "تنسيق التاريخ",
+    "timeFormat": "تنسيق الوقت",
+    "currency": "العملة",
+    "firstDayOfWeek": "أول يوم في الأسبوع"
+  },
+  "localization": {
+    "title": "التعريب",
+    "languageManager": "مدير اللغات",
+    "translationCenter": "مركز الترجمة",
+    "localeSettings": "إعدادات اللغة",
+    "coverage": "تغطية الترجمة",
+    "missingKeys": "المفاتيح المفقودة",
+    "rtlPreview": "معاينة من اليمين لليسار",
+    "sourceLanguage": "لغة المصدر",
+    "neverOverwrite": "لا يتم استبدال المحتوى الأصلي أبدًا"
+  }
+}

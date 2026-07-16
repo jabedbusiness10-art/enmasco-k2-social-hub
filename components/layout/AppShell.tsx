@@ -10,6 +10,7 @@ import { PWAProvider } from "@/components/pwa/PWAProvider";
 import InstallBanner from "@/components/pwa/InstallBanner";
 import OfflineBanner from "@/components/pwa/OfflineBanner";
 import UpdateAvailable from "@/components/pwa/UpdateAvailable";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 
 /**
  * AppShell — the ONE global enterprise shell for every /dashboard/* route.
@@ -19,20 +20,22 @@ import UpdateAvailable from "@/components/pwa/UpdateAvailable";
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
     <PWAProvider>
-      <div className="flex h-[100dvh] w-full overflow-hidden bg-[#030305] text-white">
-        <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar />
-          <InfoBar />
-          <main className={`${LAYOUT_CLASSES.contentWrapper} flex-1 overflow-y-auto overflow-x-hidden`}>
-            {children}
-          </main>
+      <LocaleProvider>
+        <div className="flex h-[100dvh] w-full overflow-hidden bg-[#030305] text-white">
+          <Sidebar />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <TopBar />
+            <InfoBar />
+            <main className={`${LAYOUT_CLASSES.contentWrapper} flex-1 overflow-y-auto overflow-x-hidden`}>
+              {children}
+            </main>
+          </div>
+          <CommandPalette />
         </div>
-        <CommandPalette />
-      </div>
-      <InstallBanner />
-      <OfflineBanner />
-      <UpdateAvailable />
+        <InstallBanner />
+        <OfflineBanner />
+        <UpdateAvailable />
+      </LocaleProvider>
     </PWAProvider>
   );
 }

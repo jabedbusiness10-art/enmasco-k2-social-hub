@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "K2KAI سوشل فلو",
+    "save": "محفوظ کریں",
+    "cancel": "منسوخ کریں",
+    "delete": "حذف کریں",
+    "edit": "ترمیم کریں",
+    "create": "بنائیں",
+    "search": "تلاش کریں",
+    "loading": "لوڈ ہو رہا ہے…",
+    "empty": "کوئی ڈیٹا دستیاب نہیں",
+    "confirm": "تصدیق کریں",
+    "back": "واپس",
+    "next": "اگلا",
+    "close": "بند کریں",
+    "actions": "اعمال",
+    "status": "حالت",
+    "all": "سب",
+    "yes": "ہاں",
+    "no": "نہیں"
+  },
+  "dashboard": {
+    "title": "ڈیش بورڈ",
+    "overview": "جائزہ",
+    "quickActions": "فوری اعمال",
+    "recentActivity": "حالیہ سرگرمی",
+    "welcome": "واپسی پر خوش آمدید",
+    "commandPalette": "تلاش کرنے کے لیے Ctrl/Cmd + K دبائیں"
+  },
+  "analytics": { "title": "تجزیات", "reach": "رسائی", "engagement": "مداخلت", "followers": "فالورز", "noData": "کوئی تجزیاتی ڈیٹا دستیاب نہیں" },
+  "media": { "title": "میڈیا لائبریری", "upload": "اپ لوڈ", "collections": "مجموعے", "tags": "ٹیگز", "noMedia": "ابھی کوئی میڈیا نہیں" },
+  "notifications": { "title": "نوٹیفکیشنز", "markAllRead": "سب کو پڑھا ہوا نشان زد کریں", "empty": "آپ کے کوئی نوٹیفکیشنز نہیں" },
+  "security": { "title": "سیکیورٹی سینٹر", "overview": "سیکیورٹی جائزہ", "auditLogs": "آڈٹ لاگز", "sessions": "فعال سیشنز", "permissions": "صارف اجازتیں" },
+  "backup": { "title": "بیک اپ سینٹر", "createBackup": "بیک اپ بنائیں", "restore": "بحال کریں", "schedules": "شیڈولز", "storage": "اسٹوریج", "recoveryLogs": "ری کوری لاگز" },
+  "queue": { "title": "قویو انجن", "jobs": "جابز", "workers": "ورکرز", "health": "قویو ہیلتھ", "noLiveQueues": "کوئی لائیو قویو نہیں (Redis کنفگ نہیں)" },
+  "settings": {
+    "title": "ترتیبات",
+    "language": "زبان",
+    "timezone": "ٹائم زون",
+    "dateFormat": "تاریخ فارمیٹ",
+    "timeFormat": "وقت فارمیٹ",
+    "currency": "کرنسی",
+    "firstDayOfWeek": "ہفتے کا پہلا دن"
+  },
+  "localization": {
+    "title": "لوکلائزیشن",
+    "languageManager": "زبان مینیجر",
+    "translationCenter": "ترجمہ سینٹر",
+    "localeSettings": "لوکیل سیٹنگز",
+    "coverage": "ترجمہ کوریج",
+    "missingKeys": "غیر موجود کیز",
+    "rtlPreview": "RTL پیش نظارہ",
+    "sourceLanguage": "ماخذ زبان",
+    "neverOverwrite": "اصل مواد کبھی اوور رائٹ نہیں ہوتا"
+  }
+}

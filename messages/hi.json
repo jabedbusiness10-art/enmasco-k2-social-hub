@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "K2KAI सोशल फ्लो",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएँ",
+    "edit": "संपादित करें",
+    "create": "बनाएँ",
+    "search": "खोजें",
+    "loading": "लोड हो रहा है…",
+    "empty": "कोई डेटा उपलब्ध नहीं",
+    "confirm": "पुष्टि करें",
+    "back": "वापस",
+    "next": "आगे",
+    "close": "बंद करें",
+    "actions": "क्रियाएँ",
+    "status": "स्थिति",
+    "all": "सभी",
+    "yes": "हाँ",
+    "no": "नहीं"
+  },
+  "dashboard": {
+    "title": "डैशबोर्ड",
+    "overview": "अवलोकन",
+    "quickActions": "त्वरित क्रियाएँ",
+    "recentActivity": "हाल की गतिविधि",
+    "welcome": "वापसी पर स्वागत है",
+    "commandPalette": "खोजने के लिए Ctrl/Cmd + K दबाएँ"
+  },
+  "analytics": { "title": "एनालिटिक्स", "reach": "रीच", "engagement": "एंगेजमेंट", "followers": "फॉलोअर्स", "noData": "कोई एनालिटिक्स डेटा उपलब्ध नहीं" },
+  "media": { "title": "मीडिया लाइब्रेरी", "upload": "अपलोड", "collections": "संग्रह", "tags": "टैग", "noMedia": "अभी कोई मीडिया नहीं" },
+  "notifications": { "title": "नोटिफिकेशन", "markAllRead": "सभी को पढ़ा चिह्नित करें", "empty": "आपके कोई नोटिफिकेशन नहीं" },
+  "security": { "title": "सिक्योरिटी सेंटर", "overview": "सिक्योरिटी अवलोकन", "auditLogs": "ऑडिट लॉग", "sessions": "सक्रिय सत्र", "permissions": "उपयोगकर्ता अनुमतियाँ" },
+  "backup": { "title": "बैकअप सेंटर", "createBackup": "बैकअप बनाएँ", "restore": "पुनर्स्थापित करें", "schedules": "शेड्यूल", "storage": "स्टोरेज", "recoveryLogs": "रिकवरी लॉग" },
+  "queue": { "title": "क्यू इंजन", "jobs": "जॉब", "workers": "वर्कर्स", "health": "क्यू हेल्थ", "noLiveQueues": "कोई लाइव क्यू नहीं (Redis कॉन्फ़िगर नहीं)" },
+  "settings": {
+    "title": "सेटिंग्स",
+    "language": "भाषा",
+    "timezone": "टाइमज़ोन",
+    "dateFormat": "तारीख़ प्रारूप",
+    "timeFormat": "समय प्रारूप",
+    "currency": "मुद्रा",
+    "firstDayOfWeek": "सप्ताह का पहला दिन"
+  },
+  "localization": {
+    "title": "लोकलाइज़ेशन",
+    "languageManager": "भाषा प्रबंधक",
+    "translationCenter": "अनुवाद केंद्र",
+    "localeSettings": "लोकेल सेटिंग्स",
+    "coverage": "अनुवाद कवरेज",
+    "missingKeys": "अनुपस्थित कुंजियाँ",
+    "rtlPreview": "RTL पूर्वावलोकन",
+    "sourceLanguage": "स्रोत भाषा",
+    "neverOverwrite": "मूल सामग्री कभी ओवरराइट नहीं होती"
+  }
+}
