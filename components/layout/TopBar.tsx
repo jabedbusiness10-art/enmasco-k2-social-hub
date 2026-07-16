@@ -73,15 +73,12 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
         >
           <img
             src="/logo.svg"
-            alt="K2KAI Social Flow"
+            alt="K2Media Hub"
             className="h-10 w-auto drop-shadow-[0_0_14px_rgba(56,189,248,0.55)]"
           />
           <div className="min-w-0">
             <div className="truncate text-base font-bold leading-tight tracking-[0.3px] text-white sm:text-lg">
-              K2KAI Social Flow
-            </div>
-            <div className="mt-0.5 truncate text-[12px] font-medium uppercase tracking-[2px] text-white/60">
-              by ENMASCO
+              K2Media Hub
             </div>
           </div>
         </motion.div>

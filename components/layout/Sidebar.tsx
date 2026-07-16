@@ -96,8 +96,8 @@ export default function Sidebar() {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
-                <span className="truncate text-sm font-bold tracking-[0.3px] text-white">K2KAI Social Flow</span>
-                <span className="mt-0.5 truncate text-[12px] font-medium uppercase tracking-[2px] text-white/60">
+                <span className="truncate text-sm font-bold tracking-[0.3px] text-white">Social OS</span>
+                <span className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-[2px] text-white/55">
                   by ENMASCO
                 </span>
               </motion.div>
@@ -129,7 +129,7 @@ export default function Sidebar() {
       <div className="mt-auto border-t border-white/10 p-4">
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold tracking-[0.3px] text-white/85">K2KAI Social Flow</span>
+            <span className="text-[11px] font-bold tracking-[0.3px] text-white/85">Social OS</span>
             <span className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
               Online
