@@ -1,6 +1,15 @@
-// TASK-59.4 — PM2 process definition (no-Docker alternative).
+// TASK-59.4 / TASK-67 — PM2 process definition (no-Docker alternative).
 //   pm2 start ecosystem.config.js
-// Boots web + worker + scheduler as managed processes with log rotation.
+// Boots web + worker + scheduler as managed processes with auto-restart,
+// memory limits, and log rotation. All config is read from environment
+// (.env.local via `node_args: -r dotenv/config`) — nothing hardcoded.
+//
+// Log rotation: PM2 writes timestamped logs; pair with `pm2-logrotate`:
+//   pm2 install pm2-logrotate
+//   pm2 set pm2-logrotate:max_size 10M
+//   pm2 set pm2-logrotate:retain 7
+// (The `error_file`/`out_file`/`log_rotate` fields below enable built-in
+//  rotation too.)
 module.exports = {
   apps: [
     {
@@ -15,6 +24,11 @@ module.exports = {
       exp_backoff_restart_delay: 100,
       merge_logs: true,
       log_date_format: "YYYY-MM-DD HH:mm:ss",
+      out_file: "logs/k2kai-web-out.log",
+      error_file: "logs/k2kai-web-error.log",
+      log_rotate: true,
+      max_log_size: 10485760, // 10 MB
+      retain: 7,
     },
     {
       name: "k2kai-worker",
@@ -27,6 +41,11 @@ module.exports = {
       max_memory_restart: "1G",
       merge_logs: true,
       log_date_format: "YYYY-MM-DD HH:mm:ss",
+      out_file: "logs/k2kai-worker-out.log",
+      error_file: "logs/k2kai-worker-error.log",
+      log_rotate: true,
+      max_log_size: 10485760,
+      retain: 7,
     },
     {
       name: "k2kai-scheduler",
@@ -39,6 +58,11 @@ module.exports = {
       max_memory_restart: "512M",
       merge_logs: true,
       log_date_format: "YYYY-MM-DD HH:mm:ss",
+      out_file: "logs/k2kai-scheduler-out.log",
+      error_file: "logs/k2kai-scheduler-error.log",
+      log_rotate: true,
+      max_log_size: 10485760,
+      retain: 7,
     },
   ],
 };
