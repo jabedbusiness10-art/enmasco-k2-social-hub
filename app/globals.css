@@ -162,3 +162,75 @@
     animation: none;
   }
 }
+
+/* ===========================================================================
+   Global Dark Dropdown / Select Theming (TASK-69A)
+   Fixes native <select> popups that render with the OS/browser default white
+   background, and enforces the single dark design-system on every menu
+   (native selects, Base-UI dropdown/context menus, filter & table popovers).
+   One source of truth — every dropdown inherits these tokens:
+     bg #111318 · border rgba(255,255,255,.08) · text #F5F7FA
+     hover rgba(56,189,248,.12) · selected rgba(56,189,248,.18)
+     radius 14px · glass blur · dialog shadow
+   Declared UNLAYERED so it always beats @tailwind utilities/Base-UI classes.
+   =========================================================================== */
+
+/* --- Native <select> (the actual reported white-menu bug) --- */
+select {
+  color-scheme: dark; /* makes the OS popup render in dark mode */
+  background-color: #111318 !important;
+  color: #f5f7fa !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+}
+select option,
+select optgroup {
+  background-color: #111318 !important;
+  color: #f5f7fa !important;
+}
+select option:hover {
+  background-color: rgba(56, 189, 248, 0.12) !important;
+}
+select option:checked,
+select option[aria-selected="true"] {
+  background-color: rgba(56, 189, 248, 0.18) !important;
+}
+
+/* --- Base-UI dropdown / context / popover menus (data-slot hooks) --- */
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"] {
+  background-color: #111318 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  color: #f5f7fa !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+[data-slot="dropdown-menu-content"] [data-slot="dropdown-menu-item"],
+[data-slot="dropdown-menu-content"] [data-slot="dropdown-menu-checkbox-item"],
+[data-slot="dropdown-menu-content"] [data-slot="dropdown-menu-radio-item"],
+[data-slot="dropdown-menu-sub-content"] [data-slot="dropdown-menu-item"],
+[data-slot="dropdown-menu-sub-content"] [data-slot="dropdown-menu-checkbox-item"],
+[data-slot="dropdown-menu-sub-content"] [data-slot="dropdown-menu-radio-item"] {
+  color: #f5f7fa !important;
+}
+[data-slot="dropdown-menu-item"]:focus,
+[data-slot="dropdown-menu-item"][data-highlighted],
+[data-slot="dropdown-menu-item"][data-active],
+[data-slot="dropdown-menu-item"][data-open],
+[data-slot="dropdown-menu-checkbox-item"]:focus,
+[data-slot="dropdown-menu-checkbox-item"][data-highlighted],
+[data-slot="dropdown-menu-radio-item"]:focus,
+[data-slot="dropdown-menu-radio-item"][data-highlighted],
+[data-slot="dropdown-menu-sub-trigger"]:focus,
+[data-slot="dropdown-menu-sub-trigger"][data-highlighted],
+[data-slot="dropdown-menu-sub-trigger"][data-active],
+[data-slot="dropdown-menu-sub-trigger"][data-popup-open] {
+  background-color: rgba(56, 189, 248, 0.12) !important;
+  color: #f5f7fa !important;
+}
+[data-slot="dropdown-menu-radio-item"][data-checked],
+[data-slot="dropdown-menu-checkbox-item"][data-checked] {
+  background-color: rgba(56, 189, 248, 0.18) !important;
+}
