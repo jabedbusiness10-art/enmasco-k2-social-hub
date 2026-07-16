@@ -6,6 +6,10 @@ import TopBar from "@/components/layout/TopBar";
 import InfoBar from "@/components/layout/InfoBar";
 import CommandPalette from "@/components/search/CommandPalette";
 import { LAYOUT_CLASSES } from "@/lib/layout-tokens";
+import { PWAProvider } from "@/components/pwa/PWAProvider";
+import InstallBanner from "@/components/pwa/InstallBanner";
+import OfflineBanner from "@/components/pwa/OfflineBanner";
+import UpdateAvailable from "@/components/pwa/UpdateAvailable";
 
 /**
  * AppShell — the ONE global enterprise shell for every /dashboard/* route.
@@ -14,16 +18,21 @@ import { LAYOUT_CLASSES } from "@/lib/layout-tokens";
  */
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-[100dvh] w-full overflow-hidden bg-[#030305] text-white">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar />
-        <InfoBar />
-        <main className={`${LAYOUT_CLASSES.contentWrapper} flex-1 overflow-y-auto overflow-x-hidden`}>
-          {children}
-        </main>
+    <PWAProvider>
+      <div className="flex h-[100dvh] w-full overflow-hidden bg-[#030305] text-white">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <TopBar />
+          <InfoBar />
+          <main className={`${LAYOUT_CLASSES.contentWrapper} flex-1 overflow-y-auto overflow-x-hidden`}>
+            {children}
+          </main>
+        </div>
+        <CommandPalette />
       </div>
-      <CommandPalette />
-    </div>
+      <InstallBanner />
+      <OfflineBanner />
+      <UpdateAvailable />
+    </PWAProvider>
   );
 }

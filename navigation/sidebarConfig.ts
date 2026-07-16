@@ -252,6 +252,7 @@ export const sidebarConfig: NavSection[] = [
       { label: "Schedules", href: "/dashboard/admin/backup/schedule", description: "Automated backup schedules." },
       { label: "Storage", href: "/dashboard/admin/backup/storage", description: "Capacity & provider monitoring." },
       { label: "Recovery Logs", href: "/dashboard/admin/backup/logs", description: "Immutable backup/restore audit." },
+      { label: "PWA Settings", href: "/dashboard/admin/pwa", description: "Install, service worker, cache and update management." },
       { label: "System Health", href: "/dashboard/admin/system-health", description: "Servers, queues, and system status." },
       { label: "Monitoring & Health", href: "/dashboard/monitoring", description: "Enterprise operational command center." },
     ],
