@@ -59,12 +59,9 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
               <span className="h-1.5 w-1.5 rounded-full bg-red-300 shadow-[0_0_14px_rgba(252,165,165,0.9)]" />
               WELCOME BACK
             </div>
-            <h1 className="text-4xl font-semibold leading-none tracking-normal text-[#F5F5F5] drop-shadow-[0_0_18px_rgba(239,68,68,0.18)] sm:text-5xl lg:text-6xl">
+            <h1 className="bg-gradient-to-r from-[#ff5f6d] via-[#ff2e63] to-[#b3123f] bg-clip-text text-4xl font-bold leading-none tracking-[0.04em] text-transparent drop-shadow-[0_2px_24px_rgba(255,46,99,0.25)] sm:text-5xl lg:text-6xl">
               Enma Security Trading Company
             </h1>
-            <div className="mt-0.5 text-[12px] font-medium uppercase tracking-[2px] text-white/60">
-              by ENMASCO
-            </div>
             <p className="mt-3 text-lg font-medium tracking-normal text-white/75 sm:text-xl lg:text-2xl">
               Enterprise Command Center
             </p>

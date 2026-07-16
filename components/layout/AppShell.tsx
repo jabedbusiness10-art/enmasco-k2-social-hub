@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { ReactNode } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
@@ -27,7 +28,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <TopBar />
             <InfoBar />
             <main className={`${LAYOUT_CLASSES.contentWrapper} min-h-0 flex-1 overflow-y-auto overflow-x-hidden`}>
-              {children}
+              <motion.div layoutScroll className="contents">{children}</motion.div>
             </main>
           </div>
           <CommandPalette />

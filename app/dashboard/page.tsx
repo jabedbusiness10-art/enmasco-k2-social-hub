@@ -1,5 +1,5 @@
 import DashboardGrid from "@/components/dashboard/DashboardGrid";
-import HeroPanel from "@/components/dashboard/heroPanel";
+import HeroPanel from "@/components/dashboard/HeroPanel";
 import { Stagger, StaggerItem } from "@/components/anim/motion";
 
 export default function DashboardPage() {
