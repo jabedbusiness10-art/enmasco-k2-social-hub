@@ -9,50 +9,6 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* ---- Premium enterprise scrollbar + smooth scrolling (TASK-66D) ----
-     CSS-only. Dark / glass / cyber / Nothing-OS inspired.
-     Applies to every scroll container (sidebar nav, main, dialogs,
-     drawers, command palette, tables, custom overflow areas). */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
-    scrollbar-gutter: stable;
-    overscroll-behavior: contain;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  *::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.18);
-    border-radius: 999px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-    transition: background-color 0.2s ease;
-  }
-
-  *::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(56, 189, 248, 0.55);
-  }
-
-  *::-webkit-scrollbar-corner {
-    background: transparent;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      scroll-behavior: auto !important;
-    }
-  }
-
   /* ---- Ambient backdrop animations ---- */
   @keyframes gridDrift {
     from { background-position: 0 0, 0 0; }
@@ -115,5 +71,59 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+}
+
+/* ===========================================================================
+   Global Premium Scroll System (TASK-66E)
+   ONE style for every scrollable container in the app — sidebar, dashboard,
+   executive, queue engine, media library, analytics, tables, notifications,
+   dialogs, drawers, command palette, long forms, modals, administration,
+   settings, backup, monitoring, and any custom overflow area.
+   CSS-only. No JS. Dark glass / Nothing OS / Linear / Arc inspired.
+   Declared UNLAYERED so it always beats @tailwind base/utilities and any
+   stray component scrollbar CSS — guarantees no white default scrollbar.
+   =========================================================================== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(56, 189, 248, 0.55);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background-color: rgba(56, 189, 248, 0.75);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
   }
 }
