@@ -23,10 +23,10 @@ export default function AccountDetailModal({
     ["Account ID", account.accountId ?? "—"],
     ["Page ID", account.pageId ?? "—"],
     ["Business Manager", ui.businessManager],
-    ["Permissions", "Company Administrator"],
-    ["Granted Scopes", ui.scopes.join(", ")],
+    ["Permission Status", account.permissionStatus ?? "Unknown"],
+    ["Granted Scopes", account.permissions?.join(", ") || "None reported"],
     ["Token Expiration", account.expiresAt ? new Date(account.expiresAt).toLocaleString() : "Never"],
-    ["API Version", ui.apiVersion],
+    ["API Version", account.apiVersion ?? ui.apiVersion],
     ["Last Refresh", account.lastSyncAt ? new Date(account.lastSyncAt).toLocaleString() : "—"],
     ["Status", status.label],
   ];
@@ -79,7 +79,7 @@ export default function AccountDetailModal({
 
         <Section icon={<ShieldCheck className="h-4 w-4" />} title="Granted Scopes">
           <div className="flex flex-wrap gap-1.5">
-            {ui.scopes.map((s) => (
+            {(account.permissions?.length ? account.permissions : ui.scopes).map((s) => (
               <span key={s} className="rounded-lg border border-sky-400/20 bg-sky-400/10 px-2 py-0.5 text-[10px] text-sky-200">
                 {s}
               </span>

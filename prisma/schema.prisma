@@ -237,6 +237,12 @@ model CompanySocialAccount {
   companyName       String?  // human-readable company name (alias of organizationName)
   companyLogo       String?  // logo URL from LinkedIn
   apiVersion        String?  // LinkedIn API version used (e.g. "202504")
+  providerCapabilities Json?
+  permissionStatus     String?
+  connectionMetadata   Json?
+  lastValidatedAt      DateTime?
+  lastPublishAt        DateTime?
+  lastError            String?
   // -------------------------------------------------------------------------
 
   status         PlatformStatus @default(CONNECTED)
@@ -267,6 +273,10 @@ enum PlatformStatus {
 
 enum CmsType {
   WORDPRESS
+  REST_API
+  RSS
+  SITEMAP
+  WEBHOOK
   NEXTJS
   CUSTOM
   HEADLESS
@@ -288,8 +298,11 @@ model WebsiteConnection {
   websiteUrl    String
   cmsType       CmsType  @default(CUSTOM)
   // Encrypted at rest (AES-256-GCM via lib/crypto). Stored as ciphertext.
-  apiKey        String
-  webhookSecret String
+  apiKey        String?
+  webhookSecret String?
+  apiEndpoint   String?
+  authMethod    String   @default("NONE")
+  providerCapabilities Json?
   status        WebsiteStatus @default(CONNECTED)
   // Health signals (live, recomputed on test/status).
   online        Boolean  @default(true)
@@ -297,13 +310,52 @@ model WebsiteConnection {
   apiStatus     Boolean  @default(true)
   webhookStatus Boolean  @default(true)
   lastSync      DateTime?
+  lastPublish   DateTime?
+  lastWebhook   DateTime?
+  lastError     String?
+  syncCursor    String?
+  authStatus    String   @default("UNKNOWN")
+  publishingEnabled Boolean @default(false)
   syncFrequency String   @default("MANUAL") // MANUAL | HOURLY | DAILY | REALTIME
   connectedBy   String
+  connectedById String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   @@index([companyId])
   @@index([status])
+}
+
+model LinkedInOAuthSession {
+  id                    String   @id @default(cuid())
+  stateHash             String   @unique
+  userId                String
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  tokenExpiresAt        DateTime?
+  permissions           String[] @default([])
+  organizations         Json?
+  expiresAt             DateTime
+  consumedAt            DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model WebsiteWebhookDelivery {
+  id           String   @id @default(cuid())
+  connectionId String
+  eventId      String
+  payloadHash  String
+  eventType    String
+  status       String   @default("RECEIVED")
+  receivedAt   DateTime @default(now())
+  processedAt  DateTime?
+
+  @@unique([connectionId, eventId])
+  @@index([connectionId, receivedAt])
 }
 
 enum MediaStatus {
@@ -618,6 +670,12 @@ model Post {
   cta         String?
   location    String?
   hashtags    String[] @default([])
+  externalContentId String?
+  canonicalUrl      String?
+  sourceProvider    String?
+  sourceConnectionId String?
+  sourceMetadata    Json?
+  lastExternalSyncAt DateTime?
 
   @@index([platform])
   @@index([status])
@@ -626,6 +684,8 @@ model Post {
   @@index([createdById])
   @@index([publishedAt])
   @@index([createdAt])
+  @@unique([sourceConnectionId, externalContentId])
+  @@index([canonicalUrl])
 }
 
 model ScheduledPost {

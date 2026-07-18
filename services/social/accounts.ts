@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { encrypt, decrypt } from "@/lib/crypto";
-import type { Platform } from "@prisma/client";
+import { Prisma, type Platform } from "@prisma/client";
 
 export type SocialConnectionStatus =
   | "CONNECTED"
@@ -33,6 +33,12 @@ export interface SocialAccountPublic {
   companyName: string | null;
   companyLogo: string | null;
   apiVersion: string | null;
+  providerCapabilities: Record<string, boolean> | null;
+  permissionStatus: string | null;
+  connectionMetadata: Record<string, unknown> | null;
+  lastValidatedAt: string | null;
+  lastPublishAt: string | null;
+  lastError: string | null;
   // -------------------------------------------------------
   createdAt: string;
   updatedAt: string;
@@ -78,6 +84,12 @@ function toPublic(row: any): SocialAccountPublic {
     companyName: row.companyName ?? null,
     companyLogo: row.companyLogo ?? null,
     apiVersion: row.apiVersion ?? null,
+    providerCapabilities: (row.providerCapabilities as Record<string, boolean> | null) ?? null,
+    permissionStatus: row.permissionStatus ?? null,
+    connectionMetadata: (row.connectionMetadata as Record<string, unknown> | null) ?? null,
+    lastValidatedAt: row.lastValidatedAt?.toISOString() ?? null,
+    lastPublishAt: row.lastPublishAt?.toISOString() ?? null,
+    lastError: row.lastError ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -115,6 +127,9 @@ export interface ConnectInput {
   companyName?: string | null;
   companyLogo?: string | null;
   apiVersion?: string | null;
+  providerCapabilities?: Record<string, boolean> | null;
+  permissionStatus?: string | null;
+  connectionMetadata?: Record<string, unknown> | null;
   // -------------------------------------------------------------------
 }
 
@@ -153,6 +168,10 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       companyName: input.companyName ?? null,
       companyLogo: input.companyLogo ?? null,
       apiVersion: input.apiVersion ?? null,
+      providerCapabilities: input.providerCapabilities as any ?? undefined,
+      permissionStatus: input.permissionStatus ?? null,
+      connectionMetadata: input.connectionMetadata as any ?? undefined,
+      lastValidatedAt: new Date(),
       lastSyncAt: new Date(),
     },
     update: {
@@ -178,6 +197,11 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       companyName: input.companyName ?? null,
       companyLogo: input.companyLogo ?? null,
       apiVersion: input.apiVersion ?? null,
+      providerCapabilities: input.providerCapabilities as any ?? undefined,
+      permissionStatus: input.permissionStatus ?? null,
+      connectionMetadata: input.connectionMetadata as any ?? undefined,
+      lastValidatedAt: new Date(),
+      lastError: null,
       lastSyncAt: new Date(),
     },
   });
@@ -273,6 +297,13 @@ export async function refreshAccount(id: string): Promise<SocialAccountPublic> {
     }
   }
 
+  if (row.provider === "linkedin") {
+    const refreshed = await refreshLinkedInAccount(id);
+    if (refreshed) return refreshed;
+    const reauth = await prisma.companySocialAccount.findUnique({ where: { id } });
+    return toPublic(reauth!);
+  }
+
   // Fallback for providers without a dedicated refresh path (bump sync only).
   const updated = await prisma.companySocialAccount.update({
     where: { id },
@@ -289,7 +320,19 @@ export async function disconnectAccount(id: string): Promise<void> {
       isActive: false,
       accessToken: "",
       refreshToken: null,
+      permissions: [],
       instagramBusinessId: null,
+      pageId: null,
+      pageName: null,
+      organizationId: null,
+      organizationName: null,
+      companyName: null,
+      companyLogo: null,
+      providerCapabilities: Prisma.DbNull,
+      permissionStatus: "REAUTH_REQUIRED",
+      connectionMetadata: Prisma.DbNull,
+      lastValidatedAt: null,
+      lastError: null,
       accessTokenStatus: "EXPIRED",
     },
   });
@@ -394,6 +437,11 @@ export interface LinkedInConnectionInput {
     name: string;
     logoUrl?: string | null;
     vanityName?: string | null;
+    websiteUrl?: string | null;
+    industries?: string[];
+    adminRole?: string;
+    adminState?: string;
+    followerCount?: number | null;
   };
   accessToken: string;
   refreshToken?: string | null;
@@ -402,6 +450,9 @@ export interface LinkedInConnectionInput {
   apiVersion: string;
   connectedBy: string;
   connectedById?: string | null;
+  providerCapabilities?: Record<string, boolean>;
+  permissionStatus?: string;
+  connectionMetadata?: Record<string, unknown>;
 }
 
 /**
@@ -435,6 +486,9 @@ export async function connectLinkedInAccount(
     companyName: input.organization.name,
     companyLogo: input.organization.logoUrl ?? null,
     apiVersion: input.apiVersion,
+    providerCapabilities: input.providerCapabilities ?? null,
+    permissionStatus: input.permissionStatus ?? null,
+    connectionMetadata: input.connectionMetadata ?? null,
   });
 }
 
@@ -449,7 +503,19 @@ export async function refreshLinkedInAccount(
   const row = await prisma.companySocialAccount.findUnique({ where: { id } });
   if (!row || row.provider !== "linkedin") return null;
   const refreshToken = row.refreshToken ? decrypt(row.refreshToken) : null;
-  if (!refreshToken) return null;
+  if (!refreshToken) {
+    await prisma.companySocialAccount.update({
+      where: { id },
+      data: {
+        status: row.expiresAt && row.expiresAt <= new Date() ? "PERMISSION_ERROR" : "EXPIRING_SOON",
+        accessTokenStatus: row.expiresAt && row.expiresAt <= new Date() ? "EXPIRED" : "EXPIRING",
+        permissionStatus: "REAUTHORIZATION_REQUIRED",
+        lastError: "LinkedIn did not issue a refresh token; secure reconnection is required.",
+        lastValidatedAt: new Date(),
+      },
+    });
+    return null;
+  }
 
   // Lazy import to avoid a hard dependency cycle at module load.
   const { refreshAccessToken, tokenExpiryInfo, LINKEDIN_API_VERSION } =
@@ -466,6 +532,9 @@ export async function refreshLinkedInAccount(
       accessTokenStatus: status,
       status: "CONNECTED",
       lastSyncAt: new Date(),
+      lastValidatedAt: new Date(),
+      lastError: null,
+      permissionStatus: "AUTHORIZED",
     },
   });
   return toPublic(updated);

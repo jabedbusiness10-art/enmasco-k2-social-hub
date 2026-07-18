@@ -28,6 +28,12 @@ export interface CompanySocialAccount {
   accessTokenStatus?: string | null;
   instagramBusinessId?: string | null;
   pageName?: string | null;
+  providerCapabilities?: Record<string, boolean> | null;
+  permissionStatus?: string | null;
+  connectionMetadata?: Record<string, unknown> | null;
+  lastValidatedAt?: string | null;
+  lastPublishAt?: string | null;
+  lastError?: string | null;
 }
 
 export interface BrandSettings {

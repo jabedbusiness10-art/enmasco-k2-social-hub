@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth-server";
 import { getWebsiteConnection, testWebsiteConnection } from "@/services/website/connection";
+import { asPublicIntegrationError } from "@/services/integrations/errors";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const result = await testWebsiteConnection(id);
     const conn = await getWebsiteConnection(id);
     return NextResponse.json({ result, connection: conn });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Test failed" }, { status: 400 });
+  } catch (error) {
+    const publicError = asPublicIntegrationError(error, "WEBSITE");
+    return NextResponse.json(publicError.error, { status: publicError.status });
   }
 }

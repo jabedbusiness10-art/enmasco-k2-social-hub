@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { decrypt } from "@/lib/crypto";
 import { classifyMetaError } from "@/services/meta/oauth";
+import { publishLinkedInOrganization } from "@/services/linkedin/posts";
+import { publishWebsiteConnection } from "@/services/website/connection";
 
 /**
  * TASK-48 — Enterprise Real Publishing Engine.
@@ -14,11 +16,9 @@ import { classifyMetaError } from "@/services/meta/oauth";
  */
 
 const META_GRAPH = "https://graph.facebook.com/v21.0";
-const LINKEDIN_API = "https://api.linkedin.com/rest";
-const LINKEDIN_VERSION = "202504";
 
 export interface PublishTarget {
-  platform: "FACEBOOK" | "INSTAGRAM" | "LINKEDIN";
+  platform: "FACEBOOK" | "INSTAGRAM" | "LINKEDIN" | "WEBSITE";
   accountId: string; // CompanySocialAccount id
 }
 
@@ -190,66 +190,35 @@ async function igPublish(igId: string, token: string, createBody: URLSearchParam
   };
 }
 
-async function publishLinkedIn(acc: any, token: string, input: PublishInput): Promise<PublishResult> {
-  const orgId = acc.organizationId;
-  if (!orgId) return { platform: "LINKEDIN", ok: false, error: "No LinkedIn Organization linked" };
-  const author = `urn:li:organization:${orgId}`;
-  const text = fullCaption(input);
-  const payload: any = {
-    author,
-    lifecycleState: "PUBLISHED",
-    specificContent: {
-      "com.linkedin.ugc.ShareContent": {
-        shareCommentary: { text },
-        shareMediaCategory: "NONE",
-      },
-    },
-    visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
-  };
-  if (input.mediaUrls?.length) {
-    payload.specificContent["com.linkedin.ugc.ShareContent"].shareMediaCategory = "IMAGE";
-    payload.specificContent["com.linkedin.ugc.ShareContent"].media = input.mediaUrls.map((u, i) => ({
-      status: "READY",
-      description: { text: input.title ?? "" },
-      media: u,
-      title: { text: input.title ?? `Image ${i + 1}` },
-    }));
-  }
-  const res = await fetch(`${LINKEDIN_API}/ugcPosts`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      "X-Restli-Protocol-Version": "2.0.0",
-      "LinkedIn-Version": LINKEDIN_VERSION,
-    },
-    body: JSON.stringify(payload),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.id) {
-    return { platform: "LINKEDIN", ok: false, error: data?.message ?? "LinkedIn publish failed" };
-  }
-  return {
-    platform: "LINKEDIN",
-    ok: true,
-    platformPostId: data.id,
-    liveUrl: `https://www.linkedin.com/feed/update/${data.id}`,
-  };
-}
-
 /** Publish to ONE platform using a stored connected account. Real API call. */
 export async function publishToPlatform(
   target: PublishTarget,
   input: PublishInput,
 ): Promise<PublishResult> {
+  if (target.platform === "LINKEDIN") {
+    return publishLinkedInOrganization(target.accountId, input);
+  }
+  if (target.platform === "WEBSITE") {
+    try {
+      const result = await publishWebsiteConnection(target.accountId, {
+        title: input.title || "Untitled",
+        content: input.caption,
+        status: "publish",
+        featuredImage: input.mediaUrls?.[0],
+        canonicalUrl: input.link,
+        tags: input.hashtags,
+      });
+      return { platform: "WEBSITE", ok: true, platformPostId: result.externalId, liveUrl: result.canonicalUrl ?? undefined };
+    } catch (error) {
+      return { platform: "WEBSITE", ok: false, error: error instanceof Error ? error.message : "Website publishing failed" };
+    }
+  }
   const { acc, token } = await resolveAccount(target.accountId);
   switch (target.platform) {
     case "FACEBOOK":
       return publishFacebook(acc, token, input);
     case "INSTAGRAM":
       return publishInstagram(acc, token, input);
-    case "LINKEDIN":
-      return publishLinkedIn(acc, token, input);
     default:
       return { platform: target.platform, ok: false, error: "Unsupported platform" };
   }

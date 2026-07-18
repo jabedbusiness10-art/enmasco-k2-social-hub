@@ -6,9 +6,12 @@ const ALGO = "aes-256-gcm";
 const IV_LEN = 12;
 
 function getKey(): Buffer {
-  const raw = process.env.TOKEN_ENCRYPTION_KEY;
+  const raw = process.env.TOKEN_ENCRYPTION_KEY ?? process.env.ENCRYPTION_KEY;
   if (!raw) {
-    // Dev-only fallback so local runs don't crash. Replace with a real 32-byte key in prod.
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Token encryption key is required in production");
+    }
+    // Development-only fallback so a local checkout can boot without live credentials.
     return crypto.createHash("sha256").update("enmasco-dev-token-key-change-me").digest();
   }
   // Accept either a 64-char hex (32 bytes) or a raw passphrase.

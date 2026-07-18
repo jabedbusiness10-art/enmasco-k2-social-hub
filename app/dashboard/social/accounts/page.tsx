@@ -15,8 +15,18 @@ import ActivityTimeline from "@/components/company-social/ActivityTimeline";
 import WebsiteCard, { WebsiteConnectionPublic } from "@/components/company-social/WebsiteCard";
 import WebsiteConnectModal from "@/components/company-social/WebsiteConnectModal";
 import WebsiteDetailModal from "@/components/company-social/WebsiteDetailModal";
+import LinkedInOrganizationSelectModal, { type SelectableLinkedInOrganization } from "@/components/company-social/LinkedInOrganizationSelectModal";
 
 const ROLES_CAN_MANAGE = ["CEO", "ADMIN"];
+
+function apiErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === "string" && error.trim()) return error;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  return fallback;
+}
 
 // TASK-57 — lightweight YouTube glyph (lucide-react has no YouTube brand icon).
 function YoutubeGlyph({ className }: { className?: string }) {
@@ -37,6 +47,8 @@ export default function CompanySocialPage() {
   const canManage = ROLES_CAN_MANAGE.includes(role);
   const [metaStatus, setMetaStatus] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
   const [linkedinStatus, setLinkedinStatus] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
+  const [linkedinSelection, setLinkedinSelection] = useState<{ sessionId: string; organizations: SelectableLinkedInOrganization[] } | null>(null);
+  const [linkedinSelecting, setLinkedinSelecting] = useState(false);
   const [youtubeStatus, setYoutubeStatus] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
 
   const [accounts, setAccounts] = useState<CompanySocialAccount[]>([]);
@@ -62,7 +74,7 @@ export default function CompanySocialPage() {
     try {
       const res = await fetch("/api/social/accounts", { cache: "no-store" });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed to load");
+      if (!res.ok) throw new Error(apiErrorMessage(json.error, "Failed to load"));
       setAccounts(json.accounts ?? []);
       setError(null);
     } catch (e: any) {
@@ -96,14 +108,49 @@ export default function CompanySocialPage() {
     const li = searchParams.get("linkedin");
     if (!li) return;
     if (li === "success") setLinkedinStatus({ kind: "success", msg: "LinkedIn Company Page connected successfully." });
-    else if (li === "error") {
-      const reason = searchParams.get("reason") ?? "Connection failed";
-      setLinkedinStatus({ kind: "error", msg: reason });
+    else if (li === "select") {
+      const sessionId = searchParams.get("session");
+      if (sessionId) {
+        fetch(`/api/social/linkedin/organizations?session=${encodeURIComponent(sessionId)}`, { cache: "no-store" })
+          .then(async (response) => ({ response, json: await response.json() }))
+          .then(({ response, json }) => {
+            if (!response.ok) throw new Error(apiErrorMessage(json.error, "Organization selection expired"));
+            setLinkedinSelection({ sessionId, organizations: json.organizations ?? [] });
+          })
+          .catch((error) => setLinkedinStatus({ kind: "error", msg: error.message }));
+      }
+    } else if (li === "error") {
+      const code = searchParams.get("code") ?? "OAUTH_CALLBACK_FAILED";
+      const messages: Record<string, string> = {
+        PERMISSION_MISSING: "LinkedIn organization permissions are not approved for this app.",
+        ORGANIZATION_ACCESS_DENIED: "No manageable LinkedIn Company Page was found.",
+        INVALID_STATE: "LinkedIn connection session was invalid. Please try again.",
+        EXPIRED_STATE: "LinkedIn connection session expired. Please try again.",
+        OAUTH_DENIED: "LinkedIn authorization was cancelled.",
+      };
+      setLinkedinStatus({ kind: "error", msg: messages[code] ?? "LinkedIn connection failed." });
     } else if (li === "unauthorized") {
       setLinkedinStatus({ kind: "error", msg: "You are not authorized to connect LinkedIn." });
     }
     window.history.replaceState({}, "", "/dashboard/social/accounts");
   }, [searchParams]);
+
+  async function selectLinkedInOrganization(organizationId: string) {
+    if (!linkedinSelection) return;
+    setLinkedinSelecting(true);
+    try {
+      const response = await fetch("/api/social/linkedin/organizations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: linkedinSelection.sessionId, organizationId }) });
+      const json = await response.json();
+      if (!response.ok) throw new Error(apiErrorMessage(json.error, "LinkedIn organization connection failed"));
+      setLinkedinSelection(null);
+      setLinkedinStatus({ kind: "success", msg: "LinkedIn Company Page connected successfully." });
+      await load();
+    } catch (error: any) {
+      setLinkedinStatus({ kind: "error", msg: error?.message ?? "LinkedIn organization connection failed" });
+    } finally {
+      setLinkedinSelecting(false);
+    }
+  }
 
   // TASK-57 — surface YouTube (Google) OAuth result from callback redirect query.
   useEffect(() => {
@@ -138,7 +185,7 @@ export default function CompanySocialPage() {
       body: JSON.stringify(payload),
     });
     const json = await res.json();
-    if (!res.ok) throw new Error(json.error ?? "Connection failed");
+    if (!res.ok) throw new Error(apiErrorMessage(json.error, "Connection failed"));
     await load();
   }
 
@@ -147,7 +194,7 @@ export default function CompanySocialPage() {
     try {
       const res = await fetch(`/api/social/refresh/${id}`, { method: "POST" });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Refresh failed");
+      if (!res.ok) throw new Error(apiErrorMessage(json.error, "Refresh failed"));
       setAccounts((p) => p.map((a) => (a.id === id ? json.account : a)));
     } catch (e: any) {
       setError(e.message);
@@ -182,7 +229,7 @@ export default function CompanySocialPage() {
     try {
       const res = await fetch(`/api/social/disconnect/${acc.id}`, { method: "DELETE" });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Disconnect failed");
+      if (!res.ok) throw new Error(apiErrorMessage(json.error, "Disconnect failed"));
       await load();
     } catch (e: any) {
       setError(e.message);
@@ -196,7 +243,7 @@ export default function CompanySocialPage() {
     try {
       const res = await fetch("/api/website/connect", { cache: "no-store" });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed to load websites");
+      if (!res.ok) throw new Error(apiErrorMessage(json.error, "Failed to load websites"));
       setWebsites(json.connections ?? []);
     } catch (e: any) {
       setError(e.message);
@@ -214,7 +261,7 @@ export default function CompanySocialPage() {
       body: JSON.stringify(payload),
     });
     const json = await res.json();
-    if (!res.ok) throw new Error(json.error ?? "Website connection failed");
+    if (!res.ok) throw new Error(apiErrorMessage(json.error, "Website connection failed"));
     await loadWebsites();
   }
 
@@ -223,7 +270,7 @@ export default function CompanySocialPage() {
     try {
       const res = await fetch(`/api/website/status/${id}`, { method: "POST" });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Test failed");
+      if (!res.ok) throw new Error(apiErrorMessage(json.error, "Test failed"));
       await loadWebsites();
     } catch (e: any) {
       setError(e.message);
@@ -237,7 +284,7 @@ export default function CompanySocialPage() {
     try {
       const res = await fetch(`/api/website/sync/${id}`, { method: "POST" });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Sync failed");
+      if (!res.ok) throw new Error(apiErrorMessage(json.error, "Sync failed"));
       await loadWebsites();
     } catch (e: any) {
       setError(e.message);
@@ -252,7 +299,7 @@ export default function CompanySocialPage() {
     try {
       const res = await fetch(`/api/website/disconnect/${conn.id}`, { method: "POST" });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Disconnect failed");
+      if (!res.ok) throw new Error(apiErrorMessage(json.error, "Disconnect failed"));
       await loadWebsites();
     } catch (e: any) {
       setError(e.message);
@@ -267,7 +314,7 @@ export default function CompanySocialPage() {
       // Re-test re-establishes the connection health.
       const res = await fetch(`/api/website/status/${conn.id}`, { method: "POST" });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Reconnect failed");
+      if (!res.ok) throw new Error(apiErrorMessage(json.error, "Reconnect failed"));
       await loadWebsites();
     } catch (e: any) {
       setError(e.message);
@@ -546,6 +593,14 @@ export default function CompanySocialPage() {
       />
       {websiteDetail && (
         <WebsiteDetailModal conn={websiteDetail} onClose={() => setWebsiteDetail(null)} />
+      )}
+      {linkedinSelection && (
+        <LinkedInOrganizationSelectModal
+          organizations={linkedinSelection.organizations}
+          busy={linkedinSelecting}
+          onSelect={selectLinkedInOrganization}
+          onClose={() => setLinkedinSelection(null)}
+        />
       )}
     </div>
   );

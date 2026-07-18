@@ -1,85 +1,72 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth-server";
+import { prisma } from "@/lib/db";
+import { encrypt } from "@/lib/crypto";
 import {
+  assessLinkedInScopes,
   exchangeCodeForToken,
   getOrganizations,
-  getOrganization,
+  hashOAuthState,
+  safeStateEqual,
   tokenExpiryInfo,
-  LINKEDIN_API_VERSION,
 } from "@/services/linkedin/oauth";
-import { connectLinkedInAccount } from "@/services/social/accounts";
+import { IntegrationError } from "@/services/integrations/errors";
 
 export const runtime = "nodejs";
 
-/**
- * TASK-46 — LinkedIn OAuth callback.
- * Validates `state` (CSRF), exchanges code for a token, lists the member's
- * organizations, selects the first, fetches its details, then securely
- * persists the connection. Never returns tokens to the client.
- */
 export async function GET(req: NextRequest) {
   const perm = await requirePermission("SOCIAL_CONNECT", req);
-  if (!perm.ok) {
-    return NextResponse.redirect(new URL("/dashboard/social/accounts?linkedin=unauthorized", req.url));
-  }
+  const destination = new URL("/dashboard/social/accounts", req.url);
+  const fail = (code: string) => {
+    destination.searchParams.set("linkedin", "error");
+    destination.searchParams.set("code", code);
+    const response = NextResponse.redirect(destination);
+    response.cookies.set("linkedin_oauth_state", "", { path: "/", maxAge: 0 });
+    return response;
+  };
+  if (!perm.ok) return fail("UNAUTHORIZED");
 
-  const url = new URL(req.url);
-  const code = url.searchParams.get("code");
-  const state = url.searchParams.get("state");
-  const error = url.searchParams.get("error");
-  const errorDesc = url.searchParams.get("error_description");
+  const code = req.nextUrl.searchParams.get("code");
+  const state = req.nextUrl.searchParams.get("state");
   const storedState = req.cookies.get("linkedin_oauth_state")?.value;
+  if (req.nextUrl.searchParams.get("error")) return fail("OAUTH_DENIED");
+  if (!code) return fail("MISSING_CODE");
+  if (!state || !storedState || !safeStateEqual(state, storedState)) return fail("INVALID_STATE");
 
-  const fail = (reason: string) =>
-    NextResponse.redirect(
-      new URL(`/dashboard/social/accounts?linkedin=error&reason=${encodeURIComponent(reason)}`, req.url),
-    );
-
-  if (error) {
-    const msg = errorDesc ?? error;
-    return fail(msg);
-  }
-  if (!code) return fail("Missing authorization code");
-  if (!state || !storedState || state !== storedState) {
-    return fail("Invalid OAuth state (possible CSRF)");
+  const session = await prisma.linkedInOAuthSession.findUnique({ where: { stateHash: hashOAuthState(state) } });
+  if (!session || session.userId !== perm.user!.id || session.expiresAt <= new Date() || session.consumedAt) {
+    return fail("EXPIRED_STATE");
   }
 
   try {
-    const user = perm.user!;
-    // 1. code -> access token (+ optional refresh token)
     const token = await exchangeCodeForToken(code);
-    const { expiresAt, status } = tokenExpiryInfo(token.expires_in);
-
-    // 2. list organizations the member can manage
-    const orgs = await getOrganizations(token.access_token);
-    if (!orgs.length) {
-      return fail("No LinkedIn Company Page found for this account");
+    const permissions = (token.scope ?? "").split(/[\s,]+/).filter(Boolean);
+    const scopeAssessment = assessLinkedInScopes(permissions);
+    if (!scopeAssessment.capabilities.organizationDiscovery) {
+      throw new IntegrationError("LINKEDIN", "PERMISSION_MISSING", "LinkedIn organization administration scope was not granted", 403, true, "Approve an organization administration product and reconnect.");
     }
-    // Pick the first organization (UI could let admin choose later).
-    const first = orgs[0];
-    const org = await getOrganization(token.access_token, first.id);
-
-    // 3. persist securely (tokens encrypted at rest)
-    await connectLinkedInAccount({
-      organization: {
-        id: org.id,
-        name: org.name,
-        logoUrl: org.logoUrl ?? null,
-        vanityName: org.vanityName ?? null,
+    const organizations = await getOrganizations(token.access_token);
+    if (!organizations.length) {
+      throw new IntegrationError("LINKEDIN", "ORGANIZATION_ACCESS_DENIED", "No manageable LinkedIn Company Page was found", 403, true, "Use a LinkedIn member with an approved company-page role.");
+    }
+    const { expiresAt } = tokenExpiryInfo(token.expires_in);
+    await prisma.linkedInOAuthSession.update({
+      where: { id: session.id },
+      data: {
+        accessTokenEncrypted: encrypt(token.access_token),
+        refreshTokenEncrypted: token.refresh_token ? encrypt(token.refresh_token) : null,
+        tokenExpiresAt: expiresAt,
+        permissions,
+        organizations: organizations as any,
       },
-      accessToken: token.access_token,
-      refreshToken: token.refresh_token ?? null,
-      permissions: token.scope ? token.scope.split(" ") : [],
-      expiresAt: expiresAt ? expiresAt.toISOString() : null,
-      apiVersion: LINKEDIN_API_VERSION,
-      connectedBy: user.name ?? user.email,
-      connectedById: user.id,
     });
 
-    const res = NextResponse.redirect(new URL("/dashboard/social/accounts?linkedin=success", req.url));
-    res.cookies.set("linkedin_oauth_state", "", { path: "/", maxAge: 0 });
-    return res;
-  } catch (e: any) {
-    return fail(e?.message ?? "LinkedIn connection failed");
+    destination.searchParams.set("linkedin", "select");
+    destination.searchParams.set("session", session.id);
+    const response = NextResponse.redirect(destination);
+    response.cookies.set("linkedin_oauth_state", "", { path: "/", maxAge: 0 });
+    return response;
+  } catch (error) {
+    return fail(error instanceof IntegrationError ? error.code : "OAUTH_CALLBACK_FAILED");
   }
 }

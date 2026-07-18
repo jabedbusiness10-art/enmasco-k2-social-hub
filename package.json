@@ -13,7 +13,8 @@
     "db:push": "prisma db push",
     "worker": "cross-env ROLE=worker tsx server/queue-worker.ts",
     "scheduler": "cross-env ROLE=scheduler tsx server/scheduler.ts",
-    "validate:env": "tsx -e \"import('./lib/env/validate').then(m=>{const r=m.validateEnv(); if(!r.ok) process.exit(1);})\""
+    "validate:env": "tsx -e \"import('./lib/env/validate').then(m=>{const r=m.validateEnv(); if(!r.ok) process.exit(1);})\"",
+    "test:task75": "tsx --test tests/task75/*.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
