@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ReactNode } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
@@ -17,6 +16,16 @@ import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
  * AppShell — the ONE global enterprise shell for every /dashboard/* route.
  * Sidebar (fixed) + TopBar + InfoBar + Main, plus the global
  * Command Palette (CTRL/CMD+K) mounted once for the whole app.
+ *
+ * Scroll ownership: `main` is the single native scroll container for all
+ * dashboard content. The sidebar keeps its own independent scroll. The root
+ * shell is `overflow-hidden` so the browser <body> never scrolls. `main`
+ * uses min-h-0 + overflow-y-auto + overscroll-behavior:contain +
+ * scrollbar-gutter:stable so the wheel/trackpad works from ANY point on the
+ * page (hero, cards, empty space) with no nested-scroll conflict.
+ * No framer-motion layoutScroll on `main` — that projection-scroll hook
+ * hijacked wheel delivery over the animated hero; viewport IntersectionObserver
+ * still drives whileInView reveals as content scrolls into view.
  */
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -27,9 +36,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <TopBar />
             <InfoBar />
-            <motion.main className={`${LAYOUT_CLASSES.contentWrapper} min-h-0 flex-1 overflow-y-auto overflow-x-hidden`} layoutScroll>
+            <main
+              className={`${LAYOUT_CLASSES.contentWrapper} min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth`}
+              style={{ scrollbarGutter: "stable", overscrollBehavior: "contain" }}
+            >
               {children}
-            </motion.main>
+            </main>
           </div>
           <CommandPalette />
         </div>
