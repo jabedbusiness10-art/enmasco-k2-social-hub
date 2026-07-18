@@ -228,7 +228,52 @@ export async function refreshAccount(id: string): Promise<SocialAccountPublic> {
     return toPublic(updated);
   }
 
-  // Architecture-ready: Meta/LinkedIn refresh hooks go here. For now bump sync.
+  // TASK-74 — Meta auto-refresh: the long-lived USER token is stored in
+  // row.refreshToken. Re-exchange it for a fresh long-lived token before it
+  // expires, re-encrypt, and update health fields. No new OAuth logic — it
+  // reuses getLongLivedToken from services/meta/oauth.
+  if (row.provider === "meta") {
+    const userToken = row.refreshToken ? decrypt(row.refreshToken) : null;
+    if (!userToken) {
+      const updated = await prisma.companySocialAccount.update({
+        where: { id },
+        data: { lastSyncAt: new Date(), accessTokenStatus: "EXPIRING", status: "EXPIRING_SOON" },
+      });
+      return toPublic(updated);
+    }
+    try {
+      const { getLongLivedToken, tokenExpiryInfo } = await import("@/services/meta/oauth");
+      const fresh = await getLongLivedToken(userToken);
+      const { expiresAt, status } = tokenExpiryInfo(fresh.expires_in);
+      // Page token also rotates with the user token exchange in practice; store
+      // the fresh user token as refreshToken (for next refresh) and keep the
+      // existing page accessToken (page tokens are long-lived / stable).
+      const updated = await prisma.companySocialAccount.update({
+        where: { id },
+        data: {
+          refreshToken: encrypt(fresh.access_token),
+          expiresAt: expiresAt ?? row.expiresAt,
+          accessTokenStatus: status,
+          status: "CONNECTED",
+          lastSyncAt: new Date(),
+        },
+      });
+      return toPublic(updated);
+    } catch (e: any) {
+      // Refresh failed (token revoked/expired) -> flag for reconnect flow.
+      const updated = await prisma.companySocialAccount.update({
+        where: { id },
+        data: {
+          accessTokenStatus: "EXPIRED",
+          status: "PERMISSION_ERROR",
+          lastSyncAt: new Date(),
+        },
+      });
+      return toPublic(updated);
+    }
+  }
+
+  // Fallback for providers without a dedicated refresh path (bump sync only).
   const updated = await prisma.companySocialAccount.update({
     where: { id },
     data: { lastSyncAt: new Date(), status: "CONNECTED" },
@@ -251,7 +296,25 @@ export async function disconnectAccount(id: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// TASK-45 — Meta OAuth connection persistence.
+// TASK-74 — Proactive Meta token refresh. Called before publishing/analytics
+// use a Meta token: if the token is EXPIRING/EXPIRED (or within 3 days),
+// refresh it in place. Returns void; failures are downgraded to PERMISSION_ERROR
+// (reconnect flow) without breaking the caller.
+// ---------------------------------------------------------------------------
+export async function refreshMetaAccountIfNeeded(id: string): Promise<void> {
+  try {
+    const row = await prisma.companySocialAccount.findUnique({ where: { id } });
+    if (!row || row.provider !== "meta" || row.status === "DISCONNECTED") return;
+    const daysLeft = row.expiresAt
+      ? (row.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      : 999;
+    // Only refresh when close to expiry or already flagged.
+    if (daysLeft > 3 && row.accessTokenStatus === "ACTIVE") return;
+    await refreshAccount(id);
+  } catch {
+    /* never block the primary action on a refresh attempt */
+  }
+}
 // Stores a Facebook Page connection plus its linked Instagram Business account.
 // Tokens are encrypted at rest via lib/crypto. Reuses connectAccount's upsert.
 // ---------------------------------------------------------------------------

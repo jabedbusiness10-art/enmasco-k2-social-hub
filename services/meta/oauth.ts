@@ -15,6 +15,12 @@ const META_GRAPH_BASE = "https://graph.facebook.com/v21.0";
 export const META_SCOPES = [
   "pages_show_list",
   "pages_read_engagement",
+  "pages_manage_posts",
+  "read_insights",
+  "business_management",
+  "instagram_basic",
+  "instagram_content_publish",
+  "instagram_manage_insights",
   "public_profile",
 ].join(",");
 
@@ -239,4 +245,81 @@ export function tokenExpiryInfo(expiresInSeconds?: number): {
   const days = (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
   const status = days <= 0 ? "EXPIRED" : days <= 7 ? "EXPIRING" : "ACTIVE";
   return { expiresAt, status };
+}
+
+// ---------------------------------------------------------------------------
+// TASK-74 — Shared Meta Graph helpers (single source of truth for error
+// classification + safe reads). Reused by analytics, live, and publishing so
+// token/permission/rate-limit handling is never duplicated.
+// ---------------------------------------------------------------------------
+
+export interface MetaGraphError {
+  code: number;
+  subcode?: number;
+  message: string;
+  type?: string;
+  /** Classified recovery hint for the UI. */
+  kind: "EXPIRED_TOKEN" | "REVOKED_PERMISSION" | "RATE_LIMITED" | "NETWORK" | "PERMISSION_MISSING" | "GRAPH_ERROR" | "UNKNOWN";
+  recoverable: boolean;
+}
+
+/** Classify a Graph API error body into an actionable, UI-friendly shape. */
+export function classifyMetaError(err: any): MetaGraphError {
+  const e = err?.error ?? err;
+  const code = Number(e?.code ?? 0);
+  const subcode = e?.error_subcode != null ? Number(e.error_subcode) : undefined;
+  const message = e?.message ?? "Unknown Meta Graph error";
+  const type = e?.type;
+
+  // Token expired / invalidated
+  if (code === 190 || subcode === 463 || subcode === 464 || subcode === 467) {
+    return { code, subcode, message, type, kind: "EXPIRED_TOKEN", recoverable: true };
+  }
+  // Permissions revoked / missing
+  if (code === 200 || code === 10 || code === 298 || (subcode !== undefined && [458, 459, 460].includes(subcode))) {
+    return { code, subcode, message, type, kind: "REVOKED_PERMISSION", recoverable: true };
+  }
+  // Rate limited
+  if (code === 4 || code === 17 || code === 613 || code === 80004) {
+    return { code, subcode, message, type, kind: "RATE_LIMITED", recoverable: true };
+  }
+  // Missing permission (OAuthException w/ specific message)
+  if (/(permission|scope|not authorized|requires the|access token)/i.test(message)) {
+    return { code, subcode, message, type, kind: "PERMISSION_MISSING", recoverable: true };
+  }
+  if (/network|ECONN|ETIMEDOUT|fetch failed/i.test(message)) {
+    return { code, subcode, message, type, kind: "NETWORK", recoverable: true };
+  }
+  return { code, subcode, message, type, kind: "GRAPH_ERROR", recoverable: false };
+}
+
+export interface MetaGraphResponse<T = any> {
+  ok: boolean;
+  data?: T;
+  error?: MetaGraphError;
+  raw?: any;
+}
+
+/**
+ * Server-side safe GET against the Graph API. Never throws; returns a
+ * classified result. Token is passed server-side only.
+ */
+export async function metaGraphGet(
+  endpoint: string,
+  token: string,
+  params: Record<string, string> = {},
+): Promise<MetaGraphResponse> {
+  const url = new URL(`${META_GRAPH_BASE}/${endpoint}`);
+  url.searchParams.set("access_token", token);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  try {
+    const res = await fetch(url.toString(), { cache: "no-store" });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || json?.error) {
+      return { ok: false, error: classifyMetaError(json), raw: json };
+    }
+    return { ok: true, data: json, raw: json };
+  } catch (e: any) {
+    return { ok: false, error: classifyMetaError(e), raw: e };
+  }
 }

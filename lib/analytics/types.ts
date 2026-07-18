@@ -38,6 +38,8 @@ export interface PlatformMetrics {
   visitors: number | null;
   /** Period-over-period follower growth as a percentage (e.g. +5.2). */
   followersGrowthPct: number | null;
+  /** TASK-74 — net follower additions in period (page_fan_adds). */
+  fanAdds?: number | null;
   /** Top posts (real, when available). */
   topPosts?: TopContentReal[];
 }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { decrypt } from "@/lib/crypto";
+import { classifyMetaError } from "@/services/meta/oauth";
 
 /**
  * TASK-48 — Enterprise Real Publishing Engine.
@@ -49,6 +50,16 @@ async function resolveAccount(accountId: string) {
   const acc = await prisma.companySocialAccount.findUnique({ where: { id: accountId } });
   if (!acc) throw new Error("Connected account not found");
   if (acc.status !== "CONNECTED") throw new Error("Account is not connected");
+  // TASK-74 — proactive token refresh so publishing uses a non-expired token.
+  if (acc.provider === "meta") {
+    try {
+      const { refreshMetaAccountIfNeeded } = await import("@/services/social/accounts");
+      await refreshMetaAccountIfNeeded(accountId);
+      // re-read after possible refresh
+      const refreshed = await prisma.companySocialAccount.findUnique({ where: { id: accountId } });
+      if (refreshed) Object.assign(acc, refreshed);
+    } catch { /* refresh is best-effort; continue with stored token */ }
+  }
   const token = acc.accessToken ? decrypt(acc.accessToken) : null;
   if (!token) throw new Error("Missing access token");
   return { acc, token };
@@ -57,12 +68,30 @@ async function resolveAccount(accountId: string) {
 async function publishFacebook(acc: any, token: string, input: PublishInput): Promise<PublishResult> {
   const pageId = acc.pageId;
   if (!pageId) return { platform: "FACEBOOK", ok: false, error: "No Facebook Page linked" };
+  const media = input.mediaUrls ?? [];
   const body = new URLSearchParams({
     message: fullCaption(input),
     access_token: token,
   });
   if (input.link) body.set("link", input.link);
-  if (input.mediaUrls?.length) body.set("picture", input.mediaUrls[0]);
+  // TASK-74 — multi-image carousel via attached_media (real Graph feature).
+  if (media.length >= 2) {
+    const attached: string[] = [];
+    for (const url of media.slice(0, 10)) {
+      const cRes = await fetch(`${META_GRAPH}/${pageId}/photos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ access_token: token, url, published: "false" }),
+      });
+      const cData = await cRes.json().catch(() => ({}));
+      if (cData?.id) attached.push(cData.id);
+    }
+    if (attached.length) {
+      attached.forEach((id, i) => body.append("attached_media", JSON.stringify({ media_fbid: id })));
+    }
+  } else if (media.length === 1) {
+    body.set("picture", media[0]);
+  }
   const res = await fetch(`${META_GRAPH}/${pageId}/feed`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -83,21 +112,56 @@ async function publishFacebook(acc: any, token: string, input: PublishInput): Pr
 async function publishInstagram(acc: any, token: string, input: PublishInput): Promise<PublishResult> {
   const igId = acc.instagramBusinessId;
   if (!igId) return { platform: "INSTAGRAM", ok: false, error: "No Instagram Business account linked" };
-  if (!input.mediaUrls?.length) {
+  const media = input.mediaUrls ?? [];
+  if (!media.length) {
     return { platform: "INSTAGRAM", ok: false, error: "Instagram requires an image or video" };
   }
-  // 1. create media object
-  const isVideo = /\.(mp4|mov|webm)$/i.test(input.mediaUrls[0]);
-  const createBody = new URLSearchParams({
-    access_token: token,
-    caption: fullCaption(input),
-  });
-  if (isVideo) {
-    createBody.set("media_type", "VIDEO");
-    createBody.set("video_url", input.mediaUrls[0]);
-  } else {
-    createBody.set("image_url", input.mediaUrls[0]);
+  const isVideo = /\.(mp4|mov|webm)$/i.test(media[0]);
+  const caption = fullCaption(input);
+
+  // Single media (image or video)
+  if (media.length === 1) {
+    const createBody = new URLSearchParams({ access_token: token, caption });
+    if (isVideo) {
+      createBody.set("media_type", "VIDEO");
+      createBody.set("video_url", media[0]);
+    } else {
+      createBody.set("image_url", media[0]);
+    }
+    return igPublish(igId, token, createBody);
   }
+
+  // TASK-74 — carousel via children (real Graph feature).
+  const children: string[] = [];
+  for (const url of media.slice(0, 10)) {
+    const childIsVideo = /\.(mp4|mov|webm)$/i.test(url);
+    const cb = new URLSearchParams({ access_token: token, caption, is_carousel_item: "true" });
+    if (childIsVideo) {
+      cb.set("media_type", "VIDEO");
+      cb.set("video_url", url);
+    } else {
+      cb.set("image_url", url);
+    }
+    const cRes = await fetch(`${META_GRAPH}/${igId}/media`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: cb,
+    });
+    const cData = await cRes.json().catch(() => ({}));
+    if (cData?.id) children.push(cData.id);
+  }
+  if (!children.length) return { platform: "INSTAGRAM", ok: false, error: "IG carousel item creation failed" };
+  const carouselBody = new URLSearchParams({
+    access_token: token,
+    caption,
+    media_type: "CAROUSEL",
+    children: children.join(","),
+  });
+  return igPublish(igId, token, carouselBody);
+}
+
+/** Create + publish an IG media object, returning a classified result. */
+async function igPublish(igId: string, token: string, createBody: URLSearchParams): Promise<PublishResult> {
   const cRes = await fetch(`${META_GRAPH}/${igId}/media`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -105,9 +169,9 @@ async function publishInstagram(acc: any, token: string, input: PublishInput): P
   });
   const cData = await cRes.json().catch(() => ({}));
   if (!cRes.ok || !cData.id) {
-    return { platform: "INSTAGRAM", ok: false, error: cData?.error?.message ?? "IG media creation failed" };
+    const err = classifyMetaError(cData);
+    return { platform: "INSTAGRAM", ok: false, error: `${err.message} [${err.kind}]` };
   }
-  // 2. publish
   const pRes = await fetch(`${META_GRAPH}/${igId}/media_publish`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -115,7 +179,8 @@ async function publishInstagram(acc: any, token: string, input: PublishInput): P
   });
   const pData = await pRes.json().catch(() => ({}));
   if (!pRes.ok || !pData.id) {
-    return { platform: "INSTAGRAM", ok: false, error: pData?.error?.message ?? "IG publish failed" };
+    const err = classifyMetaError(pData);
+    return { platform: "INSTAGRAM", ok: false, error: `${err.message} [${err.kind}]` };
   }
   return {
     platform: "INSTAGRAM",

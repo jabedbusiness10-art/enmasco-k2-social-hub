@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth-server";
 import { getDecryptedToken, listAccounts } from "@/services/social/accounts";
+import { metaGraphGet } from "@/services/meta/oauth";
 
 export const runtime = "nodejs";
 
 // Server-side live fetch from the encrypted stored FB token. Never returns the raw token.
 async function gq(endpoint: string, token: string, params = "") {
-  const sep = params ? "?" : "";
-  const url = `https://graph.facebook.com/v21.0/${endpoint}${sep}${params}&access_token=${token}`;
-  const res = await fetch(url);
-  return res.json();
+  const res = await metaGraphGet(endpoint, token, params ? Object.fromEntries(new URLSearchParams(params)) : {});
+  if (!res.ok && res.error) {
+    // surface a classified, actionable error instead of the raw Graph body
+    const e = res.error;
+    return { error: { message: e.message, code: e.code, kind: e.kind, recoverable: e.recoverable } };
+  }
+  return res.data ?? {};
 }
 
 export async function GET(req: NextRequest) {
