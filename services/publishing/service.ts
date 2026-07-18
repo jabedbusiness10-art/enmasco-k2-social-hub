@@ -18,7 +18,7 @@ export interface CreatePostInput {
   cta?: string;
   location?: string;
   mediaUrls?: string[];
-  platforms: { platform: "FACEBOOK" | "INSTAGRAM" | "LINKEDIN"; accountId: string }[];
+  platforms: { platform: "FACEBOOK" | "INSTAGRAM" | "LINKEDIN" | "WEBSITE"; accountId: string }[];
   scheduledAt?: string; // ISO; if absent -> publish now / queue now
   requiresApproval?: boolean;
   createdBy: { id: string; name: string };

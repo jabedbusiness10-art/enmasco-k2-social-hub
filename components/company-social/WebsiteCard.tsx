@@ -15,6 +15,14 @@ export interface WebsiteConnectionPublic {
   webhookStatus: boolean;
   health: "ONLINE" | "SSL_INVALID" | "API_ERROR" | "WEBHOOK_ERROR" | "OFFLINE";
   lastSync: string | null;
+  lastPublish: string | null;
+  lastWebhook: string | null;
+  lastError: string | null;
+  apiEndpoint: string | null;
+  authMethod: string;
+  publishingEnabled: boolean;
+  capabilities: Record<string, boolean>;
+  authStatus: string;
   syncFrequency: string;
   connectedBy: string;
   createdAt: string;
@@ -23,6 +31,10 @@ export interface WebsiteConnectionPublic {
 
 const CMS_COLOR: Record<string, string> = {
   WORDPRESS: "#21759B",
+  REST_API: "#38bdf8",
+  RSS: "#f97316",
+  SITEMAP: "#10b981",
+  WEBHOOK: "#a78bfa",
   NEXTJS: "#ffffff",
   CUSTOM: "#38bdf8",
   HEADLESS: "#a78bfa",
@@ -112,6 +124,7 @@ export default function WebsiteCard({
         <Field label="Webhook" value={conn.webhookStatus ? "Configured" : "Error"} />
         <Field label="Connected By" value={conn.connectedBy} />
         <Field label="Last Sync" value={conn.lastSync ? new Date(conn.lastSync).toLocaleString() : "—"} />
+        <Field label="Publishing" value={conn.publishingEnabled ? "Enabled" : "Read only"} />
         <Field label="Health" value={conn.health} />
       </div>
 

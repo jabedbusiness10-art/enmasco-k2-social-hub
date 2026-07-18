@@ -1,50 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDecryptedSecrets, verifyWebhookSignature } from "@/services/website/connection";
+import { getDecryptedSecrets, processWebsiteWebhook, verifyWebhookSignature } from "@/services/website/connection";
+import { asPublicIntegrationError, IntegrationError } from "@/services/integrations/errors";
 
 export const runtime = "nodejs";
 
-/**
- * TASK-47 — Secure inbound webhook from a Website/CMS → K2KAI.
- *
- * The website signs each request with HMAC-SHA256 of the raw body keyed by the
- * stored webhook secret, sent in header `x-k2kai-signature: sha256=<hmac>`.
- * We verify before trusting the payload, then forward to the Publishing Engine
- * (architecture hook for TASK-48). Unverified requests are rejected (401).
- *
- * NOTE: signature verification needs the RAW body. `req.text()` preserves bytes.
- */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const declaredSize = Number(req.headers.get("content-length") || 0);
+  if (declaredSize > 1024 * 1024) return NextResponse.json({ error: "Webhook payload too large" }, { status: 413 });
   const { id } = await params;
   const rawBody = await req.text();
+  if (Buffer.byteLength(rawBody) > 1024 * 1024) return NextResponse.json({ error: "Webhook payload too large" }, { status: 413 });
   const signature = req.headers.get("x-k2kai-signature");
+  const timestamp = req.headers.get("x-k2kai-timestamp");
+  const eventId = req.headers.get("x-k2kai-event-id");
+  if (!eventId || eventId.length > 200) return NextResponse.json({ error: "Missing webhook event ID" }, { status: 400 });
 
-  let secrets: { apiKey: string; webhookSecret: string } | null = null;
+  const secrets = await getDecryptedSecrets(id).catch(() => null);
+  if (!secrets?.webhookSecret) return NextResponse.json({ error: "Unknown webhook target" }, { status: 404 });
+  if (!verifyWebhookSignature(rawBody, signature, secrets.webhookSecret, timestamp)) {
+    const publicError = asPublicIntegrationError(new IntegrationError("WEBSITE", "WEBHOOK_SIGNATURE_INVALID", "Webhook signature or timestamp is invalid", 401, false, "Sign timestamp.payload with the configured HMAC secret."), "WEBSITE");
+    return NextResponse.json(publicError.error, { status: publicError.status });
+  }
+  const payload = await Promise.resolve().then(() => JSON.parse(rawBody || "{}")).catch(() => null);
+  if (!payload || typeof payload !== "object") return NextResponse.json({ error: "Invalid webhook JSON" }, { status: 400 });
+  const eventType = String(payload.event ?? payload.type ?? "");
   try {
-    secrets = await getDecryptedSecrets(id);
-  } catch {
-    secrets = null;
+    const result = await processWebsiteWebhook(id, eventId, eventType, rawBody, payload.data ?? payload);
+    return NextResponse.json(result);
+  } catch (error) {
+    const publicError = asPublicIntegrationError(error, "WEBSITE");
+    return NextResponse.json(publicError.error, { status: publicError.status });
   }
-  if (!secrets?.webhookSecret) {
-    return NextResponse.json({ error: "Unknown or unconfigured webhook target" }, { status: 404 });
-  }
-  if (!verifyWebhookSignature(rawBody, signature, secrets.webhookSecret)) {
-    return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
-  }
-
-  let payload: any = {};
-  try {
-    payload = JSON.parse(rawBody || "{}");
-  } catch {
-    payload = {};
-  }
-
-  // TASK-48 hook: route verified events to the Publishing Engine / Analytics.
-  // For now we acknowledge and record the receipt (logging point).
-  // Event types: content.published | content.updated | media.uploaded ...
-  return NextResponse.json({ ok: true, received: payload?.event ?? "unknown" });
 }
 
-/** Webhook endpoint must not be cached / should reject GET probes. */
 export async function GET() {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405, headers: { Allow: "POST" } });
 }

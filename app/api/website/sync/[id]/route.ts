@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth-server";
 import { syncWebsiteConnection } from "@/services/website/connection";
+import { asPublicIntegrationError } from "@/services/integrations/errors";
+import { writeAudit } from "@/lib/security/audit";
 
 export const runtime = "nodejs";
 
@@ -11,8 +13,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params;
   try {
     const result = await syncWebsiteConnection(id);
+    await writeAudit({ action: "WEBSITE_CONTENT_SYNCED", actionType: "SYNC", module: "SOCIAL", resource: "WebsiteConnection", entityId: id, createdById: perm.user!.id, req, metadata: { imported: result.imported, updated: result.updated } });
     return NextResponse.json({ sync: result });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Sync failed" }, { status: 400 });
+  } catch (error) {
+    const publicError = asPublicIntegrationError(error, "WEBSITE");
+    return NextResponse.json(publicError.error, { status: publicError.status });
   }
 }

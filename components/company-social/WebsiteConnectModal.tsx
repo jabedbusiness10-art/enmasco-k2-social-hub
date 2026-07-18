@@ -6,11 +6,23 @@ import { X } from "lucide-react";
 
 const CMS_OPTIONS = [
   { value: "WORDPRESS", label: "WordPress" },
+  { value: "REST_API", label: "REST API" },
+  { value: "RSS", label: "RSS / Atom (read-only)" },
+  { value: "SITEMAP", label: "XML Sitemap (read-only)" },
+  { value: "WEBHOOK", label: "Signed Webhook (inbound)" },
   { value: "NEXTJS", label: "Next.js" },
   { value: "HEADLESS", label: "Headless CMS" },
   { value: "LARAVEL", label: "Laravel" },
   { value: "CUSTOM", label: "Custom Website" },
   { value: "STATIC", label: "Static Website" },
+];
+
+const AUTH_OPTIONS = [
+  { value: "NONE", label: "No authentication" },
+  { value: "BEARER", label: "Bearer token" },
+  { value: "API_KEY", label: "X-API-Key" },
+  { value: "BASIC", label: "Basic (user:password)" },
+  { value: "WORDPRESS_APP_PASSWORD", label: "WordPress app password" },
 ];
 
 const FREQ_OPTIONS = [
@@ -33,6 +45,8 @@ export default function WebsiteConnectModal({
     websiteName: "",
     websiteUrl: "",
     cmsType: "WORDPRESS",
+    apiEndpoint: "",
+    authMethod: "NONE",
     apiKey: "",
     webhookSecret: "",
     syncFrequency: "MANUAL",
@@ -49,7 +63,7 @@ export default function WebsiteConnectModal({
     setError(null);
     setBusy(true);
     try {
-      await onConnect({ ...form });
+      await onConnect({ ...form, apiEndpoint: form.apiEndpoint || undefined, apiKey: form.apiKey || undefined, webhookSecret: form.webhookSecret || undefined });
       onClose();
     } catch (e: any) {
       setError(e?.message ?? "Failed to connect website");
@@ -110,12 +124,22 @@ export default function WebsiteConnectModal({
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-xs text-white/50">API Key</label>
-            <input className={inputCls} placeholder="CMS API key" value={form.apiKey} onChange={(e) => set("apiKey", e.target.value)} required />
+            <label className="mb-1 block text-xs text-white/50">Provider Endpoint <span className="text-white/30">(optional)</span></label>
+            <input className={inputCls} placeholder="https://example.com/api/content or /feed" value={form.apiEndpoint} onChange={(e) => set("apiEndpoint", e.target.value)} />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-white/50">Webhook Secret</label>
-            <input className={inputCls} placeholder="Webhook signing secret" value={form.webhookSecret} onChange={(e) => set("webhookSecret", e.target.value)} required />
+            <label className="mb-1 block text-xs text-white/50">Authentication</label>
+            <select className={inputCls} value={form.authMethod} onChange={(e) => set("authMethod", e.target.value)}>
+              {AUTH_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-white/50">Credential <span className="text-white/30">(authenticated providers only)</span></label>
+            <input type="password" autoComplete="new-password" className={inputCls} placeholder="Token, API key, or user:password" value={form.apiKey} onChange={(e) => set("apiKey", e.target.value)} required={form.authMethod !== "NONE"} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-white/50">Webhook Secret <span className="text-white/30">(24+ characters, optional)</span></label>
+            <input type="password" autoComplete="new-password" minLength={24} className={inputCls} placeholder="HMAC signing secret" value={form.webhookSecret} onChange={(e) => set("webhookSecret", e.target.value)} />
           </div>
         </div>
 
