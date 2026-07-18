@@ -87,7 +87,7 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
           </div>
         </motion.header>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {stats.map((stat, index) => (
             <StatCard
               key={stat.label}
@@ -112,7 +112,7 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.3 + index * 0.05 }}
-              className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 backdrop-blur-xl"
+              className="surface-widget flex flex-col gap-1 px-3.5 py-3.5"
             >
               <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
                 <item.icon className="h-3.5 w-3.5 text-red-200/70" strokeWidth={1.8} />

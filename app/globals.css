@@ -284,3 +284,139 @@ select option[aria-selected="true"] {
 .sidebar-scroll::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* ===========================================================================
+   Enterprise design tokens + premium utilities (Dashboard redesign)
+   A single, cohesive layer so spacing / radius / elevation / typography
+   stay consistent across every dashboard surface. Built on the existing
+   dark glass language (Nothing OS × Linear × SOC). No new colors — only
+   refined neutrals + the established sky/red accents.
+   =========================================================================== */
+:root {
+  --space-section: 32px;
+  --space-card-gap: 24px;
+  --space-card-pad: 20px;
+  --radius-card: 20px;
+  --radius-widget: 16px;
+  --elev-1: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 50px rgba(0, 0, 0, 0.35);
+  --elev-2: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 26px 70px rgba(0, 0, 0, 0.42);
+  --accent: 56, 189, 248;     /* sky-400 */
+  --accent-red: 248, 113, 113; /* red-400 */
+  --glass: rgba(255, 255, 255, 0.035);
+  --glass-strong: rgba(255, 255, 255, 0.06);
+  --hairline: rgba(255, 255, 255, 0.08);
+}
+
+/* Premium glass surface — the shared card primitive */
+.surface {
+  position: relative;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--hairline);
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--elev-1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease,
+    background-color 0.3s ease;
+}
+.surface:hover {
+  border-color: rgba(var(--accent), 0.32);
+  box-shadow: var(--elev-2), 0 0 30px rgba(var(--accent), 0.1);
+}
+
+/* Smaller widget surface */
+.surface-widget {
+  border-radius: var(--radius-widget);
+  border: 1px solid var(--hairline);
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--elev-1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.surface-widget:hover {
+  border-color: rgba(var(--accent), 0.28);
+  box-shadow: var(--elev-2), 0 0 24px rgba(var(--accent), 0.08);
+}
+
+/* Section heading — calm, premium hierarchy */
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.section-heading h2,
+.section-heading h3 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.section-heading .sub {
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* KPI stat — larger, tighter number + label */
+.kpi-stat .kpi-value {
+  font-size: clamp(1.6rem, 2.2vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #fff;
+}
+.kpi-stat .kpi-label {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Status pill */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.status-pill .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+}
+.status-ok { background: rgba(52, 211, 153, 0.12); color: rgb(110, 231, 183); }
+.status-ok .dot { background: rgb(52, 211, 153); box-shadow: 0 0 8px rgba(52, 211, 153, 0.8); }
+.status-warn { background: rgba(251, 191, 36, 0.12); color: rgb(252, 211, 77); }
+.status-warn .dot { background: rgb(251, 191, 36); box-shadow: 0 0 8px rgba(251, 191, 36, 0.8); }
+.status-off { background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.45); }
+.status-off .dot { background: rgba(255, 255, 255, 0.35); }
+.status-err { background: rgba(248, 113, 113, 0.14); color: rgb(252, 165, 165); }
+.status-err .dot { background: rgb(248, 113, 113); box-shadow: 0 0 8px rgba(248, 113, 113, 0.8); }
+
+/* Keyboard focus ring — accessible, on-brand */
+.focus-ring:focus-visible,
+a.focus-ring:focus-visible,
+button.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--accent), 0.55), 0 0 0 4px rgba(var(--accent), 0.18);
+}
+
+/* Staggered entrance — used by dashboard sections */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise-in {
+  animation: riseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise-in { animation: none; }
+}

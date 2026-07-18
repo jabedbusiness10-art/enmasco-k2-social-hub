@@ -115,14 +115,15 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar-scroll mt-5 min-h-0 flex-1 space-y-2.5 overflow-y-auto overflow-x-hidden px-5">
-        {sidebarConfig.map((section) => (
-          <SidebarSection
-            key={section.key}
-            section={section}
-            expandedKeys={expandedKeys}
-            toggleSection={toggleSection}
-            collapsed={collapsed}
-          />
+        {sidebarConfig.map((section, idx) => (
+          <div key={section.key} className={idx === 0 ? "" : "mt-1 border-t border-white/[0.06] pt-1"}>
+            <SidebarSection
+              section={section}
+              expandedKeys={expandedKeys}
+              toggleSection={toggleSection}
+              collapsed={collapsed}
+            />
+          </div>
         ))}
       </nav>
 
