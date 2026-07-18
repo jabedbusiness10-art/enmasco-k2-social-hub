@@ -1,3 +1,12 @@
+-- Repair: enum types referenced below were missing from this migration file.
+-- (They exist in schema.prisma and were applied via db push; added here so the
+-- migration chain is reproducible on a fresh shadow database.)
+CREATE TYPE "ConversationKind" AS ENUM ('DIRECT', 'GROUP', 'BROADCAST', 'CEO', 'SUPPORT');
+CREATE TYPE "PresenceStatus" AS ENUM ('ONLINE', 'AWAY', 'BUSY', 'OFFLINE');
+CREATE TYPE "MsgStatus" AS ENUM ('SENT', 'DELIVERED', 'READ', 'FAILED');
+CREATE TYPE "AttachmentKind" AS ENUM ('IMAGE', 'VIDEO', 'AUDIO', 'FILE', 'VOICE');
+CREATE TYPE "ReactionEmoji" AS ENUM ('LIKE', 'LOVE', 'HAHA', 'WOW', 'SAD', 'ANGRY');
+
 CREATE TABLE "Conversation" (
     "id" TEXT NOT NULL,
     "kind" "ConversationKind" NOT NULL,

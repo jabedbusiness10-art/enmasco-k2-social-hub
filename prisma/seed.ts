@@ -71,6 +71,35 @@ async function main() {
       maintenanceMode: false,
     },
   });
+
+  // TASK-70 — Enterprise Database Foundation seed (safe: upserts only, keeps
+  // existing users/data). Ensures a Company exists, then creates a default
+  // Team under it and links all users to that team.
+  const company =
+    (await prisma.company.findFirst()) ??
+    (await prisma.company.create({
+      data: { name: "ENMASCO K2 SOCIAL", industry: "Social Media Automation" },
+    }));
+
+  const team = await prisma.team.upsert({
+    where: { slug: "core-ops" },
+    update: {},
+    create: {
+      companyId: company.id,
+      name: "Core Operations",
+      slug: "core-ops",
+      description: "Default enterprise team",
+      status: "ACTIVE",
+    },
+  });
+
+  const allUsers = await prisma.user.findMany({ select: { id: true } });
+  for (const u of allUsers) {
+    await prisma.user.update({
+      where: { id: u.id },
+      data: { teamId: team.id },
+    });
+  }
 }
 
 main()

@@ -97,11 +97,13 @@ model User {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
+  username      String?   @unique
   password      String
   role          Role      @relation(fields: [roleId], references: [id])
   roleId        String
   department    Department? @relation(fields: [departmentId], references: [id])
   departmentId  String?
+  teamId        String?
   avatar        String?
   status        UserStatus @default(ACTIVE)
   emailVerified Boolean    @default(false)
@@ -147,9 +149,19 @@ model User {
   userLoginHistory  LoginHistory[]
   userTrustedDevices TrustedDevice[]
 
+  // TASK-70 — enterprise foundation relations
+  team          Team?       @relation("TeamMembers", fields: [teamId], references: [id], onDelete: SetNull)
+  ownedTeams    Team[]      @relation("TeamOwnership")
+  draftPosts    DraftPost[]
+  aiJobs        AIJob[]
+  activityLogs  ActivityLog[]
+  apiConnections ApiConnection[]
+
   @@index([roleId])
   @@index([departmentId])
+  @@index([teamId])
   @@index([status])
+  @@index([username])
   @@index([createdAt])
 }
 
@@ -589,6 +601,8 @@ model Post {
   jobs       PublishingJob[]
   history    PublishingHistory[]
   approvals  Approval[]
+  analytics  PostAnalytics[]
+  drafts     DraftPost[]
 
   // TASK-48 — composer fields
   title       String?
@@ -1630,6 +1644,8 @@ model Company {
   updatedAt    DateTime @updatedAt
 
   settings CompanySettings?
+  teams    Team[]
+  teamMembers TeamMember[]
 }
 
 // --- NextAuth.js OAuth adapter tables (readiness for TASK-46 LinkedIn OAuth) ---
@@ -2110,9 +2126,188 @@ model TeamMember {
   role        String?
   status      MemberStatus @default(ACTIVE)
   avatar      String?
+  teamId      String?
+  companyId   String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
+  team    Team?    @relation("TeamContacts", fields: [teamId], references: [id], onDelete: SetNull)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
   @@index([status])
   @@index([department])
+  @@index([teamId])
+  @@index([companyId])
+}
+
+// ===========================================================================
+// TASK-70 — Enterprise Database Foundation
+// Adds the remaining production tables (Team, DraftPost, AIJob, ActivityLog,
+// ApiConnection, PostAnalytics) + relations, without touching existing models.
+// All new columns are nullable or on new tables → non-destructive migration.
+// ===========================================================================
+
+enum TeamStatus {
+  ACTIVE
+  ARCHIVED
+  SUSPENDED
+}
+
+enum DraftStatus {
+  DRAFT
+  IN_REVIEW
+  READY
+  ARCHIVED
+}
+
+enum AIJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ApiConnStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+  ERROR
+}
+
+/// Teams belong to a Company and group Users (and TeamMember contacts).
+model Team {
+  id          String     @id @default(cuid())
+  companyId   String
+  ownerId     String?
+  name        String
+  slug        String     @unique
+  description String?
+  status      TeamStatus @default(ACTIVE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  owner       User?       @relation("TeamOwnership", fields: [ownerId], references: [id], onDelete: SetNull)
+  members     User[]      @relation("TeamMembers")
+  contacts    TeamMember[] @relation("TeamContacts")
+  draftPosts  DraftPost[]
+
+  @@index([companyId])
+  @@index([ownerId])
+  @@index([status])
+  @@index([slug])
+  @@index([createdAt])
+}
+
+/// Draft posts — distinct from published Post; may later become a Post.
+model DraftPost {
+  id          String      @id @default(cuid())
+  teamId      String?
+  authorId    String
+  title       String?
+  content     String?
+  platforms   Platform[]
+  tags        String[]    @default([])
+  mediaUrls   String[]    @default([])
+  status      DraftStatus @default(DRAFT)
+  postId      String?     @unique
+  publishedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  team    Team? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  author  User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post    Post? @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  @@index([teamId])
+  @@index([authorId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+/// AI jobs — generation / automation tasks queued against the AI provider.
+model AIJob {
+  id          String      @id @default(cuid())
+  userId      String?
+  type        String
+  model       String?
+  prompt      String?     @db.Text
+  status      AIJobStatus @default(PENDING)
+  result      String?     @db.Text
+  error       String?
+  tokensUsed  Int         @default(0)
+  durationMs  Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+/// Canonical activity log (distinct from AuditLog which is security-scoped).
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String?
+  entityId  String?
+  metadata  Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+/// External API connections / integrations (keys managed out-of-band).
+model ApiConnection {
+  id          String       @id @default(cuid())
+  userId      String?
+  name        String
+  provider    String
+  status      ApiConnStatus @default(ACTIVE)
+  maskedKey   String?
+  baseUrl     String?
+  scopes      String[]     @default([])
+  lastUsedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([provider])
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Per-post analytics snapshot (satisfies Post ── Analytics relation).
+model PostAnalytics {
+  id          String   @id @default(cuid())
+  postId      String
+  platform    Platform?
+  impressions Int      @default(0)
+  engagements Int      @default(0)
+  clicks      Int      @default(0)
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  recordedAt  DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([platform])
+  @@index([recordedAt])
 }
