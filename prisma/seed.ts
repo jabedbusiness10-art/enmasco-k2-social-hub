@@ -179,9 +179,9 @@ async function main() {
 
   if (apiCount === 0 && ceo) {
   const apis = [
-  { userId: ceo.id, name: "OpenRouter AI", provider: "openrouter", status: "ACTIVE", scopes: ["chat", "completions"], lastUsedAt: new Date() },
-  { userId: admin?.id ?? ceo.id, name: "Meta Graph API", provider: "meta", status: "ACTIVE", scopes: ["pages_manage", "instagram_content_publish"], lastUsedAt: new Date(Date.now() - 86400000) },
-  { userId: marketingManager?.id ?? ceo.id, name: "LinkedIn API", provider: "linkedin", status: "INACTIVE", scopes: ["r_organization_social"], lastUsedAt: null },
+    { userId: ceo.id, name: "OpenRouter AI", provider: "openrouter", status: "ACTIVE" as const, scopes: ["chat", "completions"], lastUsedAt: new Date() },
+    { userId: admin?.id ?? ceo.id, name: "Meta Graph API", provider: "meta", status: "ACTIVE" as const, scopes: ["pages_manage", "instagram_content_publish"], lastUsedAt: new Date(Date.now() - 86400000) },
+    { userId: marketingManager?.id ?? ceo.id, name: "LinkedIn API", provider: "linkedin", status: "INACTIVE" as const, scopes: ["r_organization_social"], lastUsedAt: null },
   ];
   for (const a of apis) await prisma.apiConnection.create({ data: a });
   }

@@ -11,16 +11,20 @@ import {
   Network,
   ShieldCheck,
   Users,
+  Activity,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import HealthBar from "./HealthBar";
 import QuickAction from "./QuickAction";
 import StatCard from "./StatCard";
 
-const stats = [
-  { icon: Users, number: 34, label: "Active Employees" },
-  { icon: BriefcaseBusiness, number: 12, label: "Today's Duties" },
-  { icon: CalendarClock, number: 18, label: "Scheduled Posts" },
-  { icon: Bot, number: 5, label: "AI Tasks" },
+// TASK-71 — Defaults kept for graceful SSR / no-data fallback. The dashboard
+// page passes REAL overview values via the `stats` prop when available.
+const defaultStats = [
+  { label: "Active Employees", number: 34 },
+  { label: "Today's Duties", number: 12 },
+  { label: "Scheduled Posts", number: 18 },
+  { label: "AI Tasks", number: 5 },
 ];
 
 const quickActions = [
@@ -30,11 +34,53 @@ const quickActions = [
   { icon: Crown, label: "CEO PANEL", href: "/ceo" },
 ];
 
+const defaultQuickStats = [
+  { label: "Connected Accounts", value: "3" },
+  { label: "Scheduled Today", value: "18" },
+  { label: "Online Team", value: "12" },
+  { label: "AI Queue", value: "Stable" },
+  { label: "Uptime", value: "99.9%" },
+];
+
+type HeroStat = { label: string; number: number };
+type HeroQuickStat = { label: string; value: string };
+
+// TASK-71 — Icon resolution stays client-side (serializable props only; server
+// components cannot pass component references to client components). Labels map
+// to the same icons as the original design so visuals are unchanged.
+const STAT_ICONS: Record<string, LucideIcon> = {
+  "Active Employees": Users,
+  "Today's Duties": BriefcaseBusiness,
+  "Scheduled Posts": CalendarClock,
+  "AI Tasks": Bot,
+};
+const QUICK_ICONS: Record<string, LucideIcon> = {
+  "Connected Accounts": Network,
+  "Scheduled Today": CalendarClock,
+  "Online Team": Users,
+  "AI Queue": Bot,
+  "Scheduled Posts": CalendarClock,
+  "Active Employees": Users,
+  "Pending AI Jobs": Bot,
+  "Active Teams": ShieldCheck,
+  "Uptime": ShieldCheck,
+};
+const fallbackIcon = Activity;
+
+// TASK-71 — Overview data is injected by the dashboard page (server-fetched
+// from the service). Optional: falls back to the static defaults above when
+// not provided, so the widget never breaks or shows a loading state.
 type HeroPanelProps = {
   className?: string;
+  stats?: HeroStat[];
+  quickStats?: HeroQuickStat[];
+  health?: number;
 };
 
-export default function HeroPanel({ className = "" }: HeroPanelProps) {
+export default function HeroPanel({ className = "", stats: statsProp, quickStats: quickStatsProp, health: healthProp }: HeroPanelProps) {
+  const stats = (statsProp ?? defaultStats).map((s) => ({ ...s, icon: STAT_ICONS[s.label] ?? fallbackIcon }));
+  const quickStats = (quickStatsProp ?? defaultQuickStats).map((q) => ({ ...q, icon: QUICK_ICONS[q.label] ?? fallbackIcon }));
+  const health = healthProp ?? 97;
   return (
     <motion.section
       initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -100,13 +146,7 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {[
-            { icon: Network, label: "Connected Accounts", value: "3" },
-            { icon: CalendarClock, label: "Scheduled Today", value: "18" },
-            { icon: Users, label: "Online Team", value: "12" },
-            { icon: Bot, label: "AI Queue", value: "Stable" },
-            { icon: ShieldCheck, label: "Uptime", value: "99.9%" },
-          ].map((item, index) => (
+          {quickStats.map((item, index) => (
             <motion.div
               key={item.label}
               initial={{ opacity: 0, y: 12 }}
@@ -123,7 +163,7 @@ export default function HeroPanel({ className = "" }: HeroPanelProps) {
           ))}
         </div>
 
-        <HealthBar value={97} />
+        <HealthBar value={health} />
 
         <motion.div
           initial={{ opacity: 0, y: 18 }}
