@@ -252,8 +252,8 @@ export const sidebarConfig: NavSection[] = [
     children: [
       { label: "User Management", href: "/dashboard/admin/users", description: "Manage platform users, access, and invitations." },
       { label: "User Permissions", href: "/dashboard/admin/security/permissions", description: "Role-based permission matrix." },
-      { label: "User Activity", href: "/dashboard/team/activity", description: "Team activity and audit timeline." },
-      { label: "User Roles", href: "/dashboard/team/roles", description: "Define roles and control what each member can do." },
+      { label: "User Activity", href: "/dashboard/admin/users/activity", description: "Per-user login, actions, password, API, device and security activity." },
+      { label: "User Roles", href: "/dashboard/admin/users/roles", description: "User roles, permissions, assignment and access levels." },
       { label: "Active Sessions", href: "/dashboard/admin/security/sessions", description: "Live login sessions and devices." },
       { label: "Login History", href: "/dashboard/admin/security/login-history", description: "Authentication attempts." },
     ],
