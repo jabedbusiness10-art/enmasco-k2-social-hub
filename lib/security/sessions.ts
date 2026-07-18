@@ -4,15 +4,14 @@
  * terminate / terminate-others. Uses the extended Session model.
  */
 import { prisma } from "@/lib/db";
-import type { NextRequest } from "next/server";
 import { parseUA } from "@/lib/security/audit";
 
-export interface SessionMeta { ip?: string; userAgent?: string; browser?: string; os?: string; device?: string; country?: string; city?: string; }
+export interface SessionMeta { ip?: string; userAgent?: string; browser?: string; os?: string; device?: string; }
 
-export async function recordSession(userId: string, sessionToken: string, req?: NextRequest, isCurrent = true) {
-  const ua = req?.headers.get("user-agent") ?? undefined;
-  const ip = req?.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req?.headers.get("x-real-ip") || undefined;
-  const { browser, os, device } = parseUA(ua);
+export async function recordSession(userId: string, sessionToken: string, meta?: { ua?: string | null; ip?: string | null }, isCurrent = true) {
+  const ua = meta?.ua ?? undefined;
+  const ip = meta?.ip ?? undefined;
+  const { browser, os, device } = parseUA(ua ?? undefined);
   const existing = await prisma.session.findFirst({ where: { sessionToken } });
   if (existing) {
     await prisma.session.update({ where: { id: existing.id }, data: { lastActivityAt: new Date(), isCurrent } });

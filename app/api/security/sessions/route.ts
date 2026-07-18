@@ -8,7 +8,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const perm = await requirePermission("MANAGE_USERS", req);
+  // TASK-73 — self-service: any authenticated user may view/revoke their own
+  // sessions. listSessions(user.id) already scopes to the caller.
+  const perm = await requirePermission("VIEW_SECURITY", req);
   if (!perm.ok) return NextResponse.json({ error: perm.error ?? "Unauthorized" }, { status: 401 });
   const user = perm.user!;
   const sessions = await listSessions(user.id);
@@ -17,7 +19,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const perm = await requirePermission("MANAGE_USERS", req);
+  const perm = await requirePermission("VIEW_SECURITY", req);
   if (!perm.ok) return NextResponse.json({ error: perm.error ?? "Unauthorized" }, { status: 401 });
   const user = perm.user!;
   const sp = req.nextUrl.searchParams;

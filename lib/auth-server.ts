@@ -2,6 +2,7 @@ import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 import { hasPermission, type UserRole } from "@/services/auth/permissions";
 import type { Permission } from "@/types/auth";
+import { prisma } from "@/lib/db";
 
 export interface SessionUser {
   id: string;
@@ -20,6 +21,13 @@ export async function getCurrentUser(req?: NextRequest): Promise<SessionUser | n
   if (!req) return null;
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token?.email) return null;
+  // TASK-73 — session revocation: if this JWT was issued for a recorded
+  // session that has since been terminated, reject it (forces re-login).
+  const sid = token.sid as string | undefined;
+  if (sid) {
+    const live = await prisma.session.findUnique({ where: { id: sid } }).catch(() => null);
+    if (!live) return null;
+  }
   return {
     id: (token.id as string) ?? (token.sub as string) ?? "",
     name: (token.name as string) ?? "",

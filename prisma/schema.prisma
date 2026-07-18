@@ -9,11 +9,18 @@ datasource db {
 enum UserRole {
   CEO
   ADMIN
+  MANAGER
   MARKETING_MANAGER
+  MARKETING
+  SALES
+  HR
+  SUPPORT
+  EDITOR
   MARKETING_TEAM
   CONTENT_CREATOR
   ANALYST
   VIEWER
+  CUSTOM
 }
 
 enum DepartmentName {
@@ -107,6 +114,7 @@ model User {
   avatar        String?
   status        UserStatus @default(ACTIVE)
   emailVerified Boolean    @default(false)
+  twoFactorEnabled Boolean @default(false) // TASK-73 — 2FA-ready architecture
   lastLoginAt   DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
