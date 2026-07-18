@@ -22,6 +22,8 @@ import {
   EmptyState,
   SkeletonRows,
 } from "./primitives";
+import EmployeeDirectory from "../EmployeeDirectory";
+import AiStatusCard from "../AiStatusCard";
 
 /* ------------------------------------------------------------------ */
 /* Real-data fetchers — every widget below is backed by an existing    */
@@ -272,6 +274,8 @@ export default function CommandCenter() {
         <StorageCard />
         <HealthCard />
         <AuditCard />
+        <EmployeeDirectory />
+        <AiStatusCard />
       </div>
     </div>
   );

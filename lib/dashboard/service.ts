@@ -282,3 +282,34 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
     };
   });
 }
+
+// ---------------------------------------------------------------------------
+// AI STATUS
+// ---------------------------------------------------------------------------
+export interface DashboardAiStatus {
+  pendingJobs: number;
+  completedJobs: number;
+  failedJobs: number;
+  lastActivity: string | null;
+  queueStatus: "active" | "idle" | "disabled" | "error";
+  generatedAt: string;
+}
+
+export async function getDashboardAiStatus(): Promise<DashboardAiStatus> {
+  return cached("dash:ai", async () => {
+    const [pendingJobs, completedJobs, failedJobs, last] = await Promise.all([
+      prisma.aIJob.count({ where: { status: { in: ["PENDING", "RUNNING"] } } }),
+      prisma.aIJob.count({ where: { status: "COMPLETED" } }),
+      prisma.aIJob.count({ where: { status: { in: ["FAILED", "CANCELLED"] } } }),
+      prisma.aIJob.findFirst({ orderBy: { updatedAt: "desc" }, select: { updatedAt: true } }),
+    ]);
+    return {
+      pendingJobs,
+      completedJobs,
+      failedJobs,
+      lastActivity: last ? last.updatedAt.toISOString() : null,
+      queueStatus: pendingJobs > 0 ? "active" : "idle",
+      generatedAt: new Date().toISOString(),
+    };
+  });
+}
