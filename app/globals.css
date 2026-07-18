@@ -250,3 +250,37 @@ select option[aria-selected="true"] {
 [data-slot="dropdown-menu-checkbox-item"][data-checked] {
   background-color: rgba(56, 189, 248, 0.18) !important;
 }
+
+/* ===========================================================================
+   Sidebar scrollbar (TASK dashboard polish)
+   Inward, thin, rounded thumb on a transparent track. The global `*` rule
+   already sets a thin dark thumb; this scopes a slightly inset, smoother
+   variant to the sidebar nav so the bar never hugs the edge.
+   =========================================================================== */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.30) transparent;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 8px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(56, 189, 248, 0.30);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(56, 189, 248, 0.55);
+}
+.sidebar-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}

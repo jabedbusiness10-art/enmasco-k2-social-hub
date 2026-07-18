@@ -60,7 +60,7 @@ export default function Sidebar() {
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 72 : 280 }}
+      animate={{ width: collapsed ? 90 : 280 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="relative flex h-full w-[280px] shrink-0 flex-col border-r border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-[0_0_20px_rgba(56,189,248,0.18)] overflow-hidden"
     >
@@ -114,7 +114,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      <nav className="mt-4 min-h-0 flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-3">
+      <nav className="sidebar-scroll mt-5 min-h-0 flex-1 space-y-2.5 overflow-y-auto overflow-x-hidden px-5">
         {sidebarConfig.map((section) => (
           <SidebarSection
             key={section.key}
@@ -126,26 +126,51 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="mt-auto border-t border-white/10 p-4">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold tracking-[0.3px] text-white/85">Social OS</span>
-            <span className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-300">
+      <div className="mt-auto shrink-0 border-t border-white/10 px-5 py-5">
+        <AnimatePresence initial={false}>
+          {!collapsed ? (
+            <motion.div
+              key="expanded"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col gap-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold tracking-[0.3px] text-white/85">Social OS</span>
+                <span className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
+                  Online
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-white/45">
+                <span>v1.0.0</span>
+                <span className="rounded bg-white/10 px-1.5 py-0.5 uppercase tracking-wider">
+                  {process.env.NODE_ENV === "production" ? "Production" : "Development"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-white/35">
+                <span>Build 2026.07.13</span>
+                <span>by ENMASCO</span>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="collapsed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col items-center gap-2"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-sky-200/30 bg-sky-500/10 text-sky-100 shadow-[0_0_18px_rgba(56,189,248,0.35)]">
+                <span className="text-[11px] font-bold">K2</span>
+              </span>
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
-              Online
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-[10px] text-white/45">
-            <span>v1.0.0</span>
-            <span className="rounded bg-white/10 px-1.5 py-0.5 uppercase tracking-wider">
-              {process.env.NODE_ENV === "production" ? "Production" : "Development"}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-[10px] text-white/35">
-            <span>Build 2026.07.13</span>
-            <span>by ENMASCO</span>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.aside>
   );

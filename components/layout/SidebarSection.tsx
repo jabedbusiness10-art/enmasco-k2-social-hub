@@ -72,12 +72,12 @@ export default function SidebarSection({
       <button
         onClick={handleClick}
         title={collapsed ? section.label : undefined}
-        className={sidebarSectionTrigger({
+        className={`group ${sidebarSectionTrigger({
           state: expanded ? "open" : hasActiveChild ? "childActive" : "idle",
-        })}
+        })}`}
       >
-        <span className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05]">
-          {(() => { const Icon = section.icon; return <Icon className="h-4 w-4" strokeWidth={1.8} />; })()}
+        <span className={`mr-3 flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border transition-all duration-300 group-hover:border-sky-400/40 group-hover:bg-sky-500/[0.08] group-hover:shadow-[0_0_22px_rgba(56,189,248,0.18)] ${expanded || hasActiveChild ? "border-sky-300/40 bg-sky-500/[0.10] shadow-[0_0_22px_rgba(56,189,248,0.22)]" : "border-white/10 bg-white/[0.05] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"}`}>
+          {(() => { const Icon = section.icon; return <Icon className={`h-5 w-5 transition-colors duration-300 group-hover:text-sky-200 ${expanded || hasActiveChild ? "text-sky-200" : "text-white/80"}`} strokeWidth={1.8} />; })()}
         </span>
         <AnimatePresence initial={false}>
           {!collapsed && (
