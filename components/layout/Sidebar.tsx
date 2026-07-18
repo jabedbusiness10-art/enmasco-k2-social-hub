@@ -13,26 +13,38 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const activeParents = sidebarConfig
-      .filter((section) =>
-        section.children.some((child) =>
-          child.href === "/" ? pathname === "/" : pathname.startsWith(child.href),
-        ),
-      )
-      .map((section) => section.key);
-    if (activeParents.length > 0) {
-      setExpandedKeys((prev) => {
-        const next = new Set(prev);
-        activeParents.forEach((key) => next.add(key));
-        if (next.size > 1) {
-          const [first, ...rest] = [...next];
-          return new Set([first, ...rest]);
-        }
-        return next;
-      });
+  // Exactly ONE parent section can be active/expanded at a time. Score each
+  // section by how well it "owns" the current path: its own href as a prefix,
+  // or one of its children matching exactly. The best (most specific) wins —
+  // so /dashboard/admin/users or /dashboard/admin/security/permissions activate
+  // "Users", never "Workspace" (which also lives under /dashboard/admin).
+  const activeSectionKey = (() => {
+    let best: string | null = null;
+    let bestScore = -1;
+    for (const section of sidebarConfig) {
+      let score = 0;
+      const isPrefix =
+        section.href === "/"
+          ? pathname === "/"
+          : pathname === section.href ||
+            pathname.startsWith(section.href + "/") ||
+            pathname.startsWith(section.href);
+      if (isPrefix) score = Math.max(score, section.href.length);
+      for (const child of section.children) {
+        const [path] = child.href.split("?");
+        if (pathname === path) score = Math.max(score, child.href.length);
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        best = section.key;
+      }
     }
-  }, [pathname]);
+    return best;
+  })();
+
+  useEffect(() => {
+    if (activeSectionKey) setExpandedKeys(new Set([activeSectionKey]));
+  }, [activeSectionKey]);
 
   const toggleSection = (key: string) => {
     setExpandedKeys((prev) => {
@@ -122,6 +134,7 @@ export default function Sidebar() {
               expandedKeys={expandedKeys}
               toggleSection={toggleSection}
               collapsed={collapsed}
+              isActiveParent={section.key === activeSectionKey}
             />
           </div>
         ))}

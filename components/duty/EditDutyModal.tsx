@@ -18,7 +18,9 @@ export default function EditDutyModal({ duty, onClose, onSave }: EditDrawerProps
       isOpen
       onClose={onClose}
       duty={duty}
-      onSave={(payload) => onSave({ ...(payload as Duty), id: duty.id })}
+      onSave={async (payload) => {
+        await onSave({ ...(payload as Duty), id: duty.id });
+      }}
     />
   );
 }

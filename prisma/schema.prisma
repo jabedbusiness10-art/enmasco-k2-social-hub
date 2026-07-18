@@ -2109,6 +2109,29 @@ model BackupVerification {
   @@index([status])
 }
 
+// TASK-70.1 — Duty module real persistence (Create Duty modal backend).
+// Replaces the previous client-only mock so duties are saved to the database.
+model Duty {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  department  String
+  assignedTo  String
+  priority    String   @default("MEDIUM")
+  status      String   @default("PENDING")
+  startDate   String?
+  dueDate     String?
+  attachment  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([department])
+  @@index([priority])
+  @@index([assignedTo])
+  @@index([createdAt])
+}
+
 // TASK-66B — Real persistence for the Team > Members module.
 // Dedicated table so employee records survive refresh and are independent
 // of the auth User table (no impact on auth/RBAC).

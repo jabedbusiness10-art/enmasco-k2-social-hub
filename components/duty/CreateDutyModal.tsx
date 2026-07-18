@@ -2,56 +2,85 @@
 
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useState } from "react";
-import type { Duty, DutyPriority } from "@/types/duty";
+import { useEffect, useState } from "react";
+import type { Duty, DutyPriority, DutyStatus } from "@/types/duty";
 
 type DutyModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (duty: Partial<Duty>) => void;
+  onSave: (duty: Partial<Duty>) => Promise<void>;
   duty?: Duty | undefined;
 };
 
+const EMPTY = {
+  title: "",
+  description: "",
+  department: "",
+  assignedTo: "",
+  priority: "MEDIUM",
+  status: "PENDING",
+  startDate: "",
+  dueDate: "",
+  attachment: "",
+};
+
 export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalProps) {
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    department: "",
-    assignedTo: "",
-    priority: "MEDIUM",
-    status: "PENDING",
-    startDate: "",
-    dueDate: "",
-    attachment: "",
-  });
+  const [form, setForm] = useState(EMPTY);
+  const [saving, setSaving] = useState(false);
 
-  // Load duty into form on open/edit
-  if (isOpen && duty) {
-    setForm({
-      title: duty.title,
-      description: duty.description,
-      department: duty.department,
-      assignedTo: duty.assignedTo,
-      priority: duty.priority,
-      status: duty.status,
-      startDate: duty.startDate,
-      dueDate: duty.dueDate,
-      attachment: duty.attachment || "",
-    });
-  }
+  // Load duty into form when opening for edit
+  useEffect(() => {
+    if (isOpen && duty) {
+      setForm({
+        title: duty.title,
+        description: duty.description,
+        department: duty.department,
+        assignedTo: duty.assignedTo,
+        priority: duty.priority,
+        status: duty.status,
+        startDate: duty.startDate,
+        dueDate: duty.dueDate,
+        attachment: duty.attachment || "",
+      });
+    } else if (isOpen && !duty) {
+      setForm(EMPTY);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, duty]);
 
-  const submit = (e: React.FormEvent) => {
+  // ESC closes the modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...form, priority: form.priority as DutyPriority, status: form.status as any, id: duty?.id });
-    onClose();
+    if (saving) return;
+    setSaving(true);
+    try {
+      await onSave({ ...form, priority: form.priority as DutyPriority, status: form.status as DutyStatus, id: duty?.id });
+      setForm(EMPTY);
+      onClose();
+    } catch {
+      // error toast handled by caller
+    } finally {
+      setSaving(false);
+    }
   };
 
   const inputCls =
-    "h-10 w-full rounded-xl border border-slate-700/70 bg-slate-800/60 px-3 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-sky-400 focus:ring-0";
+    "h-10 w-full rounded-xl border border-slate-700/70 bg-slate-800/60 px-3 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-sky-400 focus:ring-0 disabled:opacity-60";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <motion.div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={onClose} />
+      <motion.div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => !saving && onClose()} />
       <motion.form
         onSubmit={submit}
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -62,7 +91,7 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-slate-100">{duty ? "Edit Duty" : "Create Duty"}</h2>
-          <button type="button" onClick={onClose} className="rounded-full bg-slate-800 p-2 text-slate-400 hover:text-white">
+          <button type="button" onClick={onClose} disabled={saving} className="rounded-full bg-slate-800 p-2 text-slate-400 hover:text-white disabled:opacity-50">
             <X size={20} />
           </button>
         </div>
@@ -74,6 +103,7 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
               value={form.title}
               onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
               required
+              disabled={saving}
               className={inputCls}
               placeholder="Duty title"
             />
@@ -84,7 +114,8 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
               required
-              className="min-h-[80px] w-full rounded-xl border border-slate-700/70 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-sky-400 focus:ring-0"
+              disabled={saving}
+              className="min-h-[80px] w-full rounded-xl border border-slate-700/70 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-sky-400 focus:ring-0 disabled:opacity-60"
               placeholder="Short description"
             />
           </label>
@@ -94,6 +125,7 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
               value={form.department}
               onChange={(e) => setForm((prev) => ({ ...prev, department: e.target.value }))}
               required
+              disabled={saving}
               className={inputCls}
               placeholder="Engineering"
             />
@@ -104,6 +136,7 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
               value={form.assignedTo}
               onChange={(e) => setForm((prev) => ({ ...prev, assignedTo: e.target.value }))}
               required
+              disabled={saving}
               className={inputCls}
               placeholder="Employee name"
             />
@@ -114,7 +147,8 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
               <select
                 value={form.priority}
                 onChange={(e) => setForm((prev) => ({ ...prev, priority: e.target.value }))}
-                className="h-10 rounded-xl border border-slate-700/70 bg-slate-800/60 px-3 text-sm text-slate-100 outline-none focus:border-sky-400 focus:ring-0"
+                disabled={saving}
+                className="h-10 rounded-xl border border-slate-700/70 bg-slate-800/60 px-3 text-sm text-slate-100 outline-none focus:border-sky-400 focus:ring-0 disabled:opacity-60"
               >
                 <option value="HIGH">High</option>
                 <option value="MEDIUM">Medium</option>
@@ -126,7 +160,8 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
               <select
                 value={form.status}
                 onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
-                className="h-10 rounded-xl border border-slate-700/70 bg-slate-800/60 px-3 text-sm text-slate-100 outline-none focus:border-sky-400 focus:ring-0"
+                disabled={saving}
+                className="h-10 rounded-xl border border-slate-700/70 bg-slate-800/60 px-3 text-sm text-slate-100 outline-none focus:border-sky-400 focus:ring-0 disabled:opacity-60"
               >
                 <option value="PENDING">Pending</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -143,6 +178,7 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
                 value={form.startDate}
                 onChange={(e) => setForm((prev) => ({ ...prev, startDate: e.target.value }))}
                 required
+                disabled={saving}
                 className={inputCls}
               />
             </label>
@@ -153,6 +189,7 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
                 value={form.dueDate}
                 onChange={(e) => setForm((prev) => ({ ...prev, dueDate: e.target.value }))}
                 required
+                disabled={saving}
                 className={inputCls}
               />
             </label>
@@ -162,6 +199,7 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
             <input
               value={form.attachment}
               onChange={(e) => setForm((prev) => ({ ...prev, attachment: e.target.value }))}
+              disabled={saving}
               className={inputCls}
               placeholder="https://example.com/file.pdf"
             />
@@ -169,11 +207,11 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.12]">
+          <button type="button" onClick={onClose} disabled={saving} className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.12] disabled:opacity-50">
             Cancel
           </button>
-          <button type="submit" className="rounded-xl border border-sky-400/30 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-100 transition hover:bg-sky-500/20">
-            {duty ? "Save Changes" : "Create Duty"}
+          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-xl border border-sky-400/30 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-100 transition hover:bg-sky-500/20 disabled:opacity-60">
+            {saving ? "Saving…" : duty ? "Save Changes" : "Create Duty"}
           </button>
         </div>
       </motion.form>

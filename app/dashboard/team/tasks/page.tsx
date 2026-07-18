@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Stagger, StaggerItem } from "@/components/anim/motion";
 import DutyStats from "@/components/duty/DutyStats";
 import DutyFilters from "@/components/duty/DutyFilters";
@@ -12,11 +13,10 @@ import EditDutyModal from "@/components/duty/EditDutyModal";
 import DutyDetailsDrawer from "@/components/duty/DutyDetailsDrawer";
 import CalendarPlaceholder from "@/components/duty/CalendarPlaceholder";
 import GlassCard from "@/components/ui/GlassCard";
-import { duties as initialDuties } from "@/data/duties";
 import type { Duty } from "@/types/duty";
 
 export default function DutyRoutinePage() {
-  const [duties, setDuties] = useState<Duty[]>(initialDuties);
+  const [duties, setDuties] = useState<Duty[]>([]);
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [status, setStatus] = useState("");
@@ -24,29 +24,62 @@ export default function DutyRoutinePage() {
   const [editingDuty, setEditingDuty] = useState<Duty | null>(null);
   const [viewDuty, setViewDuty] = useState<Duty | null>(null);
 
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/duties", { cache: "no-store" });
+      const json = await res.json();
+      setDuties(json.duties ?? []);
+    } catch {
+      toast.error("Failed to load duties");
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
   const filtered = duties.filter((duty) => {
-    const matchesSearch = duty.title.toLowerCase().includes(search.toLowerCase()) || duty.assignedTo.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch =
+      duty.title.toLowerCase().includes(search.toLowerCase()) ||
+      duty.assignedTo.toLowerCase().includes(search.toLowerCase());
     const matchesDepartment = department ? duty.department === department : true;
     const matchesStatus = status ? duty.status === status : true;
     return matchesSearch && matchesDepartment && matchesStatus;
   });
 
-  const handleSave = (payload: Partial<Duty>) => {
+  const handleSave = async (payload: Partial<Duty>) => {
     if (payload.id) {
-      setDuties((prev) => prev.map((d) => (d.id === payload.id ? { ...d, ...payload } : d)) as Duty[]);
-    } else {
-      setDuties((prev) => [
-        ...prev,
-        {
-          ...(payload as Duty),
-          id: `${Date.now()}`,
-        },
-      ]);
+      // Update existing duty
+      const res = await fetch(`/api/duties/${payload.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Failed to update duty");
+      }
+      toast.success("Duty updated");
+      await load();
+      return;
     }
+    // Create new duty
+    const res = await fetch("/api/duties", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      throw new Error(j.error || "Failed to create duty");
+    }
+    toast.success("Duty created");
+    await load();
   };
 
   return (
-    <Stagger className="space-y-6">
+    <>
+      <Stagger className="space-y-6">
       <StaggerItem>
         <div className="flex items-center justify-between">
           <div>
@@ -76,16 +109,21 @@ export default function DutyRoutinePage() {
           onStatusChange={setStatus}
         />
       </StaggerItem>
-      <StaggerItem><DutyTable duties={filtered} onEdit={setEditingDuty} onView={setViewDuty} /></StaggerItem>
+      <StaggerItem>
+        <DutyTable duties={filtered} onEdit={setEditingDuty} onView={setViewDuty} />
+      </StaggerItem>
       <StaggerItem>
         <GlassCard className="p-6">
           <CalendarPlaceholder />
         </GlassCard>
       </StaggerItem>
+    </Stagger>
 
       <CreateDutyModal isOpen={createOpen} onClose={() => setCreateOpen(false)} onSave={handleSave} />
-      {editingDuty && <EditDutyModal duty={editingDuty} onClose={() => setEditingDuty(null)} onSave={handleSave} />}
+      {editingDuty && (
+        <EditDutyModal duty={editingDuty} onClose={() => setEditingDuty(null)} onSave={handleSave} />
+      )}
       <DutyDetailsDrawer duty={viewDuty} isOpen={!!viewDuty} onClose={() => setViewDuty(null)} />
-    </Stagger>
+    </>
   );
 }

@@ -24,6 +24,7 @@ type SidebarSectionProps = {
   expandedKeys: Set<string>;
   toggleSection: (key: string) => void;
   collapsed: boolean;
+  isActiveParent?: boolean;
 };
 
 const expandVariants = {
@@ -37,6 +38,7 @@ export default function SidebarSection({
   expandedKeys,
   toggleSection,
   collapsed,
+  isActiveParent = false,
 }: SidebarSectionProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -56,7 +58,10 @@ export default function SidebarSection({
 
   const isExpandable = section.expandable !== false;
   const expanded = expandedKeys.has(section.key);
-  const hasActiveChild = section.children.some((child) => childMatches(child.href));
+  // A parent is "active" (glowing) only when it is THE active section —
+  // never merely because a sibling also matches the current path. This keeps
+  // "Users" and "Workspace" mutually exclusive.
+  const active = isActiveParent || expanded;
 
   const handleClick = () => {
     if (collapsed) return;
@@ -73,11 +78,11 @@ export default function SidebarSection({
         onClick={handleClick}
         title={collapsed ? section.label : undefined}
         className={`group ${sidebarSectionTrigger({
-          state: expanded ? "open" : hasActiveChild ? "childActive" : "idle",
+          state: expanded ? "open" : active ? "childActive" : "idle",
         })}`}
       >
-        <span className={`mr-3 flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border transition-all duration-300 group-hover:border-sky-400/40 group-hover:bg-sky-500/[0.08] group-hover:shadow-[0_0_22px_rgba(56,189,248,0.18)] ${expanded || hasActiveChild ? "border-sky-300/40 bg-sky-500/[0.10] shadow-[0_0_22px_rgba(56,189,248,0.22)]" : "border-white/10 bg-white/[0.05] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"}`}>
-          {(() => { const Icon = section.icon; return <Icon className={`h-5 w-5 transition-colors duration-300 group-hover:text-sky-200 ${expanded || hasActiveChild ? "text-sky-200" : "text-white/80"}`} strokeWidth={1.8} />; })()}
+        <span className={`mr-3 flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border transition-all duration-300 group-hover:border-sky-400/40 group-hover:bg-sky-500/[0.08] group-hover:shadow-[0_0_22px_rgba(56,189,248,0.18)] ${active ? "border-sky-300/40 bg-sky-500/[0.10] shadow-[0_0_22px_rgba(56,189,248,0.22)]" : "border-white/10 bg-white/[0.05] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"}`}>
+          {(() => { const Icon = section.icon; return <Icon className={`h-5 w-5 transition-colors duration-300 group-hover:text-sky-200 ${active ? "text-sky-200" : "text-white/80"}`} strokeWidth={1.8} />; })()}
         </span>
         <AnimatePresence initial={false}>
           {!collapsed && (

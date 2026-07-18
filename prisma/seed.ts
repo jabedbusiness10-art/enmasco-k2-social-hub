@@ -100,6 +100,26 @@ async function main() {
       data: { teamId: team.id },
     });
   }
+
+  // TASK-70.1 — Seed the existing mock duties into the DB (idempotent).
+  const dutyCount = await prisma.duty.count();
+  if (dutyCount === 0) {
+    const mockDuties = [
+      { title: "Install Hikvision CCTV", description: "Install 8 unit Hikvision cameras at main gate and parking.", department: "Security", assignedTo: "MD Kazim", priority: "HIGH", status: "IN_PROGRESS", startDate: "2026-07-01", dueDate: "2026-07-10", attachment: "https://example.com/cctv-plan.pdf" },
+      { title: "Configure NVR", description: "Configure NVR and enable remote viewing.", department: "Security", assignedTo: "Sara Khan", priority: "MEDIUM", status: "PENDING", startDate: "2026-07-05", dueDate: "2026-07-12" },
+      { title: "Client Site Visit", description: "Visit client site in Riyadh for requirement gathering.", department: "Sales", assignedTo: "Rafi Ahmed", priority: "HIGH", status: "COMPLETED", startDate: "2026-06-28", dueDate: "2026-07-03" },
+      { title: "Prepare Quotation", description: "Prepare quotation for social media automation package.", department: "Sales", assignedTo: "Nusrat Jahan", priority: "MEDIUM", status: "PENDING", startDate: "2026-07-06", dueDate: "2026-07-14" },
+      { title: "Social Media Campaign", description: "Schedule and launch campaign for EnmaSco K2.", department: "Marketing", assignedTo: "MD Kazim", priority: "HIGH", status: "IN_PROGRESS", startDate: "2026-07-02", dueDate: "2026-07-09", attachment: "https://example.com/campaign-brief.pdf" },
+      { title: "Monthly Maintenance", description: "Server room monthly check and backup verification.", department: "Engineering", assignedTo: "Rafi Ahmed", priority: "LOW", status: "COMPLETED", startDate: "2026-06-30", dueDate: "2026-07-01" },
+      { title: "Warehouse Inspection", description: "Physical inspection of warehouse stock layout.", department: "Operations", assignedTo: "Sara Khan", priority: "MEDIUM", status: "PENDING", startDate: "2026-07-08", dueDate: "2026-07-15" },
+      { title: "Update Dashboard UI", description: "Refine dashboard cards and topbar animations.", department: "Engineering", assignedTo: "Nusrat Jahan", priority: "MEDIUM", status: "IN_PROGRESS", startDate: "2026-07-04", dueDate: "2026-07-11" },
+      { title: "Security Audit", description: "Internal security audit and compliance review.", department: "Security", assignedTo: "MD Kazim", priority: "HIGH", status: "PENDING", startDate: "2026-07-07", dueDate: "2026-07-13" },
+      { title: "Employee Training", description: "Conduct onboarding training for new hires.", department: "HR", assignedTo: "Sara Khan", priority: "LOW", status: "CANCELLED", startDate: "2026-07-09", dueDate: "2026-07-16" },
+    ];
+    for (const d of mockDuties) {
+      await prisma.duty.create({ data: d });
+    }
+  }
 }
 
 main()
