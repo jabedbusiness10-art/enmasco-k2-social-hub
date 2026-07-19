@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Layers, RefreshCw } from "lucide-react";
+import { Info, Layers, RefreshCw } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
 import QueueHealth from "@/components/queue/QueueHealth";
 import QueueMetrics from "@/components/queue/QueueMetrics";
@@ -77,7 +76,7 @@ export default function QueueDashboard() {
     <div className="space-y-5">
       <PageHeader
         title="Enterprise Queue Engine"
-        description="Background job processing powered by BullMQ + Redis. Real-time monitoring of all asynchronous operations across the platform."
+        description="Centralized background processing with a built-in database queue and optional BullMQ acceleration."
         actions={
           <div className="flex items-center gap-3">
             {lastSync && <span className="text-xs text-white/40">Synced {lastSync}</span>}
@@ -108,11 +107,14 @@ export default function QueueDashboard() {
           <QueueHealth health={health} />
 
           {!available && (
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3 text-xs text-amber-300/90">
-              BullMQ metrics unavailable — Redis is not configured on this environment. The platform
-              is running on the database-backed queue fallback. Set{" "}
-              <code className="mx-1 text-amber-200">REDIS_URL</code> to activate the full BullMQ engine
-              with live monitoring.
+            <div className="flex items-start gap-3 rounded-2xl border border-sky-400/20 bg-sky-400/[0.055] px-4 py-3 text-xs leading-relaxed text-sky-100/80">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />
+              <div>
+                <p className="font-medium text-sky-100">The platform is running normally using the built-in database queue.</p>
+                <p className="mt-1 text-white/50">
+                  Redis is recommended only for production environments or high-volume background processing.
+                </p>
+              </div>
             </div>
           )}
 
@@ -123,7 +125,15 @@ export default function QueueDashboard() {
             <QueueControls onAction={control} available={available} />
           </div>
 
-          <QueueMetrics data={metrics} />
+          {available ? (
+            <QueueMetrics data={metrics} />
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-8 text-center">
+              <Layers className="mx-auto h-5 w-5 text-white/25" />
+              <p className="mt-2 text-xs font-medium text-white/55">Live BullMQ metrics are currently disabled.</p>
+              <p className="mt-1 text-[11px] text-white/35">No Redis metrics are displayed while the database queue is active.</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <LiveActivity events={metrics?.events ?? []} />

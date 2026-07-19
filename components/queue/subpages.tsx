@@ -111,7 +111,7 @@ export function WorkersView() {
       {loading && workers.length === 0 ? (
         <div className="h-40 animate-pulse rounded-2xl bg-white/5" />
       ) : workers.length === 0 ? (
-        <EmptyState title="No workers registered yet" description="Workers register when the BullMQ engine boots (set REDIS_URL). On DB fallback, jobs run inline." />
+        <EmptyState title="No BullMQ workers active" description="The database queue is handling local work. Managed Redis enables dedicated workers for production or high-volume processing." />
       ) : (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {workers.map((w) => {
@@ -152,9 +152,10 @@ export function HealthView() {
   }, []);
   useEffect(() => { load(); const t = setInterval(load, 10000); return () => clearInterval(t); }, [load]);
 
+  const isDevelopment = process.env.NODE_ENV !== "production";
   const rows = [
-    { label: "Redis", ok: health?.redisConnected, detail: health?.configured ? (health.redisConnected ? "Connected" : "Down") : "Not configured" },
-    { label: "BullMQ Engine", ok: health?.engine === "bullmq", detail: health?.engine ?? "—" },
+    { label: "Redis", ok: health?.redisConnected, detail: health?.configured ? (health.redisConnected ? "Connected" : "Offline") : isDevelopment ? "Not configured · Optional in development" : "Not configured" },
+    { label: "BullMQ Engine", ok: health?.engine === "bullmq", detail: health?.engine === "bullmq" ? "Active" : health?.configured ? "Configured but inactive" : "Available but disabled" },
     { label: "Scheduler", ok: health?.available, detail: "Repeatable jobs (15m token check, 30m sync)" },
     { label: "Dead Letter Queue", ok: true, detail: "Failed jobs retained for recovery" },
     { label: "Retry Queue", ok: true, detail: "Exponential backoff" },

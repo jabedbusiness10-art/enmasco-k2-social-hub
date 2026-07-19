@@ -16,7 +16,7 @@ gitignored and must never be committed.
 | `NEXTAUTH_URL` | Auth base URL | Must equal `APP_URL` |
 | `NEXTAUTH_SECRET` | Session signing | `openssl rand -base64 32` |
 | `DATABASE_URL` | PostgreSQL connection | Prisma datasource |
-| `REDIS_URL` | BullMQ broker | Absent → DB fallback |
+| `REDIS_URL` | Managed Redis connection for BullMQ | Optional in development; absent → active database queue fallback |
 | `OPENAI_API_KEY` | AI provider (optional) | |
 | `OPENROUTER_API_KEY` | AI provider (preferred) | |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM` | Email | |
@@ -50,6 +50,24 @@ No `localhost` values in production.
 ```bash
 npm run validate:env   # fails fast if required vars missing
 ```
+
+## Managed Redis / Queue Engine
+
+Local Redis is not required. When `REDIS_URL` is absent, the application runs
+normally with its built-in database queue and reports Redis as not configured.
+BullMQ and live Redis metrics remain disabled without fabricating connectivity.
+
+For production or high-volume background processing, provision a managed Redis
+service and place its private connection URL in `.env.local` or the deployment
+secret manager:
+
+```dotenv
+REDIS_URL="redis://default:password@host:port"
+```
+
+Use `rediss://` when the provider requires TLS. Never commit the real URL. After
+the process restarts with a valid URL, the existing queue engine automatically
+activates BullMQ and live metrics; no UI or code change is required.
 
 ## Security
 

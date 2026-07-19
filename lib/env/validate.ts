@@ -44,7 +44,7 @@ const SCHEMA: { key: string; required: boolean; note?: string }[] = [
   { key: "GOOGLE_CLIENT_ID", required: false, note: "Google / YouTube OAuth client id." },
   { key: "GOOGLE_CLIENT_SECRET", required: false, note: "Google / YouTube OAuth secret." },
   { key: "GOOGLE_ANALYTICS_ID", required: false, note: "GA4 measurement id (audience analytics)." },
-  { key: "REDIS_URL", required: false, note: "BullMQ + Redis queue (TASK-57). Absent → DB fallback." },
+  { key: "REDIS_URL", required: false, note: "Optional in development. Absent → database queue active; set a managed URL for BullMQ." },
   { key: "QUEUE_SECRET", required: false, note: "Shared secret for internal queue control endpoints." },
   { key: "ENCRYPTION_KEY", required: false, note: "32-byte key for token encryption at rest." },
   { key: "SMTP_HOST", required: false, note: "Transactional email (notifications / reports)." },
