@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
 
-export default function MessageComposer({ onSend }: { onSend: (text: string) => void }) {
+export default function MessageComposer({ onSend, draft }: { onSend: (text: string) => void; draft?: string }) {
   const [text, setText] = useState("");
+
+  useEffect(() => {
+    if (draft) setText(draft);
+  }, [draft]);
 
   const submit = () => {
     const t = text.trim();

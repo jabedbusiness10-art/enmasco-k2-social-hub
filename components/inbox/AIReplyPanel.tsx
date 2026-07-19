@@ -20,51 +20,12 @@ type Lang = "en" | "ar" | "bn";
 
 const LANG_LABEL: Record<Lang, string> = { en: "English", ar: "Arabic", bn: "Bangla" };
 
-const ENMASCO_SYSTEM = `You are the K2KAI Enterprise AI Communication Assistant for ENMASCO (Enma Security Trading Co.), a security/surveillance company in Saudi Arabia.
-Products: Hikvision, EZVIZ, Dahua, NVR, DVR, Access Control, Intercom, Solar Camera, Fingerprint, Networking, Smart Home.
-Rules (Safety Guard):
-- Never invent prices, discounts, warranties, or technical specs you are unsure of. Say "please contact our team for exact pricing."
-- Be polite, professional, and concise.
-- Support English, Arabic, and Bangla. Match the customer's language.
-- Never promise things ENMASCO cannot deliver.`;
-
-function buildPrompt(customerText: string, tone: Tone, lang: Lang, mode: "reply" | "summary" | "sentiment" | "intent" | "translate", translateTo?: Lang) {
-  const langName = LANG_LABEL[lang];
-  if (mode === "reply") {
-    const toneGuide: Record<Tone, string> = {
-      professional: "Professional and formal",
-      friendly: "Friendly and warm",
-      short: "Very short (1 sentence)",
-      detailed: "Detailed and helpful",
-    };
-    return `Customer said (in their language): """${customerText}"""
-Generate ONE ${toneGuide[tone]} reply in ${langName}. Only return the reply text, no labels.`;
-  }
-  if (mode === "summary") {
-    return `Summarize this conversation briefly in ${langName}. List what the customer asked about and the recommended next step:
-"""${customerText}"""`;
-  }
-  if (mode === "sentiment") {
-    return `Classify the sentiment of this message. Reply with ONLY one word from: Positive, Neutral, Angry, Question, Lead, Urgent.
-Message: """${customerText}"""`;
-  }
-  if (mode === "intent") {
-    return `Classify the customer intent. Reply with ONLY the best matching label from: Price Inquiry, Technical Support, Installation, Warranty, Complaint, Sales Lead, Order Status, Product Information, Quotation, Maintenance.
-Message: """${customerText}"""`;
-  }
-  if (mode === "translate") {
-    return `Translate this to ${LANG_LABEL[translateTo ?? "en"]}. Only return the translation:
-"""${customerText}"""`;
-  }
-  return customerText;
-}
-
 export default function AIReplyPanel({
   onApply,
-  customerMessage = "",
+  conversationId,
 }: {
   onApply: (text: string) => void;
-  customerMessage?: string;
+  conversationId?: string;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,13 +37,12 @@ export default function AIReplyPanel({
   const [translated, setTranslated] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const ctx = customerMessage?.trim() || "Hi, I need help with a security camera for my shop.";
-
-  async function callAI(prompt: string): Promise<string> {
-    const res = await fetch("/api/ai/generate", {
+  async function callAI(action: "reply" | "summary" | "translate" | "tone" | "sentiment" | "intent", selectedTone: Tone = "professional", selectedLang: Lang = lang, draft?: string): Promise<string> {
+    if (!conversationId) throw new Error("Select a conversation first");
+    const res = await fetch("/api/inbox/ai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, systemPrompt: ENMASCO_SYSTEM, maxTokens: 400 }),
+      body: JSON.stringify({ conversationId, action, tone: selectedTone, language: LANG_LABEL[selectedLang], draft }),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error ?? "AI request failed");
@@ -95,13 +55,13 @@ export default function AIReplyPanel({
     try {
       const tones: Tone[] = ["professional", "friendly", "short"];
       const results = await Promise.all(
-        tones.map((t) => callAI(buildPrompt(ctx, t, lang, "reply")))
+        tones.map((t) => callAI("reply", t))
       );
       setSuggestions(results);
       // also detect sentiment + intent in parallel
       const [s, i] = await Promise.all([
-        callAI(buildPrompt(ctx, "professional", lang, "sentiment")),
-        callAI(buildPrompt(ctx, "professional", lang, "intent")),
+        callAI("sentiment"),
+        callAI("intent"),
       ]);
       setSentiment(s.trim());
       setIntent(i.trim());
@@ -116,7 +76,7 @@ export default function AIReplyPanel({
     setLoading(true);
     setError(null);
     try {
-      setSummary(await callAI(buildPrompt(ctx, "professional", lang, "summary")));
+      setSummary(await callAI("summary"));
     } catch (e: any) {
       setError(e.message ?? "Failed");
     } finally {
@@ -128,7 +88,7 @@ export default function AIReplyPanel({
     setLoading(true);
     setError(null);
     try {
-      setTranslated(await callAI(buildPrompt(ctx, "professional", lang, "translate", to)));
+      setTranslated(await callAI("translate", "professional", to));
       setLang(to);
     } catch (e: any) {
       setError(e.message ?? "Failed");
@@ -142,7 +102,7 @@ export default function AIReplyPanel({
     setLoading(true);
     setError(null);
     try {
-      const r = await callAI(buildPrompt(suggestions.join("\n"), tone, lang, "reply"));
+      const r = await callAI("tone", tone, lang, suggestions[0]);
       setSuggestions([r]);
     } catch (e: any) {
       setError(e.message ?? "Failed");

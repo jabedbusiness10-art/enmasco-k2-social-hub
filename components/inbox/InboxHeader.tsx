@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { Inbox } from "lucide-react";
-import { notifications } from "@/data/inbox";
 import { PLATFORMS } from "./platformMeta";
+import type { InboxNotification } from "@/types/inbox";
 
-export default function InboxHeader() {
+export default function InboxHeader({ notifications = [] }: { notifications?: InboxNotification[] }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-3">
       <div>

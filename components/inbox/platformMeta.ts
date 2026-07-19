@@ -5,6 +5,8 @@ import {
   Send,
   Music2,
   MessageSquare,
+  Video,
+  Globe2,
   type LucideIcon,
 } from "lucide-react";
 import type { InboxPlatform, ConversationStatus } from "@/types/inbox";
@@ -38,6 +40,24 @@ export const PLATFORMS: Record<InboxPlatform, PlatformMeta> = {
     soft: "bg-pink-500/10",
     solid: "bg-pink-500",
     dot: "bg-pink-400",
+  },
+  youtube: {
+    key: "youtube",
+    label: "YouTube",
+    icon: Video,
+    text: "text-red-300",
+    soft: "bg-red-500/10",
+    solid: "bg-red-500",
+    dot: "bg-red-400",
+  },
+  website: {
+    key: "website",
+    label: "Website",
+    icon: Globe2,
+    text: "text-emerald-300",
+    soft: "bg-emerald-500/10",
+    solid: "bg-emerald-500",
+    dot: "bg-emerald-400",
   },
   linkedin: {
     key: "linkedin",

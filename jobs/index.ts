@@ -6,6 +6,7 @@ import { handleAnalytics } from "./analytics";
 import { handleMedia } from "./media";
 import { handleWebhook } from "./webhook";
 import { handleBackup, handleRestore } from "./backup";
+import { handleInboxSync } from "./inbox";
 
 /**
  * TASK-57 — Job dispatcher.
@@ -59,6 +60,7 @@ export const JOB_HANDLERS: Record<string, JobHandler> = {
   "cleanup:logs": async () => ({ ok: true }),
   "email:send": handleNotification,
   "sync:full": handleAnalytics,
+  "sync:inbox": handleInboxSync,
   // backup / restore (TASK-63)
   "backup:run": handleBackup,
   "backup:restore": handleRestore,

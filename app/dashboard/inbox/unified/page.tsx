@@ -1,14 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  conversations,
-  messages,
-  customerProfiles,
-  inboxKpis,
-} from "@/data/inbox";
-import type { Conversation, InboxMessage, ConversationStatus, InboxFolder } from "@/types/inbox";
+import type { Conversation, InboxMessage, InboxFolder, CustomerProfileData, InboxNotification } from "@/types/inbox";
 import InboxHeader from "@/components/inbox/InboxHeader";
 import InboxSidebar from "@/components/inbox/InboxSidebar";
 import InboxFilters, {
@@ -20,117 +14,126 @@ import ConversationView from "@/components/inbox/ConversationView";
 import MessageComposer from "@/components/inbox/MessageComposer";
 import CustomerProfile from "@/components/inbox/CustomerProfile";
 import AIReplyPanel from "@/components/inbox/AIReplyPanel";
-import { isToday, isThisWeek, parseISO } from "date-fns";
+import { startOfDay, startOfWeek } from "date-fns";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { useMessengerSocket } from "@/components/messaging/MessengerSocketProvider";
 
 export default function InboxPage() {
+  const { data: session } = useSession();
+  const { inboxVersion } = useMessengerSocket();
   const [folder, setFolder] = useState<InboxFolder>("ALL");
   const [platform, setPlatform] = useState<PlatformFilter>("all");
   const [extra, setExtra] = useState<ExtraFilter>("all");
   const [search, setSearch] = useState("");
-  const [activeId, setActiveId] = useState<string>("c1");
-  const [items, setItems] = useState<Conversation[]>(conversations);
-  const [history, setHistory] = useState<InboxMessage[]>(messages);
+  const [activeId, setActiveId] = useState<string>("");
+  const [items, setItems] = useState<Conversation[]>([]);
+  const [history, setHistory] = useState<InboxMessage[]>([]);
+  const [profile, setProfile] = useState<CustomerProfileData | undefined>();
+  const [aiDraft, setAiDraft] = useState("");
+  const [stats, setStats] = useState({ total: 0, unread: 0, replied: 0, pending: 0, resolved: 0, assigned: 0, starred: 0, archived: 0, spam: 0, averageResponseSeconds: null as number | null, providerUnread: {} as Record<string, number> });
 
   const active = items.find((c) => c.id === activeId) ?? items[0];
-  const activeMessages = useMemo(
-    () => history.filter((m) => m.conversationId === active?.id),
-    [history, active]
-  );
-  const profile = active ? customerProfiles[active.id] : undefined;
+  const activeMessages = history.filter((m) => m.conversationId === active?.id);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return items.filter((c) => {
-      // folder
-      if (folder === "UNREAD" && c.unread === 0) return false;
-      if (folder === "ASSIGNED" && !c.assignedTo) return false;
-      if (folder === "STARRED" && !c.starred) return false;
-      if (folder === "ARCHIVED" && !c.archived) return false;
-      if (folder === "SPAM" && !c.spam) return false;
-      // platform
-      if (platform !== "all" && c.platform !== platform) return false;
-      // extra
-      if (extra === "unread" && c.unread === 0) return false;
-      if (extra === "assigned" && !c.assignedTo) return false;
-      if (extra === "today" && !isToday(parseISO(c.lastActivity))) return false;
-      if (extra === "week" && !isThisWeek(parseISO(c.lastActivity))) return false;
-      // search
-      if (q) {
-        const hay = `${c.customer} ${c.lastMessage} ${c.tags?.join(" ") ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-  }, [items, folder, platform, extra, search]);
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams({ take: "30" });
+    if (platform !== "all") params.set("provider", platform);
+    if (search.trim()) params.set("search", search.trim());
+    if (folder === "UNREAD" || extra === "unread") params.set("unread", "true");
+    if (folder === "ASSIGNED" || extra === "assigned") {
+      const userId = (session?.user as any)?.id;
+      if (userId) params.set("assignedToId", userId);
+    }
+    if (folder === "STARRED") params.set("starred", "true");
+    if (folder === "ARCHIVED") params.set("archived", "true");
+    else params.set("archived", "false");
+    if (folder === "SPAM") params.set("spam", "true");
+    else params.set("spam", "false");
+    if (extra === "today") params.set("from", startOfDay(new Date()).toISOString());
+    if (extra === "week") params.set("from", startOfWeek(new Date()).toISOString());
+    return params.toString();
+  }, [platform, search, folder, extra, session]);
+
+  const loadInbox = useCallback(async () => {
+    const [conversationResponse, statsResponse] = await Promise.all([
+      fetch(`/api/inbox/conversations?${queryString}`, { cache: "no-store" }),
+      fetch(`/api/inbox/stats?${queryString}`, { cache: "no-store" }),
+    ]);
+    if (!conversationResponse.ok) throw new Error((await conversationResponse.json().catch(() => ({}))).error ?? "Inbox loading failed");
+    const conversationData = await conversationResponse.json();
+    const nextItems: Conversation[] = conversationData.items ?? [];
+    setItems(nextItems);
+    setActiveId((current) => nextItems.some((item) => item.id === current) ? current : nextItems[0]?.id ?? "");
+    if (statsResponse.ok) setStats((await statsResponse.json()).stats);
+  }, [queryString]);
+
+  const loadThread = useCallback(async (conversationId: string) => {
+    if (!conversationId) { setHistory([]); setProfile(undefined); return; }
+    const [detailResponse, messageResponse] = await Promise.all([
+      fetch(`/api/inbox/conversations/${conversationId}`, { cache: "no-store" }),
+      fetch(`/api/inbox/conversations/${conversationId}/messages?take=100`, { cache: "no-store" }),
+    ]);
+    if (detailResponse.ok) setProfile((await detailResponse.json()).profile);
+    if (messageResponse.ok) setHistory((await messageResponse.json()).items ?? []);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => loadInbox().catch((error) => toast.error(error.message)), 250);
+    return () => clearTimeout(timer);
+  }, [loadInbox, inboxVersion]);
+
+  useEffect(() => { loadThread(active?.id ?? "").catch((error) => toast.error(error.message)); }, [active?.id, inboxVersion, loadThread]);
 
   const counts: Partial<Record<InboxFolder, number>> = useMemo(() => {
-    return {
-      ALL: items.length,
-      UNREAD: items.filter((c) => c.unread > 0).length,
-      ASSIGNED: items.filter((c) => c.assignedTo).length,
-      STARRED: items.filter((c) => c.starred).length,
-      ARCHIVED: items.filter((c) => c.archived).length,
-      SPAM: items.filter((c) => c.spam).length,
-    };
-  }, [items]);
+    return { ALL: stats.total, UNREAD: stats.unread, ASSIGNED: stats.assigned, STARRED: stats.starred, ARCHIVED: stats.archived, SPAM: stats.spam };
+  }, [stats]);
 
-  const handleAction = (
+  const inboxKpis = useMemo(() => {
+    const seconds = stats.averageResponseSeconds;
+    const average = seconds == null ? "—" : seconds < 60 ? `${seconds}s` : seconds < 3600 ? `${Math.round(seconds / 60)}m` : `${(seconds / 3600).toFixed(1)}h`;
+    return [
+      { label: "Total Conversations", value: String(stats.total) },
+      { label: "Unread", value: String(stats.unread) },
+      { label: "Replied", value: String(stats.replied) },
+      { label: "Pending", value: String(stats.pending) },
+      { label: "Resolved", value: String(stats.resolved) },
+      { label: "Avg Response", value: average },
+    ];
+  }, [stats]);
+
+  const notifications: InboxNotification[] = useMemo(() => Object.entries(stats.providerUnread).filter(([, count]) => count > 0).map(([provider, count]) => ({ platform: provider as InboxNotification["platform"], count })), [stats.providerUnread]);
+
+  const handleAction = async (
     action: "reply" | "read" | "assign" | "star" | "archive" | "delete"
   ) => {
     if (!active) return;
-    switch (action) {
-      case "read":
-        setItems((prev) => prev.map((c) => (c.id === active.id ? { ...c, unread: 0 } : c)));
-        break;
-      case "star":
-        setItems((prev) => prev.map((c) => (c.id === active.id ? { ...c, starred: !c.starred } : c)));
-        break;
-      case "archive":
-        setItems((prev) => prev.map((c) => (c.id === active.id ? { ...c, archived: true } : c)));
-        break;
-      case "assign":
-        setItems((prev) =>
-          prev.map((c) => (c.id === active.id ? { ...c, assignedTo: "MD Kazim", status: "REPLIED" as ConversationStatus } : c))
-        );
-        break;
-      case "delete":
-        setItems((prev) => prev.filter((c) => c.id !== active.id));
-        if (items.length > 1) setActiveId(items.find((c) => c.id !== active.id)!.id);
-        break;
-      case "reply":
-        // focus composer (no-op here; composer handles send)
-        break;
-    }
+    if (action === "reply") return;
+    let response: Response;
+    if (action === "assign") response = await fetch(`/api/inbox/conversations/${active.id}/assign`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assignedToId: (session?.user as any)?.id }) });
+    else if (action === "delete") response = await fetch(`/api/inbox/conversations/${active.id}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "CLOSED" }) });
+    else response = await fetch(`/api/inbox/conversations/${active.id}/actions`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, value: action === "read" ? true : action === "star" ? !active.starred : true }) });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) return toast.error(body.error ?? "Conversation action failed");
+    await loadInbox();
+    toast.success("Conversation updated");
   };
 
-  const handleSend = (text: string) => {
+  const handleSend = async (text: string) => {
     if (!active) return;
-    const msg: InboxMessage = {
-      id: `m${Date.now()}`,
-      conversationId: active.id,
-      sender: "AGENT",
-      text,
-      sentAt: new Date().toISOString(),
-    };
-    setHistory((prev) => [...prev, msg]);
-    setItems((prev) => prev.map((c) => (c.id === active.id ? { ...c, status: "REPLIED" as ConversationStatus, unread: 0 } : c)));
+    const response = await fetch(`/api/inbox/conversations/${active.id}/reply`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, attachments: [] }) });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) return toast.error(body.error ?? "Reply failed");
+    setAiDraft("");
+    await Promise.all([loadInbox(), loadThread(active.id)]);
+    toast.success("Reply confirmed by provider");
   };
 
-  const handleAI = (text: string) => {
-    if (!active) return;
-    const msg: InboxMessage = {
-      id: `m${Date.now()}`,
-      conversationId: active.id,
-      sender: "AI",
-      text,
-      sentAt: new Date().toISOString(),
-    };
-    setHistory((prev) => [...prev, msg]);
-  };
+  const handleAI = (text: string) => setAiDraft(text);
 
   return (
     <div className="flex h-full flex-col">
-      <InboxHeader />
+      <InboxHeader notifications={notifications} />
 
       <div className="mt-4 flex flex-col gap-4 overflow-y-auto px-4 pb-6">
         {/* KPI stats */}
@@ -165,13 +168,13 @@ export default function InboxPage() {
 
           {/* middle: list + conversation */}
           <div className="flex flex-col gap-3">
-            <ConversationList conversations={filtered} activeId={active?.id ?? ""} onSelect={setActiveId} />
+            <ConversationList conversations={items} activeId={active?.id ?? ""} onSelect={setActiveId} />
             {active && (
               <ConversationView
                 conversation={active}
                 messages={activeMessages}
                 onAction={handleAction}
-                composerSlot={<MessageComposer onSend={handleSend} />}
+                composerSlot={<MessageComposer onSend={handleSend} draft={aiDraft} />}
                 profileSlot={undefined}
               />
             )}
@@ -180,7 +183,7 @@ export default function InboxPage() {
           {/* right: profile + AI */}
           <aside className="flex flex-col gap-3">
             <CustomerProfile profile={profile} />
-            <AIReplyPanel onApply={handleAI} customerMessage={activeMessages.filter((m) => m.sender === "CUSTOMER").slice(-1)[0]?.text ?? active?.lastMessage ?? ""} />
+            <AIReplyPanel onApply={handleAI} conversationId={active?.id} />
           </aside>
         </section>
       </div>

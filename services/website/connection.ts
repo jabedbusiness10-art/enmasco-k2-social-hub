@@ -326,8 +326,41 @@ export async function processWebsiteWebhook(connectionId: string, eventId: strin
     const externalId = String(payload?.externalId ?? payload?.id ?? "");
     if (!externalId) throw new IntegrationError("WEBSITE", "API_ERROR", "Webhook delete requires externalId", 422, false, "Send the remote content identifier.");
     await prisma.post.deleteMany({ where: { sourceConnectionId: connectionId, externalContentId: externalId, platform: "WEBSITE" } });
+  } else if (["contact.submitted", "quotation.requested", "lead.submitted", "inquiry.created"].includes(eventType)) {
+    const message = String(payload?.message ?? payload?.inquiry ?? payload?.details ?? "").trim();
+    if (!message) throw new IntegrationError("WEBSITE", "API_ERROR", "Website inquiry requires a message", 422, false, "Send message, inquiry, or details in the signed payload.");
+    const email = typeof payload?.email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email) ? payload.email.slice(0, 320) : undefined;
+    const phone = typeof payload?.phone === "string" ? payload.phone.replace(/[^+\d()\-\s]/g, "").slice(0, 60) : undefined;
+    const sourceUrl = typeof payload?.sourceUrl === "string" ? (await assertPublicWebsiteUrl(payload.sourceUrl, { allowHttp: allowHttp() })).toString() : undefined;
+    const attachmentRows = [] as any[];
+    for (const [index, attachment] of (Array.isArray(payload?.attachments) ? payload.attachments : []).slice(0, 10).entries()) {
+      if (!attachment?.url) continue;
+      const url = (await assertPublicWebsiteUrl(String(attachment.url), { allowHttp: allowHttp() })).toString();
+      attachmentRows.push({ kind: "OTHER", fileName: String(attachment.fileName ?? `attachment-${index + 1}`).slice(0, 200), originalName: String(attachment.fileName ?? `attachment-${index + 1}`).slice(0, 200), mimeType: String(attachment.mimeType ?? "application/octet-stream").slice(0, 160), fileSize: Math.max(0, Math.min(Number(attachment.fileSize) || 0, 25 * 1024 * 1024)), url });
+    }
+    const participantId = String(payload?.customerId ?? email?.toLowerCase() ?? phone ?? `website-event:${eventId}`).slice(0, 320);
+    const { ingestInboundMessage } = await import("@/services/inbox/service");
+    const submittedAt = payload?.submittedAt ? new Date(payload.submittedAt) : new Date();
+    if (!Number.isFinite(submittedAt.getTime())) throw new IntegrationError("WEBSITE", "API_ERROR", "Website inquiry timestamp is invalid", 422, false, "Use an ISO-8601 submittedAt value.");
+    await ingestInboundMessage({
+      provider: "WEBSITE",
+      providerAccountId: connectionId,
+      externalConversationId: String(payload?.conversationId ?? payload?.inquiryId ?? payload?.id ?? eventId).slice(0, 320),
+      externalParticipantId: participantId,
+      externalMessageId: String(payload?.messageId ?? eventId).slice(0, 320),
+      customerName: String(payload?.name ?? payload?.customerName ?? email ?? phone ?? "Website visitor").slice(0, 200),
+      text: message,
+      sentAt: submittedAt,
+      attachments: attachmentRows,
+      sourceUrl,
+      contactEmail: email,
+      contactPhone: phone,
+      priority: eventType === "quotation.requested" ? "HIGH" : "MEDIUM",
+      spam: Boolean(payload?.honeypot) || Number(payload?.spamScore ?? 0) >= 0.9,
+      providerMetadata: { kind: "WEBSITE_INQUIRY", eventType, utm: payload?.utm && typeof payload.utm === "object" ? payload.utm : null, formId: payload?.formId ?? null },
+    });
   } else if (eventType !== "connection.test") {
-    throw new IntegrationError("WEBSITE", "API_ERROR", "Unsupported website webhook event", 422, false, "Use article.created, article.updated, article.published, article.deleted, or connection.test.");
+    throw new IntegrationError("WEBSITE", "API_ERROR", "Unsupported website webhook event", 422, false, "Use a documented article, inquiry, contact, quotation, lead, or connection event.");
   }
 
   const now = new Date();

@@ -4,6 +4,8 @@
 export type InboxPlatform =
   | "facebook"
   | "instagram"
+  | "youtube"
+  | "website"
   | "linkedin"
   | "x"
   | "tiktok"
@@ -52,6 +54,9 @@ export interface InboxMessage {
   text: string;
   sentAt: string;
   attachment?: string;
+  deliveryStatus?: string;
+  readStatus?: string;
+  failureReason?: string | null;
 }
 
 export interface CustomerProfileData {
@@ -63,6 +68,11 @@ export interface CustomerProfileData {
   conversationCount: number;
   tags: string[];
   assignedAgent: string;
+  username?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  consentStatus?: string | null;
+  sourceUrl?: string | null;
 }
 
 export interface InboxNotification {

@@ -19,6 +19,7 @@ interface MessengerSocketState {
   typing: Record<string, Record<string, boolean>>; // conversationId -> userId -> typing
   notifications: ClientNotification[];
   unread: Record<string, number>; // conversationId -> count
+  inboxVersion: number;
   emit: (event: keyof ClientToServerEvents, ...args: any[]) => void;
   markNotificationRead: (id: string) => void;
   clearNotifications: () => void;
@@ -34,6 +35,7 @@ export function MessengerSocketProvider({ user, children }: { user: SessionUser 
   const [typing, setTyping] = useState<Record<string, Record<string, boolean>>>({});
   const [notifications, setNotifications] = useState<ClientNotification[]>([]);
   const [unread, setUnread] = useState<Record<string, number>>({});
+  const [inboxVersion, setInboxVersion] = useState(0);
   const socketRef = useRef<Socket | null>(null);
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userRef = useRef<SessionUser | null>(user);
@@ -75,6 +77,7 @@ export function MessengerSocketProvider({ user, children }: { user: SessionUser 
       socket.on("notification:new", (n: ClientNotification) => {
         setNotifications((list) => [n, ...list].slice(0, 50));
       });
+      socket.on("inbox:update", () => setInboxVersion((version) => version + 1));
     })();
   }, []);
 
@@ -97,7 +100,7 @@ export function MessengerSocketProvider({ user, children }: { user: SessionUser 
   const clearNotifications = useCallback(() => setNotifications([]), []);
 
   const value: MessengerSocketState = {
-    connected, presence, typing, notifications, unread, emit, markNotificationRead, clearNotifications,
+    connected, presence, typing, notifications, unread, inboxVersion, emit, markNotificationRead, clearNotifications,
   };
   return <MessengerSocketContext.Provider value={value}>{children}</MessengerSocketContext.Provider>;
 }

@@ -15,7 +15,8 @@
     "scheduler": "cross-env ROLE=scheduler tsx server/scheduler.ts",
     "validate:env": "tsx -e \"import('./lib/env/validate').then(m=>{const r=m.validateEnv(); if(!r.ok) process.exit(1);})\"",
     "test:task75": "tsx --test tests/task75/*.test.ts",
-    "test:task76": "tsx --test tests/task76/*.test.ts"
+    "test:task76": "tsx --test tests/task76/*.test.ts",
+    "test:task77b": "tsx --test tests/task77b/*.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

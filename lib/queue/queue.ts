@@ -63,6 +63,7 @@ export const JOB_TYPES = {
   "backup:run": `${QUEUE_NAMES.BACKUP}`,
   "backup:restore": `${QUEUE_NAMES.BACKUP}`,
   "backup:verify": `${QUEUE_NAMES.BACKUP}`,
+  "sync:inbox": `${QUEUE_NAMES.SYNC}`,
 } as const;
 
 const connection = () => getRedisConnection();

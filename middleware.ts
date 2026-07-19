@@ -2,10 +2,27 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const publicPaths = ["/login", "/unauthorized", "/", "/api/auth", "/api/health", "/api/system", "/healthz"];
+const publicPaths = [
+  "/login",
+  "/unauthorized",
+  "/",
+  "/api/auth",
+  "/api/health",
+  "/api/system",
+  "/healthz",
+  "/api/webhooks/meta",
+  "/api/webhooks/website",
+  "/api/website/webhook",
+];
+
+const rateLimitExemptPaths = ["/api/auth", "/api/health", "/api/system"];
 
 function isPublic(pathname: string) {
   return publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+function isRateLimitExempt(pathname: string) {
+  return rateLimitExemptPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 /* ---------- TASK-59.7 — lightweight API rate limiting ----------
@@ -37,7 +54,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // --- Rate limit API routes (skip public auth + health) ---
-  if (path.startsWith("/api/") && !isPublic(path)) {
+  if (path.startsWith("/api/") && !isRateLimitExempt(path)) {
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       request.headers.get("x-real-ip") ||

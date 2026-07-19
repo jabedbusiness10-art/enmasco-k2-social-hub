@@ -241,6 +241,25 @@ httpServer.listen(PORT, () => {
   console.log(`[K2 Messenger] Socket.IO realtime server listening on :${PORT}`);
 });
 
+// Reuse the existing Socket.IO bridge for social inbox mutations written by
+// Next.js webhooks and REST routes. The bounded DB reconciliation avoids a
+// second realtime stack and never polls external providers.
+let lastInboxEventAt = new Date();
+setInterval(async () => {
+  const since = lastInboxEventAt;
+  const checkedAt = new Date();
+  try {
+    const [webhook, audit] = await Promise.all([
+      prisma.inboxWebhookEvent.findFirst({ where: { receivedAt: { gt: since }, status: "PROCESSED" }, orderBy: { receivedAt: "desc" }, select: { conversationId: true, eventType: true, receivedAt: true } }),
+      prisma.auditLog.findFirst({ where: { createdAt: { gt: since }, module: "INBOX" }, orderBy: { createdAt: "desc" }, select: { entityId: true, action: true, createdAt: true } }),
+    ]);
+    if (webhook || audit) io.emit("inbox:update", { conversationId: webhook?.conversationId ?? audit?.entityId ?? null, event: webhook?.eventType ?? audit?.action ?? "UPDATED", at: checkedAt.toISOString() });
+    lastInboxEventAt = checkedAt;
+  } catch (error) {
+    console.error("[K2 Messenger] inbox reconciliation failed", error instanceof Error ? error.message : error);
+  }
+}, 1500);
+
 // Auto-reconnect awareness is handled client-side; server just cleans up on error.
 io.engine.on("connection_error", (err) => {
   console.error("[K2 Messenger] connection_error", err.message);

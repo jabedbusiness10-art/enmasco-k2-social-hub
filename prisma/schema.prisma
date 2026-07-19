@@ -977,6 +977,19 @@ model Conversation {
   status             ConversationStatus    @default(OPEN)
   labelIds           String[]  @default([]) // ConversationLabel ids
   assignedToId       String?   // denormalized current assignee (see ConversationAssignment)
+  externalParticipantId String?
+  participantUsername String?
+  inboxUnreadCount    Int      @default(0)
+  hasReplied          Boolean  @default(false)
+  isSpam              Boolean  @default(false)
+  firstContactAt      DateTime?
+  lastInboundAt       DateTime?
+  lastOutboundAt      DateTime?
+  sourceUrl           String?
+  contactEmail        String?
+  contactPhone        String?
+  consentStatus       String?
+  providerMetadata    Json?
   // -------------------------------------------------------------------------
 
   members      ConversationMember[]
@@ -984,6 +997,9 @@ model Conversation {
   announcements Announcement[]
   customer     SocialCustomer? @relation("CustomerConversations", fields: [customerId], references: [id])
   assignments  ConversationAssignment[]
+  notes        ConversationNote[]
+  inboxEvents  InboxWebhookEvent[]
+  aiAudits     InboxAiAudit[]
 
   @@index([kind])
   @@index([departmentId])
@@ -996,6 +1012,11 @@ model Conversation {
   @@index([priority])
   @@index([assignedToId])
   @@index([updatedAt])
+  @@index([lastMessageAt])
+  @@index([inboxUnreadCount])
+  @@index([hasReplied])
+  @@index([isSpam])
+  @@unique([platformAccountId, externalId])
 }
 
 model ConversationMember {
@@ -1038,6 +1059,17 @@ model Message {
   encryptedContent String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  externalId       String?
+  senderType       String      @default("INTERNAL_USER")
+  senderExternalId String?
+  direction        String      @default("INTERNAL")
+  deliveryStatus   String      @default("SENT")
+  readStatus       String      @default("UNREAD")
+  sentAt           DateTime    @default(now())
+  providerMetadata Json?
+  replyToExternalId String?
+  failureReason    String?
+  isInternalNote   Boolean     @default(false)
 
   conversation Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   attachments  Attachment[]
@@ -1053,6 +1085,10 @@ model Message {
   @@index([createdAt])
   @@index([isPinned])
   @@index([isStarred])
+  @@index([externalId])
+  @@index([direction])
+  @@index([sentAt])
+  @@unique([conversationId, externalId])
 }
 
 model Attachment {
@@ -1161,11 +1197,17 @@ model SocialCustomer {
   id            String   @id @default(cuid())
   platform      Platform?
   externalId    String?  // platform-scoped user id (psid / ig id / wa id)
+  providerAccountId String?
   firstName     String?
   lastName      String?
   name          String // display name fallback
   avatarUrl     String?
   locale        String?  @default("en")
+  username      String?
+  email         String?
+  phone         String?
+  consentStatus String?
+  providerMetadata Json?
   // Conversation(s) this customer participates in (direct DMs)
   conversations Conversation[] @relation("CustomerConversations")
   createdAt     DateTime @default(now())
@@ -1173,6 +1215,7 @@ model SocialCustomer {
 
   @@index([platform])
   @@index([externalId])
+  @@unique([platform, providerAccountId, externalId])
 }
 
 // Reusable conversation labels (e.g. "Lead", "Complaint", "VIP").
@@ -1191,17 +1234,77 @@ model ConversationLabel {
 model ConversationAssignment {
   id             String   @id @default(cuid())
   conversationId String
-  assignedToId    String // User id
+  assignedToId    String? // User id; null records an unassignment
   assignedById    String?
   assignedAt      DateTime @default(now())
   note            String?
+  action          String   @default("ASSIGNED")
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  assignedTo   User        @relation("AssignmentTo", fields: [assignedToId], references: [id])
+  assignedTo   User?       @relation("AssignmentTo", fields: [assignedToId], references: [id])
   assignedBy   User?       @relation("AssignmentBy", fields: [assignedById], references: [id])
 
   @@index([conversationId])
   @@index([assignedToId])
+}
+
+model ConversationNote {
+  id             String   @id @default(cuid())
+  conversationId String
+  authorId       String
+  authorName     String
+  content        String
+  mentions       String[] @default([])
+  editHistory    Json?
+  editedAt       DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([authorId])
+}
+
+model InboxWebhookEvent {
+  id              String   @id @default(cuid())
+  provider        String
+  providerAccountId String
+  externalEventId String
+  payloadHash     String
+  eventType       String
+  status          String   @default("RECEIVED")
+  conversationId  String?
+  error           String?
+  occurredAt      DateTime?
+  receivedAt      DateTime @default(now())
+  processedAt     DateTime?
+
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, providerAccountId, externalEventId])
+  @@index([status, receivedAt])
+  @@index([conversationId])
+}
+
+model InboxAiAudit {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  action         String
+  language       String?
+  tone           String?
+  provider       String?
+  model          String?
+  promptTokens   Int?
+  resultHash     String?
+  approved       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([userId, createdAt])
 }
 
 // ===========================================================================
