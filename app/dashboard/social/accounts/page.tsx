@@ -28,6 +28,27 @@ function apiErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
+async function readApiResponse(response: Response): Promise<any> {
+  const body = await response.text();
+  if (!body.trim()) {
+    return {
+      error: response.ok
+        ? "The server returned an empty response."
+        : `Request failed with status ${response.status}.`,
+    };
+  }
+
+  try {
+    return JSON.parse(body);
+  } catch {
+    return {
+      error: response.ok
+        ? "The server returned an invalid response."
+        : `Request failed with status ${response.status}.`,
+    };
+  }
+}
+
 // TASK-57 — lightweight YouTube glyph (lucide-react has no YouTube brand icon).
 function YoutubeGlyph({ className }: { className?: string }) {
   return (
@@ -73,7 +94,7 @@ export default function CompanySocialPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/social/accounts", { cache: "no-store" });
-      const json = await res.json();
+      const json = await readApiResponse(res);
       if (!res.ok) throw new Error(apiErrorMessage(json.error, "Failed to load"));
       setAccounts(json.accounts ?? []);
       setError(null);
@@ -112,7 +133,7 @@ export default function CompanySocialPage() {
       const sessionId = searchParams.get("session");
       if (sessionId) {
         fetch(`/api/social/linkedin/organizations?session=${encodeURIComponent(sessionId)}`, { cache: "no-store" })
-          .then(async (response) => ({ response, json: await response.json() }))
+          .then(async (response) => ({ response, json: await readApiResponse(response) }))
           .then(({ response, json }) => {
             if (!response.ok) throw new Error(apiErrorMessage(json.error, "Organization selection expired"));
             setLinkedinSelection({ sessionId, organizations: json.organizations ?? [] });
@@ -140,7 +161,7 @@ export default function CompanySocialPage() {
     setLinkedinSelecting(true);
     try {
       const response = await fetch("/api/social/linkedin/organizations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: linkedinSelection.sessionId, organizationId }) });
-      const json = await response.json();
+      const json = await readApiResponse(response);
       if (!response.ok) throw new Error(apiErrorMessage(json.error, "LinkedIn organization connection failed"));
       setLinkedinSelection(null);
       setLinkedinStatus({ kind: "success", msg: "LinkedIn Company Page connected successfully." });
@@ -184,7 +205,7 @@ export default function CompanySocialPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const json = await res.json();
+    const json = await readApiResponse(res);
     if (!res.ok) throw new Error(apiErrorMessage(json.error, "Connection failed"));
     await load();
   }
@@ -193,7 +214,7 @@ export default function CompanySocialPage() {
     setBusyId(id);
     try {
       const res = await fetch(`/api/social/refresh/${id}`, { method: "POST" });
-      const json = await res.json();
+      const json = await readApiResponse(res);
       if (!res.ok) throw new Error(apiErrorMessage(json.error, "Refresh failed"));
       setAccounts((p) => p.map((a) => (a.id === id ? json.account : a)));
     } catch (e: any) {
@@ -218,7 +239,7 @@ export default function CompanySocialPage() {
   async function handleRefreshSilent(id: string) {
     const res = await fetch(`/api/social/refresh/${id}`, { method: "POST" });
     if (res.ok) {
-      const json = await res.json();
+      const json = await readApiResponse(res);
       setAccounts((p) => p.map((a) => (a.id === id ? json.account : a)));
     }
   }
@@ -228,7 +249,7 @@ export default function CompanySocialPage() {
     setBusyId(acc.id);
     try {
       const res = await fetch(`/api/social/disconnect/${acc.id}`, { method: "DELETE" });
-      const json = await res.json();
+      const json = await readApiResponse(res);
       if (!res.ok) throw new Error(apiErrorMessage(json.error, "Disconnect failed"));
       await load();
     } catch (e: any) {
@@ -242,7 +263,7 @@ export default function CompanySocialPage() {
   const loadWebsites = useCallback(async () => {
     try {
       const res = await fetch("/api/website/connect", { cache: "no-store" });
-      const json = await res.json();
+      const json = await readApiResponse(res);
       if (!res.ok) throw new Error(apiErrorMessage(json.error, "Failed to load websites"));
       setWebsites(json.connections ?? []);
     } catch (e: any) {
@@ -260,7 +281,7 @@ export default function CompanySocialPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const json = await res.json();
+    const json = await readApiResponse(res);
     if (!res.ok) throw new Error(apiErrorMessage(json.error, "Website connection failed"));
     await loadWebsites();
   }
@@ -269,7 +290,7 @@ export default function CompanySocialPage() {
     setWebsiteBusyId(id);
     try {
       const res = await fetch(`/api/website/status/${id}`, { method: "POST" });
-      const json = await res.json();
+      const json = await readApiResponse(res);
       if (!res.ok) throw new Error(apiErrorMessage(json.error, "Test failed"));
       await loadWebsites();
     } catch (e: any) {
@@ -283,7 +304,7 @@ export default function CompanySocialPage() {
     setWebsiteBusyId(id);
     try {
       const res = await fetch(`/api/website/sync/${id}`, { method: "POST" });
-      const json = await res.json();
+      const json = await readApiResponse(res);
       if (!res.ok) throw new Error(apiErrorMessage(json.error, "Sync failed"));
       await loadWebsites();
     } catch (e: any) {
@@ -298,7 +319,7 @@ export default function CompanySocialPage() {
     setWebsiteBusyId(conn.id);
     try {
       const res = await fetch(`/api/website/disconnect/${conn.id}`, { method: "POST" });
-      const json = await res.json();
+      const json = await readApiResponse(res);
       if (!res.ok) throw new Error(apiErrorMessage(json.error, "Disconnect failed"));
       await loadWebsites();
     } catch (e: any) {
@@ -313,7 +334,7 @@ export default function CompanySocialPage() {
     try {
       // Re-test re-establishes the connection health.
       const res = await fetch(`/api/website/status/${conn.id}`, { method: "POST" });
-      const json = await res.json();
+      const json = await readApiResponse(res);
       if (!res.ok) throw new Error(apiErrorMessage(json.error, "Reconnect failed"));
       await loadWebsites();
     } catch (e: any) {

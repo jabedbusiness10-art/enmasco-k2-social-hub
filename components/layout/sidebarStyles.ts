@@ -10,7 +10,7 @@
 import { cva } from "class-variance-authority";
 
 export const sidebarBaseItem =
-  "relative flex w-full items-center rounded-lg px-3 py-2 text-left transition-all duration-300 " +
+  "relative flex w-full items-center rounded-xl px-2.5 py-1.5 text-left transition-all duration-300 " +
   // kill the browser default focus ring / outline — keyboard nav still works
   "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0";
 
@@ -38,7 +38,7 @@ export const sidebarItem = cva(
         // top-level section item
         section: "border border-transparent bg-white/[0.04] hover:bg-white/[0.08]",
         // nested submenu item (All Assets / Collections / Tags ...)
-        subitem: "ml-1",
+        subitem: "ml-1 border-white/[0.07] bg-white/[0.025] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] hover:border-white/[0.13] hover:bg-white/[0.055]",
       },
       active: {
         true: "border-sky-300/30 bg-sky-500/10 text-sky-200 shadow-[0_0_18px_rgba(56,189,248,0.25)]",

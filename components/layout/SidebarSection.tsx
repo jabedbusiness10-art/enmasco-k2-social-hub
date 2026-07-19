@@ -73,16 +73,24 @@ export default function SidebarSection({
   };
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-1">
       <button
         onClick={handleClick}
+        onMouseEnter={() => {
+          const target = section.children[0]?.href;
+          if (target) router.prefetch(target);
+        }}
+        onFocus={() => {
+          const target = section.children[0]?.href;
+          if (target) router.prefetch(target);
+        }}
         title={collapsed ? section.label : undefined}
-        className={`group ${sidebarSectionTrigger({
+        className={`group ${collapsed ? "h-12 justify-center !rounded-xl !bg-transparent !p-0" : ""} ${sidebarSectionTrigger({
           state: expanded ? "open" : active ? "childActive" : "idle",
         })}`}
       >
-        <span className={`mr-3 flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border transition-all duration-300 group-hover:border-sky-400/40 group-hover:bg-sky-500/[0.08] group-hover:shadow-[0_0_22px_rgba(56,189,248,0.18)] ${active ? "border-sky-300/40 bg-sky-500/[0.10] shadow-[0_0_22px_rgba(56,189,248,0.22)]" : "border-white/10 bg-white/[0.05] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"}`}>
-          {(() => { const Icon = section.icon; return <Icon className={`h-5 w-5 transition-colors duration-300 group-hover:text-sky-200 ${active ? "text-sky-200" : "text-white/80"}`} strokeWidth={1.8} />; })()}
+        <span className={`${collapsed ? "h-10 w-10 rounded-xl" : "mr-2.5 h-10 w-10 rounded-xl"} flex shrink-0 items-center justify-center border transition-all duration-300 group-hover:border-sky-400/40 group-hover:bg-sky-500/[0.08] ${active ? "border-sky-300/45 bg-sky-500/[0.12] shadow-[0_0_14px_rgba(56,189,248,0.18)]" : "border-white/10 bg-white/[0.045] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"}`}>
+          {(() => { const Icon = section.icon; return <Icon className={`h-[18px] w-[18px] transition-colors duration-300 group-hover:text-sky-200 ${active ? "text-sky-200" : "text-white/80"}`} strokeWidth={1.8} />; })()}
         </span>
         <AnimatePresence initial={false}>
           {!collapsed && (
@@ -92,7 +100,7 @@ export default function SidebarSection({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -6 }}
               transition={{ duration: 0.2 }}
-              className="flex-1 text-sm font-semibold tracking-wide"
+              className="flex-1 text-[13px] font-semibold tracking-[0.02em]"
             >
               {section.label}
             </motion.span>
@@ -112,8 +120,8 @@ export default function SidebarSection({
             </motion.span>
           )}
         </AnimatePresence>
-        {expanded && (
-          <span className="absolute left-1.5 top-1/2 h-6 w-[4px] -translate-y-1/2 rounded-r bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)]" />
+        {active && (
+          <span className={`absolute top-1/2 -translate-y-1/2 rounded-r bg-sky-400 ${collapsed ? "left-0 h-5 w-[3px] shadow-[0_0_8px_rgba(56,189,248,0.55)]" : "left-1 h-5 w-[3px] shadow-[0_0_9px_rgba(56,189,248,0.65)]"}`} />
         )}
       </button>
 
@@ -125,9 +133,9 @@ export default function SidebarSection({
             animate="show"
             exit="exit"
             transition={{ duration: 0.22 }}
-            className="overflow-hidden pl-3"
+            className="overflow-hidden pl-2 pr-0.5"
           >
-            <div className="space-y-1 py-1">
+            <div className="space-y-1.5 py-1.5">
               {section.children.map((child, idx) => {
                 // exact route + view match — only the child whose href (path +
                 // ?view=) equals the current location is highlighted. Siblings

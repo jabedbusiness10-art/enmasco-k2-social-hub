@@ -6,7 +6,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { Toaster } from "@/components/ui/toaster";
 import ClientSessionProvider from "@/providers/session-provider";
 import ReactQueryProvider from "@/components/providers/query-provider";
-import { PageTransition, AnimatedBackground } from "@/components/anim/motion";
+import { AnimatedBackground } from "@/components/anim/motion";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ReactQueryProvider>
           <ClientSessionProvider>
             <ToastProvider>
-              <PageTransition>{children}</PageTransition>
+              {children}
               <Toaster />
             </ToastProvider>
           </ClientSessionProvider>

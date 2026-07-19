@@ -13,6 +13,19 @@ export async function POST(
     return NextResponse.json({ error: perm.error ?? "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
-  const account = await refreshAccount(id);
-  return NextResponse.json({ account });
+  try {
+    const account = await refreshAccount(id);
+    return NextResponse.json({ account });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Refresh failed";
+    const accountMissing = message === "Account not found";
+    return NextResponse.json(
+      {
+        error: accountMissing
+          ? message
+          : "Unable to refresh this account with its social provider. Please try again or reconnect the account.",
+      },
+      { status: accountMissing ? 404 : 502 },
+    );
+  }
 }

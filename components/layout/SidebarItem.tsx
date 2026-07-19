@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import { sidebarItem } from "./sidebarStyles";
 
@@ -17,6 +17,7 @@ type SidebarItemProps = {
 
 export default function SidebarItem({ isActive, icon, label, href, subitem, onClick }: SidebarItemProps) {
   const pathname = usePathname();
+  const router = useRouter();
   // Submenu items get their active state from the parent section (exact route
   // match), NOT from pathname.startsWith — startsWith wrongly activates every
   // child that shares a prefix/href (e.g. Media Library's 3 identical links).
@@ -32,6 +33,8 @@ export default function SidebarItem({ isActive, icon, label, href, subitem, onCl
     <motion.span
       whileHover={subitem ? {} : { scale: 1.01, y: -1 }}
       transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      onMouseEnter={() => href && router.prefetch(href)}
+      onFocus={() => href && router.prefetch(href)}
       onClick={href ? undefined : onClick}
       className={sidebarItem({ variant: subitem ? "subitem" : "section", active })}
     >
@@ -40,9 +43,9 @@ export default function SidebarItem({ isActive, icon, label, href, subitem, onCl
           {(() => { const ActiveIcon = icon; return <ActiveIcon className="h-4 w-4" strokeWidth={1.8} />; })()}
         </span>
       )}
-      <span className={`font-medium ${subitem ? "text-xs" : "text-sm"}`}>{label}</span>
+      <span className={`font-medium ${subitem ? "text-[11px] tracking-[0.01em]" : "text-sm"}`}>{label}</span>
       {active && (
-        <span className="absolute left-1.5 top-1/2 h-6 w-[4px] -translate-y-1/2 rounded-r bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)]" />
+        <span className={`absolute top-1/2 -translate-y-1/2 rounded-r bg-sky-400 shadow-[0_0_9px_rgba(56,189,248,0.75)] ${subitem ? "left-0 h-4 w-[2px]" : "left-1 h-5 w-[3px]"}`} />
       )}
     </motion.span>
   );

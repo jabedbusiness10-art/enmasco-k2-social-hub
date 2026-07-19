@@ -72,9 +72,9 @@ export default function Sidebar() {
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 90 : 280 }}
+      animate={{ width: collapsed ? 80 : 260 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="relative flex h-full w-[280px] shrink-0 flex-col border-r border-white/10 bg-white/[0.04] backdrop-blur-2xl shadow-[0_0_20px_rgba(56,189,248,0.18)] overflow-hidden"
+      className="relative flex h-full w-[260px] shrink-0 flex-col overflow-hidden border-r border-white/10 bg-white/[0.04] shadow-[0_0_20px_rgba(56,189,248,0.18)] backdrop-blur-2xl"
     >
       <div
         aria-hidden="true"
@@ -94,10 +94,16 @@ export default function Sidebar() {
         style={{ left: -144, top: -72 }}
       />
 
-      <div className="flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-200/30 bg-sky-500/10 text-sky-100 shadow-[0_0_24px_rgba(56,189,248,0.35)]">
-            <span className="text-sm font-bold">K2</span>
+      <div
+        className={`flex shrink-0 items-center ${
+          collapsed
+            ? "h-[92px] flex-col justify-center gap-2 px-3 py-3"
+            : "h-[60px] justify-between px-4"
+        }`}
+      >
+        <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-sky-200/30 bg-sky-500/10 text-sky-100 shadow-[0_0_20px_rgba(56,189,248,0.3)]">
+            <span className="text-[13px] font-bold">K2</span>
           </div>
           <AnimatePresence>
             {!collapsed && (
@@ -119,16 +125,25 @@ export default function Sidebar() {
 
         <button
           onClick={() => setCollapsed((prev) => !prev)}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] text-white/70 transition hover:text-white"
+          className={`flex items-center justify-center border border-white/10 bg-white/[0.05] text-white/65 outline-none transition hover:border-sky-300/25 hover:bg-sky-400/10 hover:text-white focus:outline-none focus-visible:border-sky-300/35 focus-visible:ring-2 focus-visible:ring-sky-400/20 ${
+            collapsed ? "h-7 w-10 rounded-lg" : "h-8 w-8 rounded-lg"
+          }`}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
       </div>
 
-      <nav className="sidebar-scroll mt-5 min-h-0 flex-1 space-y-2.5 overflow-y-auto overflow-x-hidden px-5">
+      <nav
+        className={`sidebar-scroll min-h-0 flex-1 space-y-1 overflow-y-auto overflow-x-hidden ${
+          collapsed ? "sidebar-scroll-collapsed mt-1 px-3" : "mt-3 px-4"
+        }`}
+      >
         {sidebarConfig.map((section, idx) => (
-          <div key={section.key} className={idx === 0 ? "" : "mt-1 border-t border-white/[0.06] pt-1"}>
+          <div
+            key={section.key}
+            className={idx === 0 ? "" : collapsed ? "mt-0.5 pt-0.5" : "mt-0.5 border-t border-white/[0.055] pt-0.5"}
+          >
             <SidebarSection
               section={section}
               expandedKeys={expandedKeys}
@@ -140,7 +155,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="mt-auto shrink-0 border-t border-white/10 px-5 py-5">
+      <div className={`mt-auto shrink-0 border-t border-white/10 ${collapsed ? "px-3 py-3" : "px-4 py-3.5"}`}>
         <AnimatePresence initial={false}>
           {!collapsed ? (
             <motion.div
@@ -149,7 +164,7 @@ export default function Sidebar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col gap-3"
+              className="flex flex-col gap-2"
             >
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold tracking-[0.3px] text-white/85">Social OS</span>
@@ -176,12 +191,10 @@ export default function Sidebar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col items-center gap-2"
+              className="flex items-center justify-center py-1"
+              title="System online"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-sky-200/30 bg-sky-500/10 text-sky-100 shadow-[0_0_18px_rgba(56,189,248,0.35)]">
-                <span className="text-[11px] font-bold">K2</span>
-              </span>
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.85)]" />
             </motion.div>
           )}
         </AnimatePresence>
