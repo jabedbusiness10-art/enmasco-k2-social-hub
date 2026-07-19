@@ -15,6 +15,7 @@ export type NavSection = {
   key: string;
   label: string;
   icon: LucideIcon;
+  href: string;
   children: NavChild[];
   expandable?: boolean;
 };
@@ -64,9 +65,9 @@ export default function SidebarSection({
   const active = isActiveParent || expanded;
 
   const handleClick = () => {
+    router.push(section.href);
     if (collapsed) return;
     if (!isExpandable) {
-      router.push(section.children[0]?.href ?? "/");
       return;
     }
     toggleSection(section.key);

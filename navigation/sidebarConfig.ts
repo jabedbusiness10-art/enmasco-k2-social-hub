@@ -102,12 +102,7 @@ export const sidebarConfig: NavSection[] = [
       { label: "Connected Accounts", href: "/dashboard/social/accounts", description: "Connect and manage Facebook, Instagram, LinkedIn and website accounts." },
       { label: "Publishing Scheduler", href: "/dashboard/social/publisher", description: "Schedule and publish posts across all connected platforms." },
       { label: "Content Planner", href: "/dashboard/social/planner", description: "Plan and organize content ideas into a calendar." },
-      { label: "Social Calendar", href: "/dashboard/social/calendar", description: "Visual calendar of all scheduled and published content." },
-      { label: "Draft Posts", href: "/dashboard/social/drafts", description: "Create and manage draft posts before publishing." },
-      { label: "Campaign Manager", href: "/dashboard/social/campaigns", description: "Create and track marketing campaigns across platforms." },
       { label: "Engagement Monitor", href: "/dashboard/social/engagement", description: "Monitor likes, comments, and reactions in real time." },
-      { label: "Comments", href: "/dashboard/social/comments", description: "Review and respond to comments from all platforms." },
-      { label: "Messages", href: "/dashboard/social/messages", description: "Social conversation threads and direct messages from platforms." },
       { label: "Facebook Live", href: "/dashboard/social/facebook", description: "Real-time Facebook page data: followers, posts and inbox messages." },
     ],
   },
@@ -148,10 +143,7 @@ export const sidebarConfig: NavSection[] = [
     crumb: "AI & Automation",
     children: [
       { label: "K2Kai Studio", href: "/dashboard/ai/studio", description: "Create and manage AI agents and prompts." },
-      { label: "AI Reply Assistant", href: "/dashboard/ai/reply", description: "AI-suggested replies for your inbox and messages." },
-      { label: "Caption Generator", href: "/dashboard/ai/captions", description: "Generate post captions and hashtags with AI." },
       { label: "Workflow Automation", href: "/dashboard/ai/workflows", description: "Build automated workflows and triggers." },
-      { label: "Automation Logs", href: "/dashboard/ai/logs", description: "History and status of automated workflows." },
     ],
   },
   {
@@ -162,11 +154,7 @@ export const sidebarConfig: NavSection[] = [
     crumb: "Insights",
     children: [
       { label: "Analytics", href: "/dashboard/insights/analytics", description: "Unified analytics across all platforms." },
-      { label: "Reach", href: "/dashboard/insights/reach", description: "Audience reach and impression metrics." },
-      { label: "Engagement", href: "/dashboard/insights/engagement", description: "Engagement rate and interaction analytics." },
-      { label: "Audience", href: "/dashboard/insights/audience", description: "Audience demographics and growth." },
       { label: "Reports", href: "/dashboard/insights/reports", description: "Generate and export performance reports." },
-      { label: "Live Analytics", href: "/dashboard/insights/live", description: "Real-time analytics as events happen." },
     ],
   },
   {
@@ -176,7 +164,6 @@ export const sidebarConfig: NavSection[] = [
     href: "/dashboard/executive",
     crumb: "Executive",
     children: [
-      { label: "Overview", href: "/dashboard/executive", description: "Unified CEO / management command center." },
       { label: "Activity Feed", href: "/dashboard/executive/activity-feed", description: "Global enterprise timeline across all modules." },
     ],
   },
@@ -187,7 +174,6 @@ export const sidebarConfig: NavSection[] = [
     href: "/dashboard/queue",
     crumb: "Queue Engine",
     children: [
-      { label: "Overview", href: "/dashboard/queue", description: "Real-time BullMQ + Redis queue monitoring." },
       { label: "Jobs", href: "/dashboard/queue/jobs", description: "All job audit records across queues." },
       { label: "Failed Jobs", href: "/dashboard/queue/failed", description: "Recover failed jobs." },
       { label: "Workers", href: "/dashboard/queue/workers", description: "Background worker instances + health." },
@@ -223,7 +209,7 @@ export const sidebarConfig: NavSection[] = [
     href: "/dashboard/notifications",
     crumb: "Notification Center",
     expandable: false,
-    children: [{ label: "Notification Center", href: "/dashboard/notifications" }],
+    children: [],
   },
   {
     key: "admin-workspace",
@@ -233,9 +219,7 @@ export const sidebarConfig: NavSection[] = [
     crumb: "Workspace",
     expandable: true,
     children: [
-      { label: "Administration", href: "/dashboard/admin", description: "Executive administration overview." },
       { label: "Company Settings", href: "/dashboard/admin/company", description: "Company profile and branding configuration." },
-      { label: "Workspace Settings", href: "/dashboard/admin/company", description: "Workspace-wide preferences and defaults." },
       { label: "API Connections", href: "/dashboard/admin/api", description: "Manage third-party API integrations." },
     ],
   },
@@ -247,7 +231,6 @@ export const sidebarConfig: NavSection[] = [
     crumb: "Users",
     expandable: true,
     children: [
-      { label: "User Management", href: "/dashboard/admin/users", description: "Manage platform users, access, and invitations." },
       { label: "User Permissions", href: "/dashboard/admin/security/permissions", description: "Role-based permission matrix." },
       { label: "User Activity", href: "/dashboard/admin/users/activity", description: "Per-user login, actions, password, API, device and security activity." },
       { label: "User Roles", href: "/dashboard/admin/users/roles", description: "User roles, permissions, assignment and access levels." },
@@ -263,7 +246,6 @@ export const sidebarConfig: NavSection[] = [
     crumb: "Security",
     expandable: true,
     children: [
-      { label: "Security Center", href: "/dashboard/admin/security/overview", description: "Enterprise RBAC, audit logs, sessions, and threat monitoring." },
       { label: "Security Events", href: "/dashboard/admin/security/events", description: "Correlated security signals." },
       { label: "API Access", href: "/dashboard/admin/security/api-access", description: "API call logs and latency." },
       { label: "Audit Logs", href: "/dashboard/admin/security/audit", description: "System-wide audit and security logs." },
@@ -277,7 +259,6 @@ export const sidebarConfig: NavSection[] = [
     crumb: "Backup",
     expandable: true,
     children: [
-      { label: "Backup Center", href: "/dashboard/admin/backup", description: "Enterprise backup & disaster recovery." },
       { label: "Backup Jobs", href: "/dashboard/admin/backup/jobs", description: "Create, verify and restore backups." },
       { label: "Restore Manager", href: "/dashboard/admin/backup/restore", description: "Guided restore wizard." },
       { label: "Recovery Logs", href: "/dashboard/admin/backup/logs", description: "Immutable backup/restore audit." },
@@ -292,7 +273,6 @@ export const sidebarConfig: NavSection[] = [
     crumb: "Localization",
     expandable: true,
     children: [
-      { label: "Localization", href: "/dashboard/admin/localization", description: "Languages, translations and regional settings." },
       { label: "Language Manager", href: "/dashboard/admin/localization/languages", description: "Supported languages and direction." },
       { label: "Translation Center", href: "/dashboard/admin/localization/translations", description: "Coverage, status and missing keys." },
       { label: "Locale Settings", href: "/dashboard/admin/localization/settings", description: "Regional formatting and AI translation." },
@@ -306,11 +286,8 @@ export const sidebarConfig: NavSection[] = [
     crumb: "System",
     expandable: true,
     children: [
-      { label: "Monitoring & Health", href: "/monitoring", description: "Enterprise operational command center." },
-      { label: "Notifications", href: "/dashboard/admin/notifications", description: "Global notification preferences." },
       { label: "Storage", href: "/dashboard/admin/backup/storage", description: "Capacity & provider monitoring." },
       { label: "PWA Settings", href: "/dashboard/admin/pwa", description: "Install, service worker, cache and update management." },
-      { label: "System Health", href: "/monitoring", description: "Servers, queues, and system status." },
     ],
   },
 ];
