@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import type { PlatformKey, PostStatus, ScheduledPost } from "@/types/scheduler";
 import PlatformSelector from "./PlatformSelector";
 import { PLATFORMS } from "./platformMeta";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 export interface ScheduleFormValues {
   platform: PlatformKey;
@@ -122,10 +123,11 @@ export default function ScheduleModal({ open, onClose, initial, onSubmit }: Prop
   };
 
   return (
+    <ModalPortal lockScroll={open}>
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -269,6 +271,7 @@ export default function ScheduleModal({ open, onClose, initial, onSubmit }: Prop
         </motion.div>
       )}
     </AnimatePresence>
+    </ModalPortal>
   );
 }
 

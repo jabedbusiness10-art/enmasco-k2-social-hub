@@ -7,6 +7,7 @@ import { SearchBar } from "./SearchBar";
 import { SearchResults } from "./SearchResults";
 import { RecentSearches } from "./RecentSearches";
 import { QuickActions } from "./QuickActions";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 export default function CommandPalette() {
   const pal = useCommandPalette();
@@ -52,6 +53,7 @@ export default function CommandPalette() {
   }
 
   return (
+    <ModalPortal lockScroll={open}>
     <AnimatePresence>
       {open && (
         <motion.div
@@ -102,5 +104,6 @@ export default function CommandPalette() {
         </motion.div>
       )}
     </AnimatePresence>
+    </ModalPortal>
   );
 }

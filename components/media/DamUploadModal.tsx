@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { UploadCloud, X, Loader2, CheckCircle2 } from "lucide-react";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 export default function DamUploadModal({ folders, onClose, onDone }: any) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -32,7 +33,8 @@ export default function DamUploadModal({ folders, onClose, onDone }: any) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
       <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#0e0f17] p-5" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <div className="text-sm font-semibold text-white">Upload Files</div>
@@ -79,6 +81,7 @@ export default function DamUploadModal({ folders, onClose, onDone }: any) {
         </div>
       </motion.div>
     </div>
+    </ModalPortal>
   );
 }
 

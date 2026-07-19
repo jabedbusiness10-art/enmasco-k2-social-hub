@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X, Star, Pencil, FolderInput, Copy, Download, Share2, Archive, Trash2, RotateCcw, Sparkles, Image as ImageIcon, Video, FileText, Tag as TagIcon, CalendarClock, Layers, Radio } from "lucide-react";
 import { formatBytes } from "./DamAssetCard";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 const TYPE_ICON: Record<string, any> = { IMAGE: ImageIcon, VIDEO: Video, DOCUMENT: FileText, LOGO: ImageIcon, BRAND_ASSET: ImageIcon };
 const PLATFORMS = ["facebook", "instagram", "linkedin", "youtube", "x"];
@@ -87,7 +88,8 @@ export default function DamDetailDrawer({ asset, folders, onClose, onChanged }: 
   ];
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-black/50" onClick={onClose}>
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex justify-end bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <motion.div initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="flex h-full w-full max-w-md flex-col border-l border-white/10 bg-[#0e0f17]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <div className="text-sm font-semibold text-white">Asset Details</div>
@@ -200,6 +202,7 @@ export default function DamDetailDrawer({ asset, folders, onClose, onChanged }: 
         </div>
       </motion.div>
     </div>
+    </ModalPortal>
   );
 }
 

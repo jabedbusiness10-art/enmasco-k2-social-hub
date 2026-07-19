@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { Campaign } from "@/types/planner";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 type NewCampaignModalProps = {
   isOpen: boolean;
@@ -13,7 +14,8 @@ export default function NewCampaignModal({ isOpen, onClose, onCreate }: NewCampa
   if (!isOpen) return null;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <ModalPortal>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-lg rounded-2xl border border-white/10 bg-white/[0.06] p-4">
         <div className="flex items-center justify-between">
           <div>
@@ -44,5 +46,6 @@ export default function NewCampaignModal({ isOpen, onClose, onCreate }: NewCampa
         </div>
       </motion.div>
     </motion.div>
+    </ModalPortal>
   );
 }

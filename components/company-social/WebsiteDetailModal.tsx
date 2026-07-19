@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import type { WebsiteConnectionPublic } from "@/components/company-social/WebsiteCard";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 export default function WebsiteDetailModal({
   conn,
@@ -34,7 +35,8 @@ export default function WebsiteDetailModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <motion.div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
       <motion.div
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -58,5 +60,6 @@ export default function WebsiteDetailModal({
         <p className="mt-4 text-[11px] text-white/35">API key &amp; webhook secret are encrypted at rest and never exposed to the client.</p>
       </motion.div>
     </div>
+    </ModalPortal>
   );
 }

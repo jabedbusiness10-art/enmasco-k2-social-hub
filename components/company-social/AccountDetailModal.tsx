@@ -5,6 +5,7 @@ import { X, ShieldCheck, History, FileBadge } from "lucide-react";
 import type { CompanySocialAccount } from "@/types/company-social";
 import { PLATFORM_META, STATUS_META } from "@/types/company-social";
 import { PLATFORM_UI, statusColorClass, statusDotClass } from "@/lib/social-ui";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 export default function AccountDetailModal({
   account,
@@ -38,7 +39,8 @@ export default function AccountDetailModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -99,6 +101,7 @@ export default function AccountDetailModal({
         </Section>
       </motion.div>
     </div>
+    </ModalPortal>
   );
 }
 

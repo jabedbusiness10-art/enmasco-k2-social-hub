@@ -3,6 +3,7 @@
 import { X, Filter } from "lucide-react";
 import type { PlatformKey, ContentStatus, Platform } from "@/types/contentPlanner";
 import { campaigns, departments, users } from "@/data/contentPlanner";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 export default function FilterPanel({
   platforms,
@@ -48,7 +49,8 @@ export default function FilterPanel({
     "h-9 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-xs text-white outline-none focus:border-sky-400/40";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4" onClick={onClose}>
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="mt-16 w-full max-w-md rounded-3xl border border-white/10 bg-[#0e0f17] p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-semibold text-white">
@@ -126,6 +128,7 @@ export default function FilterPanel({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }
 

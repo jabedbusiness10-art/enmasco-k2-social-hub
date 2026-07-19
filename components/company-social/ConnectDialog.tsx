@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import type { SocialPlatform } from "@/types/company-social";
 import { PLATFORM_META } from "@/types/company-social";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 const PLATFORMS = Object.keys(PLATFORM_META) as SocialPlatform[];
 
@@ -66,7 +67,8 @@ export default function ConnectDialog({
     "h-9 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-xs text-white outline-none placeholder:text-white/40 focus:border-sky-400/50";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0e1320] p-5 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-bold text-white">Connect Social Account</h2>
@@ -138,5 +140,6 @@ export default function ConnectDialog({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

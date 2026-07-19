@@ -5,6 +5,7 @@ import { X, Save } from "lucide-react";
 import type { ContentPlan, PlatformKey, ContentStatus, ApprovalStatus } from "@/types/contentPlanner";
 import PlatformIcon from "./PlatformIcon";
 import { platforms, campaigns, departments, users } from "@/data/contentPlanner";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 const STATUS_OPTIONS: ContentStatus[] = ["DRAFT", "REVIEW", "APPROVED", "SCHEDULED", "PUBLISHED", "FAILED"];
 const PLATFORM_KEYS: PlatformKey[] = platforms.map((p) => p.key);
@@ -65,7 +66,8 @@ export default function PlanModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0e0f17] shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
           <span className="text-sm font-semibold text-white">{initial ? "Edit Content" : "Create Content"}</span>
@@ -150,6 +152,7 @@ export default function PlanModal({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }
 

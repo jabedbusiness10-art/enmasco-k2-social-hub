@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Building2, Loader2, X } from "lucide-react";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 export interface SelectableLinkedInOrganization {
   id: string;
@@ -25,7 +26,8 @@ export default function LinkedInOrganizationSelectModal({
 }) {
   const [selected, setSelected] = useState(organizations[0]?.id ?? "");
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-[#0b0b0f] p-6 shadow-2xl">
         <button type="button" onClick={onClose} className="absolute right-4 top-4 text-white/50 hover:text-white" aria-label="Close LinkedIn organization selection">
           <X className="h-5 w-5" />
@@ -51,5 +53,6 @@ export default function LinkedInOrganizationSelectModal({
         </button>
       </div>
     </div>
+    </ModalPortal>
   );
 }

@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Phone, Calendar, Briefcase } from "lucide-react";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 type User = {
   id: string;
@@ -20,6 +21,7 @@ type ProfileDrawerProps = {
 
 export default function ProfileDrawer({ isOpen, onClose, user }: ProfileDrawerProps) {
   return (
+    <ModalPortal lockScroll={isOpen}>
     <AnimatePresence>
       {isOpen && (
         <>
@@ -28,14 +30,14 @@ export default function ProfileDrawer({ isOpen, onClose, user }: ProfileDrawerPr
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm"
           />
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-slate-900 border-l border-slate-700/50 shadow-2xl z-50 overflow-y-auto"
+            className="fixed right-0 top-0 z-[101] h-full w-full max-w-md overflow-y-auto border-l border-slate-700/50 bg-slate-900 shadow-2xl"
           >
             {user && (
               <div className="p-6">
@@ -88,5 +90,6 @@ export default function ProfileDrawer({ isOpen, onClose, user }: ProfileDrawerPr
         </>
       )}
     </AnimatePresence>
+    </ModalPortal>
   );
 }

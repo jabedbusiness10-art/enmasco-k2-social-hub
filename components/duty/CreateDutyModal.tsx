@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Duty, DutyPriority, DutyStatus } from "@/types/duty";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 type DutyModalProps = {
   isOpen: boolean;
@@ -79,7 +80,8 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
     "h-10 w-full rounded-xl border border-slate-700/70 bg-slate-800/60 px-3 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-sky-400 focus:ring-0 disabled:opacity-60";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <motion.div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => !saving && onClose()} />
       <motion.form
         onSubmit={submit}
@@ -216,5 +218,6 @@ export default function DutyModal({ isOpen, onClose, onSave, duty }: DutyModalPr
         </div>
       </motion.form>
     </div>
+    </ModalPortal>
   );
 }

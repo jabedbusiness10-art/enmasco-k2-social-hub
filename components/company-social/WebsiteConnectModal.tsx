@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 const CMS_OPTIONS = [
   { value: "WORDPRESS", label: "WordPress" },
@@ -76,7 +77,8 @@ export default function WebsiteConnectModal({
     "h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-sky-400/50";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <motion.div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
@@ -154,5 +156,6 @@ export default function WebsiteConnectModal({
         </button>
       </motion.form>
     </div>
+    </ModalPortal>
   );
 }

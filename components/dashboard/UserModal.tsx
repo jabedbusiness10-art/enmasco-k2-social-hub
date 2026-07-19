@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 type User = {
   id?: string;
@@ -52,7 +53,8 @@ export default function UserModal({ isOpen, onClose, user, onSave }: UserModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <motion.div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={onClose} />
       <motion.form
         onSubmit={submit}
@@ -135,5 +137,6 @@ export default function UserModal({ isOpen, onClose, user, onSave }: UserModalPr
         </div>
       </motion.form>
     </div>
+    </ModalPortal>
   );
 }

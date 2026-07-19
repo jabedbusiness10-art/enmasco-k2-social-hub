@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Tag, Search, Pencil, Trash2, X, Plus, Merge, Loader2 } from "lucide-react";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 interface TagItem { id: string; name: string; color?: string | null; _count?: { assetTags: number }; assetTags?: { length: number } }
 
@@ -94,7 +95,8 @@ export default function TagsView() {
       )}
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowForm(false)}>
+        <ModalPortal>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={() => setShowForm(false)}>
           <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#0e1320] p-5" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-semibold text-white"><Tag className="h-4 w-4 text-sky-400" /> {editing ? "Edit Tag" : "New Tag"}</div>
@@ -119,6 +121,7 @@ export default function TagsView() {
             <button onClick={save} className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-rose-500 text-sm font-semibold text-white"><Plus className="h-4 w-4" /> {editing ? "Save Changes" : "Create Tag"}</button>
           </div>
         </div>
+        </ModalPortal>
       )}
 
       {toast && <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/10 bg-[#0e1320] px-4 py-2 text-sm text-white shadow-lg">{toast}</div>}

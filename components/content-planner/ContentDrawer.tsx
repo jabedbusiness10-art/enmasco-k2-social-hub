@@ -7,6 +7,7 @@ import type { ContentPlan } from "@/types/contentPlanner";
 import PlatformIcon from "./PlatformIcon";
 import { StatusBadge, ApprovalBadge } from "./StatusBadge";
 import { userById, campaignById, departmentById } from "@/data/contentPlanner";
+import ModalPortal from "@/components/ui/ModalPortal";
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -50,7 +51,8 @@ export default function ContentDrawer({
   ];
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-black/50" onClick={onClose}>
+    <ModalPortal>
+    <div className="fixed inset-0 z-[100] flex justify-end bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <motion.div
         initial={{ x: 40, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -176,6 +178,7 @@ export default function ContentDrawer({
         </div>
       </motion.div>
     </div>
+    </ModalPortal>
   );
 }
 
