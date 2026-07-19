@@ -56,50 +56,50 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
 
   return (
     <motion.header
-      initial={{ opacity: 0, y: -18 }}
+      initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
-      className={`enterprise-top-nav relative z-50 min-h-16 overflow-visible rounded-[28px] border border-white/10 bg-[#070709]/80 px-4 py-3 text-white shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:px-5 lg:px-6 ${className}`}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      className={`enterprise-top-nav relative z-50 overflow-visible rounded-[20px] border border-white/10 bg-[#070709]/80 px-3 py-2 text-white shadow-[0_18px_55px_rgba(0,0,0,0.34)] backdrop-blur-2xl sm:px-4 ${className}`}
     >
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_8%_0%,rgba(248,113,113,0.18),transparent_28%),radial-gradient(circle_at_50%_-30%,rgba(255,255,255,0.09),transparent_24%),radial-gradient(circle_at_95%_100%,rgba(127,29,29,0.24),transparent_34%)]" />
       <div className="top-nav-grid absolute inset-0 -z-10 opacity-35" />
       <div className="absolute left-0 top-0 -z-10 h-px w-full bg-gradient-to-r from-transparent via-red-200/45 to-transparent" />
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
         <motion.div
           whileHover={{ x: 2 }}
           transition={{ duration: 0.25 }}
-          className="group flex min-w-0 flex-shrink-0 items-center gap-3"
+          className="group flex min-w-0 flex-shrink-0 items-center gap-2"
         >
           <img
             src="/logo.svg"
             alt="K2Media Hub"
-            className="h-10 w-auto drop-shadow-[0_0_14px_rgba(56,189,248,0.55)]"
+            className="h-8 w-auto drop-shadow-[0_0_12px_rgba(56,189,248,0.5)]"
           />
           <div className="min-w-0">
-            <div className="truncate text-base font-bold leading-tight tracking-[0.3px] text-white sm:text-lg">
+            <div className="truncate text-sm font-bold leading-tight tracking-[0.25px] text-white">
               K2Media Hub
             </div>
           </div>
         </motion.div>
 
         <motion.div
-          whileHover={{ scale: 1.02, y: -4 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="flex flex-shrink-0 flex-col justify-center rounded-xl border border-slate-700/50 bg-slate-800/50 p-4 backdrop-blur-sm"
+          whileHover={{ scale: 1.015, y: -1 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="flex min-w-[136px] flex-shrink-0 flex-col justify-center rounded-xl border border-red-400/20 bg-black/55 px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_0_18px_rgba(248,113,113,0.06)] backdrop-blur-sm"
         >
-          <div className="text-sky-400/80 text-xs font-bold tracking-wider uppercase mb-1">
+          <div className="text-[8px] font-bold uppercase tracking-[0.14em] text-red-200/55">
             GMT+3 (Riyadh)
           </div>
-          <div className="text-3xl font-bold text-white tracking-tight mb-1">
+          <div className="font-mono text-[21px] font-bold leading-6 tabular-nums tracking-[0.035em] text-red-400 [text-shadow:0_0_10px_rgba(248,113,113,0.65)]">
             {clock.time}
           </div>
-          <div className="text-slate-400 text-sm font-medium">
+          <div className="text-[9px] font-medium leading-3 text-white/38">
             {clock.calendarDate}
           </div>
         </motion.div>
 
-        <div className="ml-auto flex flex-wrap items-stretch justify-end gap-2 min-w-0">
+        <div className="ml-auto flex min-w-0 flex-wrap items-stretch justify-end gap-1.5 xl:flex-nowrap">
           <StatusTile
             icon={BrainCircuit}
             label="AI Status"
@@ -124,16 +124,16 @@ export default function EnterpriseTopNav({ className = "" }: EnterpriseTopNavPro
           <motion.div
             whileHover={{ y: -2, scale: 1.01 }}
             transition={{ duration: 0.25 }}
-            className="group flex min-h-[52px] min-w-[170px] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/35 hover:bg-white/[0.078] hover:shadow-[0_0_30px_rgba(248,113,113,0.2)]"
+            className="group flex min-h-[44px] min-w-[180px] items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-2.5 py-1.5 shadow-[0_10px_26px_rgba(0,0,0,0.2)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/35 hover:bg-white/[0.075] hover:shadow-[0_0_24px_rgba(248,113,113,0.16)]"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-red-200/20 bg-red-400/[0.1] text-red-100 shadow-[0_0_24px_rgba(248,113,113,0.18)] transition-all duration-300 group-hover:border-red-200/45 group-hover:text-white">
-              <UserRound className="h-5 w-5" strokeWidth={1.8} />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-red-200/20 bg-red-400/[0.1] text-red-100 shadow-[0_0_18px_rgba(248,113,113,0.14)] transition-all duration-300 group-hover:border-red-200/45 group-hover:text-white">
+              <UserRound className="h-4 w-4" strokeWidth={1.8} />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold leading-tight text-white">
+              <div className="truncate text-xs font-semibold leading-tight text-white">
                 MD Kazim
               </div>
-              <div className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              <div className="mt-0.5 truncate text-[8px] font-semibold uppercase tracking-[0.12em] text-white/40">
                 Chief Executive Officer (CEO)
               </div>
             </div>
@@ -182,17 +182,17 @@ function StatusTile({ icon: Icon, label, value, tone }: StatusTileProps) {
     <motion.div
       whileHover={{ y: -2, scale: 1.02 }}
       transition={{ duration: 0.25 }}
-      className="group flex min-h-[52px] min-w-[120px] items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.055] px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/35 hover:bg-white/[0.078] hover:shadow-[0_0_30px_rgba(248,113,113,0.18)]"
+      className="group flex min-h-[44px] min-w-[112px] items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-1.5 shadow-[0_10px_26px_rgba(0,0,0,0.2)] backdrop-blur-xl transition-all duration-300 hover:border-red-200/35 hover:bg-white/[0.075] hover:shadow-[0_0_24px_rgba(248,113,113,0.15)]"
     >
-      <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-red-100 transition-all duration-300 group-hover:border-red-200/35 group-hover:text-white">
-        <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ${toneClass}`} />
-        <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+      <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-red-100 transition-all duration-300 group-hover:border-red-200/35 group-hover:text-white">
+        <span className={`absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full ${toneClass}`} />
+        <Icon className="h-4 w-4" strokeWidth={1.8} />
       </div>
       <div className="min-w-0">
-        <div className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-white/42">
+        <div className="truncate text-[8px] font-semibold uppercase tracking-[0.13em] text-white/42">
           {label}
         </div>
-        <div className="mt-0.5 truncate text-sm font-semibold text-white/84">
+        <div className="mt-0.5 truncate text-[11px] font-semibold leading-3 text-white/84">
           {value}
         </div>
       </div>
