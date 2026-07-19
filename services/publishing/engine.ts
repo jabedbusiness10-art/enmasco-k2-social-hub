@@ -3,6 +3,8 @@ import { decrypt } from "@/lib/crypto";
 import { classifyMetaError } from "@/services/meta/oauth";
 import { publishLinkedInOrganization } from "@/services/linkedin/posts";
 import { publishWebsiteConnection } from "@/services/website/connection";
+import { publishTikTok } from "./providers/tiktok";
+import { publishYouTube } from "./providers/youtube";
 
 /**
  * TASK-48 — Enterprise Real Publishing Engine.
@@ -17,8 +19,15 @@ import { publishWebsiteConnection } from "@/services/website/connection";
 
 const META_GRAPH = "https://graph.facebook.com/v21.0";
 
+export const PUBLISH_PLATFORMS = [
+  "FACEBOOK", "INSTAGRAM", "TIKTOK", "YOUTUBE", "LINKEDIN", "WEBSITE",
+  "X", "THREADS", "PINTEREST",
+] as const;
+
+export type PublishPlatform = (typeof PUBLISH_PLATFORMS)[number];
+
 export interface PublishTarget {
-  platform: "FACEBOOK" | "INSTAGRAM" | "LINKEDIN" | "WEBSITE";
+  platform: PublishPlatform;
   accountId: string; // CompanySocialAccount id
 }
 
@@ -30,6 +39,27 @@ export interface PublishInput {
   mediaUrls?: string[]; // image/video urls (already uploaded to storage)
   cta?: string;
   location?: string;
+  providerOptions?: {
+    tiktok?: {
+      privacyLevel?: string;
+      disableComment?: boolean;
+      disableDuet?: boolean;
+      disableStitch?: boolean;
+      coverTimestampMs?: number;
+    };
+    youtube?: {
+      title?: string;
+      description?: string;
+      thumbnailUrl?: string;
+      tags?: string[];
+      playlistId?: string;
+      visibility?: "public" | "private" | "unlisted";
+      publishAt?: string;
+      categoryId?: string;
+      madeForKids?: boolean;
+    };
+    website?: { status?: "draft" | "publish" };
+  };
 }
 
 export interface PublishResult {
@@ -38,6 +68,11 @@ export interface PublishResult {
   platformPostId?: string;
   liveUrl?: string;
   error?: string;
+  providerStatus?: string;
+  retryable?: boolean;
+  errorCode?: string;
+  retryAfterSeconds?: number;
+  metadata?: Record<string, unknown>;
 }
 
 function fullCaption(input: PublishInput): string {
@@ -60,6 +95,14 @@ async function resolveAccount(accountId: string) {
       if (refreshed) Object.assign(acc, refreshed);
     } catch { /* refresh is best-effort; continue with stored token */ }
   }
+  if (acc.provider === "youtube" && (!acc.expiresAt || acc.expiresAt.getTime() < Date.now() + 5 * 60_000)) {
+    try {
+      const { refreshAccount } = await import("@/services/social/accounts");
+      await refreshAccount(accountId);
+      const refreshed = await prisma.companySocialAccount.findUnique({ where: { id: accountId } });
+      if (refreshed) Object.assign(acc, refreshed);
+    } catch { /* The provider call returns the actionable auth error. */ }
+  }
   const token = acc.accessToken ? decrypt(acc.accessToken) : null;
   if (!token) throw new Error("Missing access token");
   return { acc, token };
@@ -73,6 +116,19 @@ async function publishFacebook(acc: any, token: string, input: PublishInput): Pr
     message: fullCaption(input),
     access_token: token,
   });
+  const singleVideo = media.length === 1 && /\.(mp4|mov|webm)(?:\?|$)/i.test(media[0]);
+  if (singleVideo) {
+    const response = await fetch(`${META_GRAPH}/${pageId}/videos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ access_token: token, file_url: media[0], description: fullCaption(input) }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.id) {
+      return { platform: "FACEBOOK", ok: false, error: data?.error?.message ?? "Facebook video publish failed", retryable: response.status === 429 || response.status >= 500 };
+    }
+    return { platform: "FACEBOOK", ok: true, platformPostId: data.id, liveUrl: `https://facebook.com/${data.id}`, providerStatus: "PROCESSING" };
+  }
   if (input.link) body.set("link", input.link);
   // TASK-74 — multi-image carousel via attached_media (real Graph feature).
   if (media.length >= 2) {
@@ -123,7 +179,7 @@ async function publishInstagram(acc: any, token: string, input: PublishInput): P
   if (media.length === 1) {
     const createBody = new URLSearchParams({ access_token: token, caption });
     if (isVideo) {
-      createBody.set("media_type", "VIDEO");
+      createBody.set("media_type", "REELS");
       createBody.set("video_url", media[0]);
     } else {
       createBody.set("image_url", media[0]);
@@ -203,23 +259,43 @@ export async function publishToPlatform(
       const result = await publishWebsiteConnection(target.accountId, {
         title: input.title || "Untitled",
         content: input.caption,
-        status: "publish",
+        status: input.providerOptions?.website?.status ?? "publish",
         featuredImage: input.mediaUrls?.[0],
         canonicalUrl: input.link,
         tags: input.hashtags,
       });
-      return { platform: "WEBSITE", ok: true, platformPostId: result.externalId, liveUrl: result.canonicalUrl ?? undefined };
+      return { platform: "WEBSITE", ok: true, platformPostId: result.externalId, liveUrl: result.canonicalUrl ?? undefined, providerStatus: input.providerOptions?.website?.status === "draft" ? "DRAFT" : "PUBLISHED" };
     } catch (error) {
       return { platform: "WEBSITE", ok: false, error: error instanceof Error ? error.message : "Website publishing failed" };
     }
   }
   const { acc, token } = await resolveAccount(target.accountId);
+  const expectedProvider: Partial<Record<PublishPlatform, string>> = {
+    FACEBOOK: "meta",
+    INSTAGRAM: "meta",
+    TIKTOK: "tiktok",
+    YOUTUBE: "youtube",
+  };
+  if (expectedProvider[target.platform] && acc.provider !== expectedProvider[target.platform]) {
+    return {
+      platform: target.platform,
+      ok: false,
+      error: `Selected account is not a ${target.platform} connection`,
+      errorCode: "ACCOUNT_PROVIDER_MISMATCH",
+      retryable: false,
+      providerStatus: "INVALID_ACCOUNT",
+    };
+  }
   switch (target.platform) {
     case "FACEBOOK":
       return publishFacebook(acc, token, input);
     case "INSTAGRAM":
       return publishInstagram(acc, token, input);
+    case "TIKTOK":
+      return publishTikTok(acc, token, input);
+    case "YOUTUBE":
+      return publishYouTube(acc, token, input);
     default:
-      return { platform: target.platform, ok: false, error: "Unsupported platform" };
+      return { platform: target.platform, ok: false, error: `${target.platform} publishing adapter is not enabled yet`, errorCode: "PROVIDER_NOT_ENABLED", retryable: false, providerStatus: "NOT_ENABLED" };
   }
 }

@@ -1,4 +1,13 @@
-export type PublishPlatform = "facebook" | "instagram" | "linkedin" | "website" | "youtube";
+export type PublishPlatform =
+  | "facebook"
+  | "instagram"
+  | "tiktok"
+  | "youtube"
+  | "linkedin"
+  | "website"
+  | "x"
+  | "threads"
+  | "pinterest";
 export type PublishStatus = "QUEUED" | "PUBLISHING" | "SUCCESS" | "FAILED" | "RETRY" | "CANCELLED";
 
 export interface PublishJob {

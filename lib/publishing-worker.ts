@@ -1,5 +1,5 @@
 import { getQueue, QUEUE_NAME } from "@/services/publishing/queue";
-import { executePublish } from "@/services/publishing/service";
+import { executePublish, processDuePublishingRetries } from "@/services/publishing/service";
 
 /**
  * TASK-48 — Publishing worker.
@@ -21,8 +21,9 @@ export async function processDueJobs(): Promise<{ processed: number; errors: num
       const job = await queue.dequeue(QUEUE_NAME);
       if (!job) break;
       try {
-        const { postId } = job.payload;
-        await executePublish(postId);
+        const { postId, __jobName } = job.payload;
+        if (__jobName === "publish:retry-due") await processDuePublishingRetries(job.payload?.limit);
+        else await executePublish(postId);
         await queue.complete(job.id);
         processed++;
       } catch (e: any) {

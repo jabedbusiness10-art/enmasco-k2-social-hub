@@ -31,8 +31,8 @@ class DbQueue implements PublishingQueue {
   async enqueue(name: string, payload: any, opts?: { runAt?: Date; priority?: number }): Promise<string> {
     const row = await prisma.queue.create({
       data: {
-        name,
-        payload: JSON.stringify(payload),
+        name: QUEUE_NAME,
+        payload: JSON.stringify({ ...payload, __jobName: name }),
         runAt: opts?.runAt ?? new Date(),
         priority: opts?.priority ?? 0,
         state: "QUEUED",

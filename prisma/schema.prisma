@@ -51,9 +51,12 @@ enum PostStatus {
 enum Platform {
   FACEBOOK
   INSTAGRAM
+  TIKTOK
   LINKEDIN
   YOUTUBE
   X
+  THREADS
+  PINTEREST
   WEBSITE
 }
 
@@ -764,17 +767,24 @@ enum WorkerStatus {
 }
 
 model PostPlatform {
-  id           String       @id @default(cuid())
-  postId       String
-  platform     Platform // FACEBOOK | INSTAGRAM | LINKEDIN (also X/TIKTOK/YOUTUBE future)
-  accountId    String? // CompanySocialAccount id (the connected page/company)
-  status       PublishStatus @default(QUEUED)
-  platformPostId String? // id returned by the platform after publish
-  liveUrl      String? // permalink to the published post
-  error        String?
-  mediaIds     String[] // PostMedia ids used for this platform
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String        @id @default(cuid())
+  postId           String
+  platform         Platform
+  accountId        String? // provider connection id
+  status           PublishStatus @default(QUEUED)
+  platformPostId   String? // external provider id
+  liveUrl          String? // provider permalink
+  error            String?
+  providerStatus   String?
+  retryCount       Int           @default(0)
+  maxRetries       Int           @default(3)
+  lastAttemptAt    DateTime?
+  nextRetryAt      DateTime?
+  publishedAt      DateTime?
+  providerMetadata Json?
+  mediaIds         String[] // PostMedia ids used for this platform
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
@@ -782,6 +792,7 @@ model PostPlatform {
   @@index([postId])
   @@index([platform])
   @@index([status])
+  @@index([nextRetryAt])
 }
 
 model PostMedia {

@@ -19,8 +19,12 @@ export const JOB_HANDLERS: Record<string, JobHandler> = {
   // publish
   "publish:facebook": handlePublish,
   "publish:instagram": handlePublish,
+  "publish:tiktok": handlePublish,
+  "publish:youtube": handlePublish,
   "publish:linkedin": handlePublish,
   "publish:website": handlePublish,
+  "publish:post": handlePublish,
+  "publish:retry-due": handlePublish,
   // ai
   "ai:reply": handleAI,
   "ai:caption": handleAI,

@@ -22,6 +22,12 @@ interface Repeatable {
 
 const REPEATABLES: Repeatable[] = [
   {
+    queue: QUEUE_NAMES.PUBLISH,
+    name: "publish:retry-due",
+    payload: { limit: 50 },
+    cron: "* * * * *",
+  },
+  {
     queue: QUEUE_NAMES.TOKEN,
     name: "token:expiry-check",
     payload: { scope: "all" },
