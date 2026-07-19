@@ -42,7 +42,7 @@ function rateLimited(ip: string): boolean {
 }
 
 // TASK-62 — route-level role guard (defense in depth alongside page/API checks)
-const ADMIN_PREFIXES = ["/dashboard/admin", "/dashboard/monitoring", "/dashboard/queue"];
+const ADMIN_PREFIXES = ["/dashboard/admin", "/dashboard/monitoring", "/dashboard/queue", "/monitoring"];
 const EXECUTIVE_PREFIX = "/dashboard/executive";
 const EXPORT_PREFIX = "/dashboard/insights/reports";
 
@@ -114,6 +114,7 @@ export const config = {
     "/ai/:path*",
     "/notifications/:path*",
     "/settings/:path*",
+    "/monitoring/:path*",
     "/api/:path*",
   ],
 };

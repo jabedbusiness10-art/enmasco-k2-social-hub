@@ -5,15 +5,14 @@
  *  - Next.js _next/static -> Cache First
  *  - images             -> Stale-While-Revalidate
  *  - navigation (HTML)  -> Network First w/ offline fallback
- *  - API (non-auth)     -> Network First, cache on success; never cache secrets/auth
+ *  - API requests       -> Network Only (never persist enterprise responses)
  *  - auth/protected     -> Network Only (Security)
  * Automatic versioned cache cleanup. Push + Background Sync stubs ready.
  */
-const VERSION = "v1.0.0";
+const VERSION = "v1.0.1";
 const STATIC_CACHE = `k2kai-static-${VERSION}`;
 const RUNTIME_CACHE = `k2kai-runtime-${VERSION}`;
 const IMAGE_CACHE = `k2kai-images-${VERSION}`;
-const API_CACHE = `k2kai-api-${VERSION}`;
 const OFFLINE_URL = "/offline";
 
 const PRECACHE = ["/offline", "/dashboard", "/manifest.webmanifest"];
@@ -105,9 +104,10 @@ self.addEventListener("fetch", (event) => {
   // Images
   if (req.destination === "image") { event.respondWith(staleWhileRevalidate(req, IMAGE_CACHE)); return; }
 
-  // API (non-auth) -> network first, cached for resilience
+  // Enterprise API payloads (activity, session-adjacent data, reporting, etc.)
+  // must remain live and must never be served from a stale browser cache.
   if (url.pathname.startsWith("/api/")) {
-    event.respondWith(networkFirst(req, API_CACHE, null));
+    event.respondWith(fetch(req));
     return;
   }
 

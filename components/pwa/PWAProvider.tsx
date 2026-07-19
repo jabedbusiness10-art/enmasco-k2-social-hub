@@ -53,6 +53,31 @@ export function PWAProvider({ children }: { children: ReactNode }) {
     setOnline(navigator.onLine);
     setConn(navigator.onLine ? "online" : "offline");
 
+    // A service worker must never control the Next.js development server.
+    // Cached dev chunks keep obsolete client code alive across HMR/restarts and
+    // surface misleading fetch/auth errors from bundles that no longer exist.
+    if (process.env.NODE_ENV !== "production") {
+      void (async () => {
+        if (!("serviceWorker" in navigator)) return;
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        const hadWorker = Boolean(navigator.serviceWorker.controller) || registrations.length > 0;
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.filter((key) => key.startsWith("k2kai-")).map((key) => caches.delete(key)));
+        }
+
+        const reloadKey = "k2kai-dev-sw-cleanup";
+        if (hadWorker && sessionStorage.getItem(reloadKey) !== "done") {
+          sessionStorage.setItem(reloadKey, "done");
+          window.location.reload();
+        } else if (!hadWorker) {
+          sessionStorage.removeItem(reloadKey);
+        }
+      })().catch((error) => console.warn("[PWA] Dev cache cleanup failed", error));
+      return;
+    }
+
     let onLoad: () => void = () => {};
 
     const onOnline = () => { setOnline(true); setConn("reconnecting"); setLastSync(Date.now()); setTimeout(() => setConn("online"), 1200); };
@@ -79,7 +104,8 @@ export function PWAProvider({ children }: { children: ReactNode }) {
           });
         } catch (e) { console.error("[PWA] SW register failed", e); }
       };
-      window.addEventListener("load", onLoad);
+      if (document.readyState === "complete") void onLoad();
+      else window.addEventListener("load", onLoad);
     }
 
     // slow network detection
