@@ -56,6 +56,18 @@ export async function streamChat(
           full += chunk;
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: chunk })}\n\n`));
         }
+        await prisma.aIMessage.create({
+          data: { conversationId: convId, role: "assistant", content: full, tokensUsed: tokenEstimate(full) },
+        });
+        await logTokenUsage({
+          userId,
+          conversationId: convId,
+          module: opts.model ?? "CHAT",
+          promptTokens: tokenEstimate(userContent),
+          completionTokens: tokenEstimate(full),
+          model: provider.id,
+        });
+        await prisma.aIConversation.update({ where: { id: convId }, data: { updatedAt: new Date() } }).catch(() => {});
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
         controller.close();
       } catch (e: any) {
@@ -64,22 +76,6 @@ export async function streamChat(
       }
     },
   });
-
-  // persist assistant message + token usage after streaming starts
-  (async () => {
-    await prisma.aIMessage.create({
-      data: { conversationId: convId, role: "assistant", content: full, tokensUsed: tokenEstimate(full) },
-    });
-    await logTokenUsage({
-      userId,
-      conversationId: convId,
-      module: opts.model ?? "CHAT",
-      promptTokens: tokenEstimate(userContent),
-      completionTokens: tokenEstimate(full),
-      model: provider.id,
-    });
-    await prisma.aIConversation.update({ where: { id: convId }, data: { updatedAt: new Date() } }).catch(() => {});
-  })();
 
   return { stream, conversationId: convId };
 }

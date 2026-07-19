@@ -127,23 +127,17 @@ class OpenAIProvider implements AIProvider {
 // ---------------------------------------------------------------------------
 // Factory
 // ---------------------------------------------------------------------------
-let cached: AIProvider | null = null;
-
 export function getAIProvider(): AIProvider {
-  if (cached) return cached;
   const requested = (process.env.AI_PROVIDER ?? "mock").toLowerCase();
   switch (requested) {
     case "openrouter":
-      cached = new OpenRouterProvider();
-      break;
+      return new OpenRouterProvider();
     case "openai":
-      cached = new OpenAIProvider();
-      break;
+      return new OpenAIProvider();
     // gemini / claude providers can be added here with the same interface.
     default:
-      cached = new MockProvider();
+      return new MockProvider();
   }
-  return cached;
 }
 
 export function tokenEstimate(text: string): number {

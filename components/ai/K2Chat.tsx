@@ -61,7 +61,7 @@ export default function K2Chat() {
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [demo, setDemo] = useState(false);
+  const [streamError, setStreamError] = useState<string | null>(null);
   const [convId, setConvId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -73,6 +73,7 @@ export default function K2Chat() {
       const content = text.trim();
       if (!content || busy) return;
       setBusy(true);
+      setStreamError(null);
       const history = regenerate
         ? messages.slice(0, -2)
         : messages;
@@ -95,6 +96,10 @@ export default function K2Chat() {
         });
         const cid = res.headers.get("X-Conversation-Id");
         if (cid) setConvId(cid);
+        if (!res.ok) {
+          const failure = await res.json().catch(() => ({}));
+          throw new Error(failure.error ?? `AI request failed (${res.status})`);
+        }
         if (!res.body) throw new Error("No stream");
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -117,13 +122,19 @@ export default function K2Chat() {
                 setMessages((m) => m.map((msg) => (msg.id === assistantId ? { ...msg, content: full } : msg)));
                 scrollToBottom();
               }
-              if (evt.error) setDemo(true);
+              if (evt.error) {
+                const message = String(evt.error);
+                setStreamError(message);
+                setMessages((m) => m.map((msg) => (msg.id === assistantId ? { ...msg, content: `AI request failed: ${message}` } : msg)));
+              }
             } catch {}
           }
         }
       } catch (e: any) {
         if (e.name !== "AbortError") {
-          setMessages((m) => m.map((msg) => (msg.id === assistantId ? { ...msg, content: "⚠️ " + (e.message ?? "Generation failed") } : msg)));
+          const message = e.message ?? "Generation failed";
+          setStreamError(message);
+          setMessages((m) => m.map((msg) => (msg.id === assistantId ? { ...msg, content: `AI request failed: ${message}` } : msg)));
         }
       } finally {
         setBusy(false);
@@ -145,9 +156,9 @@ export default function K2Chat() {
 
   return (
     <div className="flex h-full flex-col">
-      {demo && (
-        <div className="mb-2 flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[11px] text-amber-200">
-          <AlertCircle className="h-3.5 w-3.5" /> Demo Mode — no AI API key configured. Connect OpenAI/Gemini/Claude in <code>.env.local</code> for live responses.
+      {streamError && (
+        <div className="mb-2 flex items-center gap-2 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-1.5 text-[11px] text-rose-200">
+          <AlertCircle className="h-3.5 w-3.5" /> OpenRouter request failed: {streamError}
         </div>
       )}
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.02] p-4">
