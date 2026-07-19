@@ -137,7 +137,7 @@ export function AIHealth({ snap }: { snap: MonitoringSnapshot }) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <StatusCard title="K2Kai AI" status="ok"><Metric label="Status" value="Operational" /></StatusCard>
-      <StatusCard title="Provider" status={snap.externalApis["OpenAI / OpenRouter"] ? "ok" : "disabled"}><Metric label="OpenRouter" value={snap.externalApis["OpenAI / OpenRouter"] ? "Configured" : "Not set"} /></StatusCard>
+      <StatusCard title="Provider" status={snap.externalApis["OpenAI / OpenRouter"] ? "ok" : "disabled"}><Metric label="OpenAI / OpenRouter" value={snap.externalApis["OpenAI / OpenRouter"] ? "Configured" : "Not set"} /></StatusCard>
       <StatusCard title="Requests" status="ok"><Metric label="Total AI Calls" value={snap.counts.aiRequests} /></StatusCard>
       <StatusCard title="Token Usage" status="ok"><Metric label="Recorded" value={snap.counts.aiRequests} /></StatusCard>
     </div>

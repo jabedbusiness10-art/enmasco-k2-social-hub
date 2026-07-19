@@ -102,7 +102,7 @@ class OpenRouterProvider implements AIProvider {
 // ---------------------------------------------------------------------------
 class OpenAIProvider implements AIProvider {
   id = "openai";
-  label = "OpenAI";
+  label = "OpenAI API";
   isConfigured = Boolean(process.env.OPENAI_API_KEY);
 
   async *streamChat(messages: ChatMessage[], opts: GenerateOptions): AsyncIterable<string> {
@@ -112,16 +112,14 @@ class OpenAIProvider implements AIProvider {
     }
     const OpenAI = (await import("openai")).default;
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const stream = await client.chat.completions.create({
-      model: opts.model ?? "gpt-4o-mini",
-      temperature: opts.temperature ?? 0.7,
-      max_tokens: opts.maxTokens ?? 1024,
+    const stream = await client.responses.create({
+      model: opts.model ?? process.env.AI_MODEL ?? "gpt-5.6-sol",
+      max_output_tokens: opts.maxTokens ?? 1024,
       stream: true,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      input: messages.map((m) => ({ role: m.role, content: m.content })),
     });
-    for await (const chunk of stream) {
-      const delta = chunk.choices?.[0]?.delta?.content;
-      if (delta) yield delta;
+    for await (const event of stream) {
+      if (event.type === "response.output_text.delta" && event.delta) yield event.delta;
     }
   }
 }

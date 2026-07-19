@@ -135,7 +135,7 @@ export async function getMonitoringSnapshot(): Promise<MonitoringSnapshot> {
     "LinkedIn API": Boolean(process.env.LINKEDIN_CLIENT_ID),
     "Google OAuth": Boolean(process.env.GOOGLE_CLIENT_ID),
     "Google Analytics": Boolean(process.env.GOOGLE_ANALYTICS_ID),
-    "OpenAI / OpenRouter": Boolean(process.env.OPENROUTER_API_KEY),
+    "OpenAI / OpenRouter": Boolean(process.env.OPENAI_API_KEY || process.env.OPENROUTER_API_KEY),
     "SMTP": Boolean(process.env.SMTP_HOST),
     "Webhooks": Boolean(process.env.META_WEBHOOK_VERIFY_TOKEN),
   };

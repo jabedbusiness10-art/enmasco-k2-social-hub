@@ -51,7 +51,7 @@ export async function GET() {
     meta: Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET),
     linkedin: Boolean(process.env.LINKEDIN_CLIENT_ID),
     google: Boolean(process.env.GOOGLE_CLIENT_ID),
-    ai: Boolean(process.env.OPENROUTER_API_KEY),
+    ai: Boolean(process.env.OPENAI_API_KEY || process.env.OPENROUTER_API_KEY),
   };
 
   // --- System ---

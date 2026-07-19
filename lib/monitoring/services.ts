@@ -47,7 +47,7 @@ export async function getExternalServices(): Promise<ExternalService[]> {
     def("linkedin", "LinkedIn API", Boolean(process.env.LINKEDIN_CLIENT_ID), "linkedin"),
     def("google_oauth", "Google OAuth", Boolean(process.env.GOOGLE_CLIENT_ID), "youtube"),
     def("ga4", "Google Analytics", Boolean(process.env.GOOGLE_ANALYTICS_ID), null),
-    def("openai", "OpenAI / OpenRouter", Boolean(process.env.OPENROUTER_API_KEY), null),
+    def("openai", "OpenAI / OpenRouter", Boolean(process.env.OPENAI_API_KEY || process.env.OPENROUTER_API_KEY), null),
     def("smtp", "SMTP", Boolean(process.env.SMTP_HOST), null),
     def("webhook", "Webhook Services", Boolean(process.env.META_WEBHOOK_VERIFY_TOKEN), null),
   ];
