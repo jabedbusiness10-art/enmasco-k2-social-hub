@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Search, Filter } from "lucide-react";
 import EmptyState from "@/components/ui/EmptyState";
 
@@ -24,25 +24,45 @@ export default function LogsViewer() {
   const [cat, setCat] = useState("all");
   const [sev, setSev] = useState<(typeof SEVERITIES)[number]>("all");
   const [page, setPage] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   // Re-fetch real activity (server logs also stream here) every 15s.
-  const load = async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     try {
-      const r = await fetch("/api/activity", { cache: "no-store" });
+      const r = await fetch("/api/activity", { cache: "no-store", credentials: "same-origin", signal });
+      if (r.status === 401) throw new Error("Your session expired. Sign in again to view activity logs.");
+      if (!r.ok) throw new Error(`Activity logs request failed (HTTP ${r.status}).`);
       const j = await r.json();
-      setRows(j.items ?? []);
+      if (!signal?.aborted) {
+        setRows(Array.isArray(j.items) ? j.items : []);
+        setError(null);
+      }
+    } catch (cause) {
+      if (cause instanceof DOMException && cause.name === "AbortError") return;
+      if (!signal?.aborted) {
+        setError(cause instanceof Error ? cause.message : "Activity logs are temporarily unavailable.");
+      }
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
-  };
-  // initial + interval handled by parent polling; expose load via effect in page.
-  // For simplicity we poll here too.
-  useMemo(() => {
-    load();
-    const t = setInterval(load, 15000);
-    return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let inFlight = false;
+    const refresh = async () => {
+      if (inFlight) return;
+      inFlight = true;
+      await load(controller.signal);
+      inFlight = false;
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 15_000);
+    return () => {
+      controller.abort();
+      window.clearInterval(timer);
+    };
+  }, [load]);
 
   const filtered = rows.filter((r) => {
     if (cat !== "all" && r.source !== cat && r.module !== cat) return false;
@@ -73,6 +93,15 @@ export default function LogsViewer() {
           {SEVERITIES.map((s) => <option key={s} value={s} className="bg-zinc-900">{s}</option>)}
         </select>
       </div>
+
+      {error && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] px-3 py-2 text-xs text-amber-100">
+          <span>{error}</span>
+          <button type="button" onClick={() => void load()} className="shrink-0 rounded-lg border border-amber-300/25 px-2 py-1 font-medium hover:bg-amber-300/10">
+            Retry
+          </button>
+        </div>
+      )}
 
       {loading && rows.length === 0 ? (
         <div className="h-40 animate-pulse rounded-2xl bg-white/5" />
