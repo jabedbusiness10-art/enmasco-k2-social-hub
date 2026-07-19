@@ -155,7 +155,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className={`mt-auto shrink-0 border-t border-white/10 ${collapsed ? "px-3 py-3" : "px-4 py-3.5"}`}>
+      <div className={`mt-auto shrink-0 border-t border-white/[0.08] bg-black/15 ${collapsed ? "px-3 py-2.5" : "px-4 py-2"}`}>
         <AnimatePresence initial={false}>
           {!collapsed ? (
             <motion.div
@@ -164,24 +164,23 @@ export default function Sidebar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col gap-2"
+              className="flex flex-col gap-1.5"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold tracking-[0.3px] text-white/85">Social OS</span>
-                <span className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
+                <span className="text-[10px] font-medium tracking-[0.06em] text-white/72">Social OS</span>
+                <span className="flex items-center gap-1.5 text-[9px] font-medium text-emerald-300/90">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.75)]" />
                   Online
                 </span>
               </div>
-              <div className="flex items-center justify-between text-[10px] text-white/45">
-                <span>v1.0.0</span>
-                <span className="rounded bg-white/10 px-1.5 py-0.5 uppercase tracking-wider">
-                  {process.env.NODE_ENV === "production" ? "Production" : "Development"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-white/35">
-                <span>Build 2026.07.13</span>
-                <span>by ENMASCO</span>
+              <div className="flex items-center justify-between gap-2 text-[8px] font-normal tracking-[0.04em] text-white/30">
+                <span className="truncate">v1.0 · Build 2026.07.13</span>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <span className="rounded-md border border-white/[0.07] bg-white/[0.045] px-1.5 py-0.5 text-[7px] uppercase tracking-[0.1em] text-white/42">
+                    {process.env.NODE_ENV === "production" ? "Prod" : "Dev"}
+                  </span>
+                  <span className="text-white/25">ENMASCO</span>
+                </div>
               </div>
             </motion.div>
           ) : (
