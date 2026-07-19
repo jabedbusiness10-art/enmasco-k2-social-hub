@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { X, ArrowRight, Check } from "lucide-react";
 import type { SocialPlatform } from "@/types/company-social";
@@ -41,8 +42,20 @@ export default function ConnectModal({
   const [expiresAt, setExpiresAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (!open) return null;
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  if (!open || !mounted) return null;
 
   function choose(p: SocialPlatform) {
     setPlatform(p);
@@ -88,8 +101,8 @@ export default function ConnectModal({
   const meta = PLATFORM_META[platform];
   const ui = PLATFORM_UI[platform];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -200,6 +213,7 @@ export default function ConnectModal({
           </>
         )}
       </motion.div>
-    </div>
+    </div>,
+    document.body,
   );
 }
