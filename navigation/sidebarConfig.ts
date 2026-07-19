@@ -202,9 +202,6 @@ export const sidebarConfig: NavSection[] = [
     crumb: "Inbox",
     children: [
       { label: "Unified Inbox", href: "/dashboard/inbox/unified", description: "All external messages in one place." },
-      { label: "Facebook", href: "/dashboard/inbox/facebook", description: "Facebook messages and comments." },
-      { label: "Instagram", href: "/dashboard/inbox/instagram", description: "Instagram messages and comments." },
-      { label: "LinkedIn", href: "/dashboard/inbox/linkedin", description: "LinkedIn messages and comments." },
     ],
   },
   {

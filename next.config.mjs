@@ -118,6 +118,9 @@ const nextConfig = {
       { source: "/dashboard/team/duty", destination: "/dashboard/team/tasks", permanent: true },
       { source: "/dashboard/social/scheduler", destination: "/dashboard/social/publisher", permanent: true },
       { source: "/dashboard/inbox/all", destination: "/dashboard/inbox/unified", permanent: true },
+      { source: "/dashboard/inbox/facebook", destination: "/dashboard/inbox/unified", permanent: true },
+      { source: "/dashboard/inbox/instagram", destination: "/dashboard/inbox/unified", permanent: true },
+      { source: "/dashboard/inbox/linkedin", destination: "/dashboard/inbox/unified", permanent: true },
       { source: "/ceo", destination: "/dashboard/team/members", permanent: true },
       { source: "/publishing", destination: "/dashboard/social/publisher", permanent: true },
     ];
