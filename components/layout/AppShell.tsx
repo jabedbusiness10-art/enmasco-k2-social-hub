@@ -1,8 +1,6 @@
 "use client";
 
 import { ReactNode } from "react";
-import { motion } from "framer-motion";
-import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import InfoBar from "@/components/layout/InfoBar";
@@ -30,8 +28,6 @@ import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
  * still drives whileInView reveals as content scrolls into view.
  */
 export default function AppShell({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-
   return (
     <PWAProvider>
       <LocaleProvider>
@@ -44,15 +40,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               className={`${LAYOUT_CLASSES.contentWrapper} min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth`}
               style={{ scrollbarGutter: "stable", overscrollBehavior: "contain" }}
             >
-              <motion.div
-                key={pathname}
-                initial={{ opacity: 0.86 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.14, ease: "easeOut" }}
-                className="min-h-full"
-              >
-                {children}
-              </motion.div>
+              {children}
             </main>
           </div>
           <CommandPalette />
