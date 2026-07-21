@@ -1,14 +1,10 @@
 import PageHeader from "@/components/layout/PageHeader";
 import KanbanBoard from "@/components/team/KanbanBoard";
 import ActivityTimeline from "@/components/team/ActivityTimeline";
-import { requirePermission } from "@/lib/auth-server";
 
 export const dynamic = "force-dynamic";
 
-export default async function TeamPage() {
-  const auth = await requirePermission("VIEW_TEAM");
-  if (!auth.ok) return null;
-
+export default function TeamPage() {
   return (
     <div className="space-y-5">
       <PageHeader

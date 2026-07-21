@@ -11,19 +11,17 @@ import { sidebarConfig } from "@/navigation/sidebarConfig";
  */
 export default function ModuleLanding({
   moduleKey,
-  title,
-  description,
 }: {
   moduleKey: string;
-  title: string;
-  description: string;
 }) {
   const section = sidebarConfig.find((s) => s.key === moduleKey);
   const children = section?.children ?? [];
 
+  if (!section) return null;
+
   return (
     <div>
-      <PageHeader title={title} description={description} />
+      <PageHeader title={section.label} description={section.description} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {children.map((child) => {
           const Icon = section?.icon;

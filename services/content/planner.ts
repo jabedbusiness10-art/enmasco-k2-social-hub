@@ -22,7 +22,8 @@ export type ContentPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 export interface ContentPlanInput {
   title: string;
   caption?: string;
-  platform: Platform;
+  platforms: Platform[];
+  accountIds?: string[];
   workflowStatus?: ContentWorkflow;
   status?: string; // PostStatus
   category?: string;
@@ -36,7 +37,7 @@ export interface ContentPlanInput {
   targetAudience?: string;
   goal?: string;
   scheduledAt?: string | null;
-  mediaUrls?: string[];
+  mediaAttachments?: Array<{ url: string; type: string; thumbnail?: string | null; alt?: string | null; order?: number }>;
 }
 
 const CONTENT_INCLUDE = {
@@ -137,7 +138,7 @@ export async function createContentPlan(input: ContentPlanInput, actor: { id: st
     data: {
       title: input.title,
       content: input.caption ?? "",
-      platform: input.platform,
+      platform: input.platforms[0] ?? "FACEBOOK",
       status: (input.status ?? "DRAFT") as any,
       workflowStatus: input.workflowStatus ?? "DRAFT",
       category: input.category ?? null,
@@ -150,14 +151,17 @@ export async function createContentPlan(input: ContentPlanInput, actor: { id: st
       notes: input.notes ?? null,
       targetAudience: input.targetAudience ?? null,
       goal: input.goal ?? null,
-      media: input.mediaUrls?.length
-        ? { create: input.mediaUrls.map((u, i) => ({ type: /\.(mp4|mov|webm)$/i.test(u) ? "VIDEO" : "IMAGE", url: u, order: i })) }
+      platforms: input.platforms?.length
+        ? { create: input.platforms.map((p, i) => ({ platform: p, accountId: input.accountIds?.[i] ?? null, status: "QUEUED" })) }
+        : undefined,
+      media: input.mediaAttachments?.length
+        ? { create: input.mediaAttachments.map((m, i) => ({ type: m.type, url: m.url, thumbnail: m.thumbnail ?? null, alt: m.alt ?? null, order: m.order ?? i })) }
         : undefined,
       scheduled: input.scheduledAt ? { create: { scheduledAt: new Date(input.scheduledAt), status: "SCHEDULED" } } : undefined,
     },
     include: CONTENT_INCLUDE,
   });
-  await writeAudit({ action: "CONTENT_CREATE", entityName: "Post", entityId: post.id, createdById: actor.id, module: "SOCIAL", metadata: { title: input.title, platform: input.platform } }).catch(() => {});
+  await writeAudit({ action: "CONTENT_CREATE", entityName: "Post", entityId: post.id, createdById: actor.id, module: "SOCIAL", metadata: { title: input.title, platforms: input.platforms } }).catch(() => {});
   return mapRow(post);
 }
 
@@ -170,7 +174,7 @@ export async function updateContentPlan(id: string, input: Partial<ContentPlanIn
     data: {
       title: input.title ?? existing.title,
       content: input.caption ?? existing.content,
-      platform: input.platform ?? existing.platform,
+      platform: input.platforms?.[0] ?? existing.platform,
       workflowStatus: input.workflowStatus ?? existing.workflowStatus,
       status: (input.status ?? existing.status) as any,
       category: input.category !== undefined ? input.category : existing.category,
@@ -184,6 +188,22 @@ export async function updateContentPlan(id: string, input: Partial<ContentPlanIn
       goal: input.goal !== undefined ? input.goal : existing.goal,
       contentVersion: nextVersion,
       archivedAt: input.workflowStatus === "ARCHIVED" ? new Date() : existing.archivedAt,
+      platforms: input.platforms?.length
+        ? {
+            deleteMany: {},
+            create: input.platforms.map((p, i) => ({ platform: p, accountId: input.accountIds?.[i] ?? null, status: "QUEUED" })),
+          }
+        : input.platforms !== undefined
+          ? { deleteMany: {} }
+          : undefined,
+      media: input.mediaAttachments?.length
+        ? {
+            deleteMany: {},
+            create: input.mediaAttachments.map((m, i) => ({ type: m.type, url: m.url, thumbnail: m.thumbnail ?? null, alt: m.alt ?? null, order: m.order ?? i })),
+          }
+        : input.mediaAttachments !== undefined
+          ? { deleteMany: {} }
+          : undefined,
       scheduled: input.scheduledAt
         ? { upsert: { create: { scheduledAt: new Date(input.scheduledAt), status: "SCHEDULED" }, update: { scheduledAt: new Date(input.scheduledAt) } } }
         : undefined,
@@ -195,8 +215,6 @@ export async function updateContentPlan(id: string, input: Partial<ContentPlanIn
 }
 
 export async function deleteContentPlan(id: string, actor: { id: string; name: string }): Promise<void> {
-  // Existence check BEFORE delete — a missing/deleted record must surface a
-  // clean 404, never a swallowed Prisma P2025.
   const existing = await prisma.post.findUnique({ where: { id }, select: { id: true } });
   if (!existing) {
     const err = new Error("Post not found") as Error & { status?: number };
@@ -248,7 +266,6 @@ export async function setApproval(
     create: { postId: id, status: decision, requestedBy: post.createdById, reviewedBy: reviewer.id, comment: comment ?? null, reviewedAt: new Date() },
     update: { status: decision, reviewedBy: reviewer.id, comment: comment ?? null, reviewedAt: new Date() },
   });
-  // Reflect approval into Post status
   await prisma.post.update({
     where: { id },
     data: { status: decision === "APPROVED" ? "APPROVED" : "REJECTED", workflowStatus: decision === "APPROVED" ? "APPROVED" : "REVIEW" },
@@ -316,9 +333,9 @@ export async function contentActivity(postId: string): Promise<PlanningActivity[
   }));
 }
 
-/** Real reference data for planner filters/selects (campaigns, users, departments). */
-export async function listReferenceData(): Promise<{ campaigns: any[]; users: any[]; departments: any[] }> {
-  const [campaigns, users, departments] = await Promise.all([
+/** Real reference data for planner filters/selects (connected accounts, campaigns, users, departments). */
+export async function listReferenceData(): Promise<{ campaigns: any[]; users: any[]; departments: any[]; accounts: any[] }> {
+  const [campaigns, users, departments, accounts] = await Promise.all([
     prisma.campaign.findMany({ orderBy: { title: "asc" }, take: 200 }),
     prisma.user.findMany({
       select: { id: true, name: true, email: true, roleId: true, departmentId: true },
@@ -326,10 +343,12 @@ export async function listReferenceData(): Promise<{ campaigns: any[]; users: an
       take: 500,
     }),
     prisma.department.findMany({ orderBy: { name: "asc" } }),
+    prisma.companySocialAccount.findMany({ where: { status: { not: "DISCONNECTED" } }, orderBy: { platform: "asc" } }),
   ]);
   return {
     campaigns: campaigns.map((c: any) => ({ id: c.id, title: c.title, status: c.status ?? "ACTIVE", startDate: c.startDate?.toISOString?.() ?? null, endDate: c.endDate?.toISOString?.() ?? null })),
     users: users.map((u: any) => ({ id: u.id, name: u.name, email: u.email })),
     departments: departments.map((d: any) => ({ id: d.id, name: d.name })),
+    accounts: accounts.map((a: any) => ({ id: a.id, platform: a.platform, accountName: a.accountName, accountHandle: a.accountHandle, status: a.status })),
   };
 }

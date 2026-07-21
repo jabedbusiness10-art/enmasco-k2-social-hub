@@ -10,10 +10,6 @@ import ModalPortal from "@/components/ui/ModalPortal";
 import ActivityTimeline from "./ActivityTimeline";
 import type { PlanningActivity } from "@/types/contentPlanner";
 
-type RefUser = { id: string; name: string; email?: string; role?: string; color?: string };
-type RefCampaign = { id: string; title: string; name?: string; color?: string };
-type RefDept = { id: string; name: string };
-
 function fmt(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "Invalid date";
@@ -37,9 +33,9 @@ export default function ContentDrawer({
   onApprove,
 }: {
   item: ContentPlan | null;
-  users?: RefUser[];
-  campaigns?: RefCampaign[];
-  departments?: RefDept[];
+  users?: any[];
+  campaigns?: any[];
+  departments?: any[];
   onClose: () => void;
   onEdit: (i: ContentPlan) => void;
   onDuplicate: (i: ContentPlan) => void;
@@ -60,8 +56,6 @@ export default function ContentDrawer({
   const assignee = userById(item.assigneeId);
   const campaign = campaignById(item.campaignId);
   const dept = departmentById(item.departmentId);
-  const MediaIcon = item.media?.type === "VIDEO" ? Video : item.media?.type === "CAROUSEL" ? LayoutGrid : ImageIcon;
-  const hasMedia = item.media && item.media.type !== "NONE";
 
   const pendingApproval = item.approval.status === "PENDING";
 
@@ -75,13 +69,20 @@ export default function ContentDrawer({
           className="flex h-full w-full max-w-md flex-col border-l border-white/10 bg-[#0e0f17] shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <div className="flex items-center gap-2">
-              <PlatformIcon platform={item.platform} size={18} />
+              <div className="flex items-center gap-1">
+                {item.platforms?.length ? (
+                  item.platforms.map((p) => <PlatformIcon key={p.platform} platform={p.platform} size={16} />)
+                ) : (
+                  <PlatformIcon platform={item.platform} size={18} />
+                )}
+              </div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-white leading-tight">{item.title}</span>
-                <span className="text-[10px] text-white/40">{item.platform.toUpperCase()}</span>
+                <span className="text-[10px] text-white/40">
+                  {item.platforms?.length ? item.platforms.map((p) => p.platform.toUpperCase()).join(" + ") : item.platform.toUpperCase()}
+                </span>
               </div>
             </div>
             <button onClick={onClose} className="rounded-lg border border-white/10 p-1.5 text-white/50 hover:text-white">
@@ -89,7 +90,6 @@ export default function ContentDrawer({
             </button>
           </div>
 
-          {/* Section: Quick Actions */}
           <div className="border-b border-white/10 p-3">
             <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/35">Quick Actions</div>
             <div className="grid grid-cols-3 gap-2">
@@ -103,9 +103,7 @@ export default function ContentDrawer({
                 <button
                   key={a.label}
                   onClick={a.onClick}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl border px-2 py-1.5 text-xs font-medium transition ${
-                    a.cls || "border-white/10 text-white/70 hover:bg-white/5"
-                  }`}
+                  className={`flex items-center justify-center gap-1.5 rounded-xl border px-2 py-1.5 text-xs font-medium transition ${a.cls || "border-white/10 text-white/70 hover:bg-white/5"}`}
                 >
                   <a.icon className="h-3.5 w-3.5" />
                   {a.label}
@@ -114,7 +112,6 @@ export default function ContentDrawer({
             </div>
           </div>
 
-          {/* Section: Approval */}
           {onApprove && pendingApproval && (
             <div className="border-b border-white/10 p-3">
               <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/35">Approval</div>
@@ -126,49 +123,38 @@ export default function ContentDrawer({
                 rows={2}
               />
               <div className="flex gap-2">
-                <button
-                  onClick={() => onApprove("APPROVED", approveNote || undefined)}
-                  className="flex-1 rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/25"
-                >
+                <button onClick={() => onApprove("APPROVED", approveNote || undefined)} className="flex-1 rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/25">
                   Approve
                 </button>
-                <button
-                  onClick={() => onApprove("REJECTED", approveNote || undefined)}
-                  className="flex-1 rounded-xl border border-rose-400/30 bg-rose-500/15 px-3 py-2 text-xs font-semibold text-rose-100 hover:bg-rose-500/25"
-                >
+                <button onClick={() => onApprove("REJECTED", approveNote || undefined)} className="flex-1 rounded-xl border border-rose-400/30 bg-rose-500/15 px-3 py-2 text-xs font-semibold text-rose-100 hover:bg-rose-500/25">
                   Reject
                 </button>
               </div>
             </div>
           )}
 
-          {/* Tabs */}
           <div className="flex gap-1 border-b border-white/10 px-4 pt-2">
             {(["preview", "activity"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`mr-3 border-b-2 pb-2 text-xs font-medium capitalize transition ${
-                  tab === t ? "border-sky-400 text-white" : "border-transparent text-white/50 hover:text-white"
-                }`}
+                className={`mr-3 border-b-2 pb-2 text-xs font-medium capitalize transition ${tab === t ? "border-sky-400 text-white" : "border-transparent text-white/50 hover:text-white"}`}
               >
-                {t === "preview" ? "Preview" : "Activity"}
+                {t}
               </button>
             ))}
           </div>
 
-          {/* Content */}
           <div className="flex-1 overflow-y-auto p-4">
             {tab === "preview" ? (
               <div className="space-y-4">
-                {/* Preview Section */}
                 <SectionLabel label="Content Preview" />
                 <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/30">
                   <div className="flex min-h-[120px] items-center justify-center bg-gradient-to-br from-white/5 to-white/[0.01]">
-                    {hasMedia ? (
+                    {item.media?.length ? (
                       <div className="flex flex-col items-center gap-2 text-white/40">
-                        <MediaIcon className="h-10 w-10" />
-                        <span className="text-[11px] uppercase tracking-wide">{item.media!.type} preview</span>
+                        <MediaIcon types={item.media.map((m) => m.type)} />
+                        <span className="text-[11px] uppercase tracking-wide">{item.media.length} attachment{item.media.length > 1 ? "s" : ""}</span>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2 text-white/30">
@@ -180,7 +166,11 @@ export default function ContentDrawer({
                   </div>
                   <div className="space-y-2 p-3">
                     <div className="flex items-center gap-2">
-                      <PlatformIcon platform={item.platform} size={14} />
+                      <div className="flex items-center gap-1">
+                        {item.platforms?.length
+                          ? item.platforms.map((p) => <PlatformIcon key={p.platform} platform={p.platform} size={14} />)
+                          : <PlatformIcon platform={item.platform} size={14} />}
+                      </div>
                       <StatusBadge status={item.status} />
                       <ApprovalBadge status={item.approval.status} />
                     </div>
@@ -195,10 +185,18 @@ export default function ContentDrawer({
                         ))}
                       </div>
                     )}
+                    {(item.platforms?.length ?? 0) > 1 && (
+                      <div className="flex flex-wrap gap-1">
+                        {item.platforms!.map((p) => (
+                          <span key={p.platform} className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-white/70">
+                            {p.platform.toUpperCase()} {p.accountId ? "· linked" : ""}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Publishing Info Section */}
                 <SectionLabel label="Publishing Information" />
                 <div className="space-y-2">
                   <MetaRow icon={Calendar} label="Publishing Time" value={fmt(item.schedule.scheduledAt)} sub={item.schedule.timezone} />
@@ -206,14 +204,9 @@ export default function ContentDrawer({
                   <MetaRow icon={User} label="Assigned To" value={assignee?.name ?? "Unassigned"} sub={assignee?.role} avatarColor={assignee?.color} />
                   {campaign && <MetaRow label="Campaign" value={campaign.title ?? campaign.name ?? "—"} dotColor={campaign.color} />}
                   {dept && <MetaRow label="Department" value={dept.name} />}
-                  <MetaRow
-                    label="Approval"
-                    value={item.approval.status}
-                    icon={item.approval.status === "APPROVED" || item.approval.status === "NOT_REQUIRED" ? CheckCircle2 : item.approval.status === "REJECTED" ? AlertCircle : Clock}
-                  />
+                  <MetaRow label="Approval" value={item.approval.status} icon={item.approval.status === "APPROVED" || item.approval.status === "NOT_REQUIRED" ? CheckCircle2 : item.approval.status === "REJECTED" ? AlertCircle : Clock} />
                 </div>
 
-                {/* Notes / Error */}
                 {item.notes && (
                   <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
                     <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-white/40">Notes</div>
@@ -237,9 +230,15 @@ export default function ContentDrawer({
 }
 
 function SectionLabel({ label }: { label: string }) {
-  return (
-    <div className="text-[10px] font-semibold uppercase tracking-wider text-white/35">{label}</div>
-  );
+  return <div className="text-[10px] font-semibold uppercase tracking-wider text-white/35">{label}</div>;
+}
+
+function MediaIcon({ types }: { types: string[] }) {
+  const hasVideo = types.includes("VIDEO") || types.includes("REEL");
+  const hasImage = types.includes("IMAGE");
+  if (hasVideo && hasImage) return <LayoutGrid className="h-10 w-10" />;
+  if (hasVideo) return <Video className="h-10 w-10" />;
+  return <ImageIcon className="h-10 w-10" />;
 }
 
 function MetaRow({ icon: Icon, label, value, sub, dotColor, avatarColor }: { icon?: any; label: string; value: string; sub?: string; dotColor?: string; avatarColor?: string }) {
@@ -265,37 +264,17 @@ function MetaRow({ icon: Icon, label, value, sub, dotColor, avatarColor }: { ico
   );
 }
 
-function ActivitySection({ item, users, onOpen }: { item: ContentPlan; users: RefUser[]; onOpen: (i: ContentPlan) => void }) {
+function ActivitySection({ item, users, onOpen }: { item: ContentPlan; users: any[]; onOpen: (i: ContentPlan) => void }) {
   const creator = users.find((u) => u.id === item.creatorId);
-  const activities: PlanningActivity[] = [
-    {
-      id: `${item.id}-created`,
-      type: "CREATED",
-      contentId: item.id,
-      contentTitle: item.title,
-      actorName: creator?.name ?? "Unknown",
-      at: item.createdAt,
-      detail: "Content plan created",
-    },
-    {
-      id: `${item.id}-updated`,
-      type: "EDITED",
-      contentId: item.id,
-      contentTitle: item.title,
-      actorName: creator?.name ?? "Unknown",
-      at: item.updatedAt,
-      detail: item.notes ?? "Last update",
-    },
+  const activities = [
+    { id: `${item.id}-created`, type: "CREATED" as const, contentId: item.id, contentTitle: item.title, actorName: creator?.name ?? "Unknown", at: item.createdAt, detail: "Content plan created" },
+    { id: `${item.id}-updated`, type: "EDITED" as const, contentId: item.id, contentTitle: item.title, actorName: creator?.name ?? "Unknown", at: item.updatedAt, detail: item.notes ?? "Last update" },
   ];
-
   return (
     <div className="space-y-3">
       <SectionLabel label="History" />
-      <ActivityTimeline items={activities} />
-      <button
-        onClick={() => onOpen(item)}
-        className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-xs text-white/60 hover:text-white"
-      >
+      <ActivityTimeline items={activities as any} />
+      <button onClick={() => onOpen(item)} className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-xs text-white/60 hover:text-white">
         <ExternalLink className="h-3 w-3" />
         View full details
       </button>

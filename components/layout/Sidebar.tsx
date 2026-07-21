@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import SidebarSection from "./SidebarSection";
 import { sidebarConfig } from "@/navigation/sidebarConfig";
 
@@ -102,8 +103,15 @@ export default function Sidebar() {
         }`}
       >
         <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-sky-200/30 bg-sky-500/10 text-sky-100 shadow-[0_0_20px_rgba(56,189,248,0.3)]">
-            <span className="text-[13px] font-bold">K2</span>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/20 p-0.5 shadow-[0_0_22px_rgba(96,120,255,0.28)]">
+            <Image
+              src="/logo.png"
+              alt="K2KAI official logo"
+              width={40}
+              height={34}
+              className="h-auto w-full object-contain drop-shadow-[0_0_10px_rgba(120,145,255,0.42)]"
+              priority
+            />
           </div>
           <AnimatePresence>
             {!collapsed && (

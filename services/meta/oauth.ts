@@ -12,22 +12,51 @@ const META_AUTH_BASE = "https://www.facebook.com/v21.0/dialog/oauth";
 const META_TOKEN_URL = "https://graph.facebook.com/v21.0/oauth/access_token";
 const META_GRAPH_BASE = "https://graph.facebook.com/v21.0";
 
-export const META_SCOPES = [
-  "pages_show_list",
-  "pages_read_engagement",
-  "pages_manage_posts",
-  "read_insights",
-  "business_management",
-  "instagram_basic",
-  "instagram_content_publish",
-  "instagram_manage_insights",
-  "public_profile",
-].join(",");
+const META_SCOPE_FEATURES = {
+  facebook_connect: ["pages_show_list", "pages_read_engagement"],
+  facebook_publish: ["pages_manage_posts"],
+  facebook_insights: ["read_insights"],
+  instagram_publish: ["instagram_basic", "instagram_content_publish"],
+  instagram_insights: ["instagram_basic", "instagram_manage_insights"],
+} as const;
+
+export type MetaOAuthFeature = keyof typeof META_SCOPE_FEATURES;
+
+export interface MetaOAuthPlan {
+  features: MetaOAuthFeature[];
+  requestedScopes: string[];
+}
+
+/**
+ * Describes the scopes that must be enabled in the Meta Business Login
+ * configuration. They are deliberately NOT appended to the OAuth URL: the
+ * configuration in Meta App Dashboard is the source of truth.
+ */
+export function getMetaOAuthPlan(): MetaOAuthPlan {
+  const configured = (process.env.META_OAUTH_FEATURES || "facebook_connect")
+    .split(",")
+    .map((feature) => feature.trim())
+    .filter(Boolean);
+  const features = [...new Set(["facebook_connect", ...configured])] as MetaOAuthFeature[];
+  for (const feature of features) {
+    if (!(feature in META_SCOPE_FEATURES)) {
+      throw new Error(`Unsupported META_OAUTH_FEATURES value: ${feature}`);
+    }
+  }
+  return {
+    features,
+    requestedScopes: [...new Set(features.flatMap((feature) => META_SCOPE_FEATURES[feature]))],
+  };
+}
 
 export interface MetaEnv {
   appId: string;
   appSecret: string;
   redirectUri: string;
+}
+
+export interface MetaBusinessLoginEnv extends MetaEnv {
+  configurationId: string;
 }
 
 export function getMetaEnv(): MetaEnv {
@@ -36,10 +65,19 @@ export function getMetaEnv(): MetaEnv {
   const redirectUri = process.env.META_REDIRECT_URI;
   if (!appId || !appSecret || !redirectUri) {
     throw new Error(
-      "Meta OAuth is not configured. Set META_APP_ID, META_APP_SECRET, META_REDIRECT_URI in .env.local",
+      "Meta OAuth is not configured. Set META_APP_ID, META_APP_SECRET, and META_REDIRECT_URI in .env.local",
     );
   }
   return { appId, appSecret, redirectUri };
+}
+
+export function getMetaBusinessLoginEnv(): MetaBusinessLoginEnv {
+  const base = getMetaEnv();
+  const configurationId = process.env.META_LOGIN_CONFIG_ID;
+  if (!configurationId) {
+    throw new Error("Meta Business OAuth is not configured. Set META_LOGIN_CONFIG_ID in .env.local");
+  }
+  return { ...base, configurationId };
 }
 
 /** Generate a cryptographically random OAuth state token. */
@@ -49,12 +87,12 @@ export function generateOAuthState(): string {
 
 /** Build the Meta authorization URL. `state` must be validated on callback. */
 export function buildAuthUrl(state: string): string {
-  const { appId, redirectUri } = getMetaEnv();
+  const { appId, redirectUri, configurationId } = getMetaBusinessLoginEnv();
   const params = new URLSearchParams({
     client_id: appId,
     redirect_uri: redirectUri,
     state,
-    scope: META_SCOPES,
+    config_id: configurationId,
     response_type: "code",
   });
   return `${META_AUTH_BASE}?${params.toString()}`;

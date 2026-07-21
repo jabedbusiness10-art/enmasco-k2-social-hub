@@ -136,6 +136,14 @@ export interface ConnectInput {
 // Upsert by (platform, accountHandle). Tokens are encrypted at rest.
 export async function connectAccount(input: ConnectInput): Promise<SocialAccountPublic> {
   const expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
+  // TASK-74 — For a manually connected Instagram Business account, the
+  // "Account ID" is the Instagram Business User ID, which is exactly what the
+  // Graph API needs for /insights and /media. Default instagramBusinessId to
+  // it so the manual connect modal yields a fully functional IG connection.
+  const resolvedIgId =
+    input.platform === "INSTAGRAM" && !input.instagramBusinessId
+      ? input.accountId ?? null
+      : input.instagramBusinessId ?? null;
   const row = await prisma.companySocialAccount.upsert({
     where: {
       platform_accountHandle: {
@@ -157,7 +165,7 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       status: "CONNECTED",
       connectedBy: input.connectedBy,
       connectedById: input.connectedById ?? null,
-      instagramBusinessId: input.instagramBusinessId ?? null,
+      instagramBusinessId: resolvedIgId,
       pageName: input.pageName ?? null,
       permissions: input.permissions ?? [],
       accessTokenStatus: input.accessTokenStatus ?? "ACTIVE",
@@ -186,7 +194,7 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       status: "CONNECTED",
       connectedBy: input.connectedBy,
       connectedById: input.connectedById ?? null,
-      instagramBusinessId: input.instagramBusinessId ?? null,
+      instagramBusinessId: resolvedIgId,
       pageName: input.pageName ?? null,
       permissions: input.permissions ?? [],
       accessTokenStatus: input.accessTokenStatus ?? "ACTIVE",

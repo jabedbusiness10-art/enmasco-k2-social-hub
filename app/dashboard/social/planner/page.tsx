@@ -23,7 +23,7 @@ const PLATFORMS = [
   { key: "tiktok", name: "TikTok", color: "#00F2EA", short: "TT" },
 ] as const;
 
-type Refs = { campaigns: any[]; users: any[]; departments: any[] };
+type Refs = { campaigns: any[]; users: any[]; departments: any[]; accounts: any[] };
 
 // Map a server content-plan row (from /api/content-plans) into the client
 // ContentPlan shape the presentational components expect. Real data only.
@@ -33,6 +33,7 @@ function toClientPlan(row: any): ContentPlan {
     title: row.title,
     caption: row.caption ?? "",
     platform: (row.platform ?? "facebook").toLowerCase() as PlatformKey,
+    platforms: (row.platforms ?? []).map((p: any) => ({ id: p.id, platform: (p.platform ?? "facebook").toLowerCase(), accountId: p.accountId ?? null, status: p.status })),
     status: (row.workflowStatus ?? row.status ?? "DRAFT") as ContentStatus,
     schedule: {
       scheduledAt: row.scheduledAt ?? row.updatedAt,
@@ -52,7 +53,7 @@ function toClientPlan(row: any): ContentPlan {
     departmentId: undefined,
     creatorId: row.creatorId,
     assigneeId: row.assigneeId ?? undefined,
-    media: row.media?.[0] ? { id: row.media[0].id, type: row.media[0].type, url: row.media[0].url } : undefined,
+    media: Array.isArray(row.media) ? row.media.map((m: any) => ({ id: m.id, type: m.type, url: m.url, thumbnail: m.thumbnail, alt: m.alt, order: m.order })) : (row.media ? [row.media] : []),
     hashtags: row.hashtags ?? [],
     notes: row.notes ?? undefined,
     createdAt: row.createdAt,
@@ -84,7 +85,7 @@ const nextId = () => `tmp${++idSeq}`;
 
 export default function ContentPlannerPage() {
   const [items, setItems] = useState<ContentPlan[]>([]);
-  const [refs, setRefs] = useState<Refs>({ campaigns: [], users: [], departments: [] });
+  const [refs, setRefs] = useState<Refs>({ campaigns: [], users: [], departments: [], accounts: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<CalendarView>("month");
@@ -122,7 +123,7 @@ export default function ContentPlannerPage() {
       const plansJson = await plansRes.json();
       const refsJson = await refsRes.json();
       setItems((plansJson.items ?? []).map(toClientPlan));
-      setRefs({ campaigns: refsJson.campaigns ?? [], users: refsJson.users ?? [], departments: refsJson.departments ?? [] });
+      setRefs({ campaigns: refsJson.campaigns ?? [], users: refsJson.users ?? [], departments: refsJson.departments ?? [], accounts: refsJson.accounts ?? [] });
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -222,10 +223,12 @@ export default function ContentPlannerPage() {
   };
 
   const savePlan = async (draft: PlanDraft) => {
+    const selectedAccounts = (draft.platforms ?? []).map((p) => p.accountId).filter(Boolean) as string[];
     const payload = {
       title: draft.title,
       caption: draft.caption,
-      platform: draft.platform.toUpperCase(),
+      platforms: (draft.platforms ?? []).map((p) => p.platform),
+      accountIds: selectedAccounts,
       workflowStatus: draft.status,
       status: draft.status,
       campaignId: draft.campaignId || null,
@@ -234,6 +237,7 @@ export default function ContentPlannerPage() {
       hashtags: draft.hashtags ?? [],
       notes: draft.notes,
       scheduledAt: draft.scheduledAt,
+      mediaAttachments: draft.media?.map((m) => ({ type: m.type, url: m.url, thumbnail: m.thumbnail, alt: m.alt, order: m.order })) ?? [],
     };
     try {
       if (draft.id) {
@@ -394,6 +398,7 @@ export default function ContentPlannerPage() {
           users={refs.users as any}
           campaigns={refs.campaigns as any}
           departments={refs.departments as any}
+          accounts={refs.accounts as any}
           onClose={() => setModalOpen(false)}
           onSave={savePlan}
         />

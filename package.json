@@ -14,6 +14,7 @@
     "worker": "cross-env ROLE=worker tsx server/queue-worker.ts",
     "scheduler": "cross-env ROLE=scheduler tsx server/scheduler.ts",
     "validate:env": "tsx scripts/validate-env.ts",
+    "docs:sidebar": "node scripts/generate-sidebar-registry.mjs",
     "test:task75": "tsx --test tests/task75/*.test.ts",
     "test:task76": "tsx --test tests/task76/*.test.ts",
     "test:task77b": "tsx --test tests/task77b/*.test.ts",

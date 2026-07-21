@@ -42,9 +42,9 @@ export default function ContentCard({
       {!compact && (
         <div className="flex items-center gap-1.5 text-[10px] text-white/45">
           <Clock className="h-3 w-3" /> {timeShort(item.schedule.scheduledAt)}
-          {item.media && item.media.type !== "NONE" && (
+          {item.media?.[0]?.type && (
             <span className="flex items-center gap-0.5 text-white/35">
-              · {item.media.type}
+              · {item.media[0].type}
             </span>
           )}
         </div>

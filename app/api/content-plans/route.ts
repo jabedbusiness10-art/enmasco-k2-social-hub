@@ -31,15 +31,16 @@ export async function POST(req: NextRequest) {
   if (!perm.ok) return NextResponse.json({ error: perm.error ?? "Unauthorized" }, { status: 401 });
   const user = perm.user!;
   const body = await req.json().catch(() => ({}));
-  if (!body?.title || !body?.platform) {
-    return NextResponse.json({ error: "title and platform required" }, { status: 400 });
+  if (!body?.title || !body?.platforms?.length) {
+    return NextResponse.json({ error: "VALIDATION_ERROR", message: "Content could not be saved", fields: { platforms: "Select at least one connected account" } }, { status: 400 });
   }
   try {
     const item = await createContentPlan(
       {
         title: body.title,
         caption: body.caption,
-        platform: body.platform,
+        platforms: body.platforms,
+        accountIds: body.accountIds,
         workflowStatus: body.workflowStatus ?? "DRAFT",
         status: body.status,
         category: body.category,
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
         targetAudience: body.targetAudience,
         goal: body.goal,
         scheduledAt: body.scheduledAt ?? null,
-        mediaUrls: body.mediaUrls ?? [],
+        mediaAttachments: body.mediaAttachments ?? [],
       },
       { id: user.id, name: user.name },
     );

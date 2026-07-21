@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
+import { sidebarConfig } from "../../navigation/sidebarConfig";
+import { ROUTE_REDIRECTS } from "../../navigation/registry.mjs";
+import { NAV_TARGETS } from "../../lib/search/navigation";
 
 const retiredRoutes = [
   "/dashboard/inbox/facebook",
@@ -10,23 +13,18 @@ const retiredRoutes = [
 ];
 
 test("Inbox sidebar and search expose only the Unified Inbox destination", async () => {
-  const [sidebar, navigation] = await Promise.all([
-    readFile("navigation/sidebarConfig.ts", "utf8"),
-    readFile("lib/search/navigation.ts", "utf8"),
-  ]);
-
-  assert.ok(sidebar.includes('label: "Unified Inbox", href: "/dashboard/inbox/unified"'));
-  assert.ok(navigation.includes('id: "inbox-unified"'));
+  const inbox = sidebarConfig.find((section) => section.key === "inbox");
+  assert.deepEqual(inbox?.children.map((child) => child.href), ["/dashboard/inbox/unified"]);
+  assert.ok(NAV_TARGETS.some((target) => target.href === "/dashboard/inbox/unified"));
   for (const route of retiredRoutes) {
-    assert.equal(sidebar.includes(route), false);
-    assert.equal(navigation.includes(route), false);
+    assert.equal(sidebarConfig.some((section) => section.href === route || section.children.some((child) => child.href === route)), false);
+    assert.equal(NAV_TARGETS.some((target) => target.href === route), false);
   }
 });
 
-test("retired provider Inbox URLs permanently redirect to Unified Inbox", async () => {
-  const config = await readFile("next.config.mjs", "utf8");
+test("retired provider Inbox URLs permanently redirect to Unified Inbox", () => {
   for (const route of retiredRoutes) {
-    assert.ok(config.includes(`{ source: "${route}", destination: "/dashboard/inbox/unified", permanent: true }`));
+    assert.ok(ROUTE_REDIRECTS.some((redirect) => redirect.source === route && redirect.destination === "/dashboard/inbox/unified" && redirect.permanent));
   }
 });
 

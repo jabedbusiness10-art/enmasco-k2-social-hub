@@ -2,20 +2,25 @@
 
 import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { routeMetaMap } from "@/navigation/sidebarConfig";
+import { usePathname, useSearchParams } from "next/navigation";
+import { dashboardHref, routeMetaMap } from "@/navigation/sidebarConfig";
 
 type Crumb = { label: string; href?: string };
 
 export default function Breadcrumb({ items }: { items?: Crumb[] }) {
   const pathname = usePathname();
-  let crumbs: Crumb[] = [{ label: "Dashboard", href: "/dashboard" }];
+  const searchParams = useSearchParams();
+  let crumbs: Crumb[] = [{ label: "Dashboard", href: dashboardHref }];
 
   if (!items) {
-    const meta = routeMetaMap[pathname];
+    const view = searchParams.get("view");
+    const routeKey = view && routeMetaMap[`${pathname}?view=${view}`] ? `${pathname}?view=${view}` : pathname;
+    const meta = routeMetaMap[routeKey];
     if (meta) {
-      crumbs.push({ label: meta.moduleLabel, href: meta.moduleHref });
-      if (meta.moduleHref !== meta.href) crumbs.push({ label: meta.label });
+      crumbs = meta.breadcrumbs.map((label, index) => ({
+        label,
+        href: index === 0 ? dashboardHref : index === 1 && meta.moduleHref !== meta.href ? meta.moduleHref : undefined,
+      }));
     } else {
       // fallback: build from path segments
       const segs = pathname.split("/").filter(Boolean);
