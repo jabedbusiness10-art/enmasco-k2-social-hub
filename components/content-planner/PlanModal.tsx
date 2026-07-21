@@ -4,11 +4,14 @@ import { useState } from "react";
 import { X, Save } from "lucide-react";
 import type { ContentPlan, PlatformKey, ContentStatus, ApprovalStatus } from "@/types/contentPlanner";
 import PlatformIcon from "./PlatformIcon";
-import { platforms, campaigns, departments, users } from "@/data/contentPlanner";
 import ModalPortal from "@/components/ui/ModalPortal";
 
+type RefUser = { id: string; name: string };
+type RefCampaign = { id: string; title: string; name?: string };
+type RefDept = { id: string; name: string };
+type RefPlatform = { key: PlatformKey; name: string; color: string; short: string };
+
 const STATUS_OPTIONS: ContentStatus[] = ["DRAFT", "REVIEW", "APPROVED", "SCHEDULED", "PUBLISHED", "FAILED"];
-const PLATFORM_KEYS: PlatformKey[] = platforms.map((p) => p.key);
 
 export interface PlanDraft {
   id?: string;
@@ -27,13 +30,22 @@ export interface PlanDraft {
 
 export default function PlanModal({
   initial,
+  users = [],
+  campaigns = [],
+  departments = [],
+  platforms = [],
   onClose,
   onSave,
 }: {
   initial?: ContentPlan | null;
+  users?: RefUser[];
+  campaigns?: RefCampaign[];
+  departments?: RefDept[];
+  platforms?: RefPlatform[];
   onClose: () => void;
   onSave: (draft: PlanDraft) => void;
 }) {
+  const PLATFORM_KEYS: PlatformKey[] = platforms.map((p) => p.key);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [caption, setCaption] = useState(initial?.caption ?? "");
   const [platform, setPlatform] = useState<PlatformKey>(initial?.platform ?? "facebook");
@@ -43,8 +55,8 @@ export default function PlanModal({
   );
   const [campaignId, setCampaignId] = useState(initial?.campaignId ?? "");
   const [departmentId, setDepartmentId] = useState(initial?.departmentId ?? "");
-  const [creatorId, setCreatorId] = useState(initial?.creatorId ?? users[0].id);
-  const [assigneeId, setAssigneeId] = useState(initial?.assigneeId ?? users[0].id);
+  const [creatorId, setCreatorId] = useState(initial?.creatorId ?? users[0]?.id ?? "");
+  const [assigneeId, setAssigneeId] = useState(initial?.assigneeId ?? users[0]?.id ?? "");
   const [hashtags, setHashtags] = useState((initial?.hashtags ?? []).join(", "));
   const [notes, setNotes] = useState(initial?.notes ?? "");
 
@@ -107,7 +119,7 @@ export default function PlanModal({
             <Field label="Campaign">
               <select value={campaignId} onChange={(e) => setCampaignId(e.target.value)} className={inputCls}>
                 <option value="">— None —</option>
-                {campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {campaigns.map((c) => <option key={c.id} value={c.id}>{c.title ?? c.name}</option>)}
               </select>
             </Field>
             <Field label="Department">

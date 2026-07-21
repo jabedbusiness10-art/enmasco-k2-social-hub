@@ -16,7 +16,7 @@ const createPostSchema = z.object({
   mediaUrls: z.array(z.string().url()).max(10).optional(),
   platforms: z.array(z.object({
     platform: z.enum(PUBLISH_PLATFORMS),
-    accountId: z.string().trim().min(1),
+    accountId: z.string().trim().optional(),
   })).min(1).superRefine((targets, context) => {
     const seen = new Set<string>();
     targets.forEach((target, index) => {
@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
   if (!perm.ok) return NextResponse.json({ error: perm.error }, { status: 401 });
   const { prisma } = await import("@/lib/db");
   const posts = await prisma.post.findMany({
-    include: { platforms: true, media: true },
+    include: { platforms: true, media: true, scheduled: true, creator: { select: { id: true, name: true } } },
     orderBy: { createdAt: "desc" },
     take: 100,
   });

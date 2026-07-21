@@ -26,7 +26,7 @@ export interface EngagementStat {
   label: string;
   icon: string; // emoji per spec
   total: number;
-  growth: number; // percentage, can be negative
+  growth?: number | null; // percentage, can be negative; null = no comparison data
   trend: number[]; // mini sparkline points
 }
 

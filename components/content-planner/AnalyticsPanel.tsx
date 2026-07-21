@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import type { ContentPlan, PlanningActivity } from "@/types/contentPlanner";
 import PlatformIcon from "./PlatformIcon";
 import { StatusBadge } from "./StatusBadge";
-import { userById } from "@/data/contentPlanner";
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });

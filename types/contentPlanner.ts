@@ -123,7 +123,8 @@ export interface ContentPlan {
 /** A row in the bottom "Recent Planning Activity" timeline. */
 export interface PlanningActivity {
   id: string;
-  type: "CREATED" | "SCHEDULED" | "PUBLISHED" | "APPROVED" | "REJECTED" | "EDITED" | "COMMENT" | "FAILED";
+  /** Normalized event type derived from AuditLog.action. */
+  type: "CREATED" | "EDITED" | "FAILED" | "SCHEDULED" | "PUBLISHED" | "APPROVED" | "REJECTED" | "COMMENT";
   contentId?: string;
   contentTitle?: string;
   actorName: string;

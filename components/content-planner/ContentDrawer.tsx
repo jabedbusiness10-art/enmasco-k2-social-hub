@@ -6,8 +6,11 @@ import { X, Pencil, Copy, FolderInput, Trash2, Send, Hash, Image as ImageIcon, V
 import type { ContentPlan } from "@/types/contentPlanner";
 import PlatformIcon from "./PlatformIcon";
 import { StatusBadge, ApprovalBadge } from "./StatusBadge";
-import { userById, campaignById, departmentById } from "@/data/contentPlanner";
 import ModalPortal from "@/components/ui/ModalPortal";
+
+type RefUser = { id: string; name: string; email?: string; role?: string; color?: string };
+type RefCampaign = { id: string; title: string; name?: string; color?: string };
+type RefDept = { id: string; name: string };
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -18,23 +21,36 @@ function avatar(name: string) {
 
 export default function ContentDrawer({
   item,
+  users = [],
+  campaigns = [],
+  departments = [],
   onClose,
   onEdit,
   onDuplicate,
   onMove,
   onDelete,
   onPublishNow,
+  onApprove,
 }: {
   item: ContentPlan | null;
+  users?: RefUser[];
+  campaigns?: RefCampaign[];
+  departments?: RefDept[];
   onClose: () => void;
   onEdit: (i: ContentPlan) => void;
   onDuplicate: (i: ContentPlan) => void;
   onMove: (i: ContentPlan) => void;
   onDelete: (i: ContentPlan) => void;
   onPublishNow: (i: ContentPlan) => void;
+  onApprove?: (decision: "APPROVED" | "REJECTED", note?: string) => void;
 }) {
   const [tab, setTab] = useState<"preview" | "activity">("preview");
+  const [approveNote, setApproveNote] = useState("");
   if (!item) return null;
+
+  const userById = (id?: string) => users.find((u) => u.id === id);
+  const campaignById = (id?: string) => campaigns.find((c) => c.id === id);
+  const departmentById = (id?: string) => departments.find((d) => d.id === id);
 
   const creator = userById(item.creatorId);
   const assignee = userById(item.assigneeId);
@@ -85,6 +101,33 @@ export default function ContentDrawer({
               <a.icon className="h-4 w-4" /> {a.label}
             </button>
           ))}
+
+        {onApprove && item.approval.status !== "APPROVED" && item.approval.status !== "REJECTED" && (
+          <div className="border-b border-white/10 px-4 py-3">
+            <p className="mb-2 text-xs font-medium text-white/70">Approval required</p>
+            <textarea
+              value={approveNote}
+              onChange={(e) => setApproveNote(e.target.value)}
+              placeholder="Approval note (optional)"
+              className="mb-2 w-full rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 text-xs text-white placeholder:text-white/30"
+              rows={2}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => onApprove("APPROVED", approveNote || undefined)}
+                className="flex-1 rounded-lg border border-emerald-400/30 bg-emerald-500/15 px-3 py-1.5 text-xs font-medium text-emerald-100 hover:bg-emerald-500/25"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => onApprove("REJECTED", approveNote || undefined)}
+                className="flex-1 rounded-lg border border-rose-400/30 bg-rose-500/15 px-3 py-1.5 text-xs font-medium text-rose-100 hover:bg-rose-500/25"
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        )}
         </div>
 
         <div className="flex gap-1 border-b border-white/10 px-4 pt-3">
@@ -140,7 +183,7 @@ export default function ContentDrawer({
               <MetaRow icon={Calendar} label="Publishing Time" value={`${fmt(item.schedule.scheduledAt)} · ${item.schedule.timezone}`} />
               <MetaRow icon={User} label="Assigned User" value={assignee?.name ?? creator?.name ?? "Unassigned"} sub={assignee?.role} avatarColor={assignee?.color} />
               <MetaRow icon={User} label="Created By" value={creator?.name ?? "—"} avatarColor={creator?.color} />
-              {campaign && <MetaRow label="Campaign" value={campaign.name} dotColor={campaign.color} icon={Hash} />}
+              {campaign && <MetaRow label="Campaign" value={campaign.title ?? campaign.name ?? "—"} dotColor={campaign.color} icon={Hash} />}
               {dept && <MetaRow label="Department" value={dept.name} icon={User} />}
               <MetaRow
                 label="Approval Status"
