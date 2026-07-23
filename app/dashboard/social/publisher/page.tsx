@@ -29,14 +29,15 @@ function toView(p: any): ScheduledPost {
   const statusMap: Record<string, PostStatus> = {
     DRAFT: "DRAFT",
     SCHEDULED: "SCHEDULED",
-    QUEUED: "SCHEDULED",
+    QUEUED: "QUEUED",
     PUBLISHING: "PUBLISHING",
     PUBLISHED: "PUBLISHED",
     FAILED: "FAILED",
-    REJECTED: "FAILED",
+    APPROVED: "APPROVED",
+    REJECTED: "REJECTED",
     CANCELLED: "CANCELLED",
-    PENDING_APPROVAL: "DRAFT",
-    APPROVED: "SCHEDULED",
+    PENDING_APPROVAL: "PENDING_APPROVAL",
+    RETRYING: "RETRYING",
   };
   return {
     id: p.id,
@@ -109,12 +110,21 @@ export default function SchedulerPage() {
           title: incoming.title,
           caption: incoming.caption,
           hashtags: incoming.hashtags,
-          mediaUrls: incoming.mediaUrl ? [incoming.mediaUrl] : [],
+          mediaUrls: incoming.mediaUrl && /^https?:\/\//i.test(incoming.mediaUrl)
+            ? [incoming.mediaUrl]
+            : [],
           platforms,
+          scheduledAt: _action === "schedule" ? incoming.scheduledAt : undefined,
+          timezone: incoming.timezone,
         }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Create failed");
+      if (!res.ok) {
+        const fieldErrors = json.issues?.fieldErrors
+          ? Object.values(json.issues.fieldErrors).flat().filter(Boolean).join(" ")
+          : "";
+        throw new Error(fieldErrors || json.error || "Create failed");
+      }
       await load();
       if (_action === "publish" && json.post?.id) {
         await publishNowById(json.post.id);

@@ -1,53 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth-server";
 import { createPost } from "@/services/publishing/service";
-import { PUBLISH_PLATFORMS } from "@/services/publishing/engine";
-import { z } from "zod";
+import { logger } from "@/lib/logger";
+import {
+  createPostSchema,
+  normalizeCreatePostPayload,
+  resolvePublishingTargets,
+  summarizePublishingValidationIssues,
+} from "./contract";
 
 export const runtime = "nodejs";
 
-const createPostSchema = z.object({
-  title: z.string().trim().max(100).optional(),
-  caption: z.string().trim().min(1).max(5_000),
-  hashtags: z.array(z.string().trim().min(1).max(100)).max(30).optional(),
-  link: z.string().url().optional(),
-  cta: z.string().trim().max(100).optional(),
-  location: z.string().trim().max(200).optional(),
-  mediaUrls: z.array(z.string().url()).max(10).optional(),
-  platforms: z.array(z.object({
-    platform: z.enum(PUBLISH_PLATFORMS),
-    accountId: z.string().trim().optional(),
-  })).min(1).superRefine((targets, context) => {
-    const seen = new Set<string>();
-    targets.forEach((target, index) => {
-      if (seen.has(target.platform)) context.addIssue({ code: z.ZodIssueCode.custom, message: `${target.platform} can only be selected once`, path: [index, "platform"] });
-      seen.add(target.platform);
-    });
-  }),
-  scheduledAt: z.string().datetime().optional(),
-  requiresApproval: z.boolean().optional(),
-  providerOptions: z.object({
-    tiktok: z.object({
-      privacyLevel: z.string().max(80).optional(),
-      disableComment: z.boolean().optional(),
-      disableDuet: z.boolean().optional(),
-      disableStitch: z.boolean().optional(),
-      coverTimestampMs: z.number().int().min(0).optional(),
-    }).optional(),
-    youtube: z.object({
-      title: z.string().max(100).optional(),
-      description: z.string().max(5_000).optional(),
-      thumbnailUrl: z.string().url().optional(),
-      tags: z.array(z.string().max(500)).max(50).optional(),
-      playlistId: z.string().max(100).optional(),
-      visibility: z.enum(["public", "private", "unlisted"]).optional(),
-      publishAt: z.string().datetime().optional(),
-      categoryId: z.string().regex(/^\d+$/).optional(),
-      madeForKids: z.boolean().optional(),
-    }).optional(),
-    website: z.object({ status: z.enum(["draft", "publish"]).optional() }).optional(),
-  }).optional(),
-});
+function safeDiagnostics(req: NextRequest, body: any, parsedFieldNames: string[] = []) {
+  const platforms = Array.isArray(body?.platforms) ? body.platforms : [];
+  const scheduledAt = typeof body?.scheduledAt === "string" ? body.scheduledAt : "";
+  const scheduledDate = scheduledAt ? new Date(scheduledAt) : null;
+  return {
+    contentType: req.headers.get("content-type") ?? "missing",
+    topLevelFieldNames: body && typeof body === "object" && !Array.isArray(body) ? Object.keys(body).sort() : [],
+    platformValues: platforms.map((item: any) => item?.platform).filter(Boolean),
+    accountIdPresent: platforms.map((item: any) => Boolean(item?.accountId?.trim?.())),
+    captionLength: typeof body?.caption === "string" ? body.caption.trim().length : 0,
+    mediaCount: Array.isArray(body?.mediaUrls) ? body.mediaUrls.length : 0,
+    mediaTypes: Array.isArray(body?.mediaUrls)
+      ? body.mediaUrls.map((url: unknown) => typeof url === "string" && /\.(mp4|mov|webm)(?:\?|$)/i.test(url) ? "VIDEO" : "IMAGE_OR_OTHER")
+      : [],
+    publishMode: scheduledAt ? "scheduled" : "immediate",
+    scheduledAtPresent: Boolean(scheduledAt),
+    scheduledAtIsoValid: scheduledDate ? !Number.isNaN(scheduledDate.getTime()) : false,
+    timezone: typeof body?.timezone === "string" ? body.timezone : "missing",
+    validationErrorFieldNames: parsedFieldNames,
+  };
+}
 
 /** TASK-48 — Create a post (draft / scheduled). */
 export async function POST(req: NextRequest) {
@@ -56,20 +40,36 @@ export async function POST(req: NextRequest) {
   const user = perm.user!;
   let body: any;
   try {
-    body = await req.json();
+    body = normalizeCreatePostPayload(await req.json());
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const parsed = createPostSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid publishing request", issues: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) {
+    const summary = summarizePublishingValidationIssues(parsed.error);
+    logger.warn("publishing", "Publishing create validation failed", safeDiagnostics(req, body, summary.fieldNames));
+    return NextResponse.json({ error: summary.message, issues: summary.issues }, { status: 400 });
+  }
   try {
+    const { prisma } = await import("@/lib/db");
+    const accounts = await prisma.companySocialAccount.findMany({
+      select: { id: true, platform: true, status: true, isActive: true },
+    });
+    const resolved = resolvePublishingTargets(parsed.data, accounts);
+    logger.info("publishing", "Publishing create request accepted", safeDiagnostics(req, resolved));
     const post = await createPost({
-      ...parsed.data,
+      ...resolved,
       createdBy: { id: user.id, name: user.name },
     });
     return NextResponse.json({ post }, { status: 201 });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Create failed" }, { status: 500 });
+    const message = e?.message ?? "Create failed";
+    const status = /connected|platform/i.test(message) ? 400 : 500;
+    logger.warn("publishing", "Publishing create request rejected", {
+      ...safeDiagnostics(req, parsed.data),
+      validationErrorFieldNames: [/connected/i.test(message) ? "platforms" : "request"],
+    });
+    return NextResponse.json({ error: message }, { status });
   }
 }
 

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth-server";
 import {
-  exchangeCodeForToken,
-  getLongLivedToken,
-  getPages,
-  getInstagramBusiness,
   debugToken,
+  discoverPageById,
+  discoverPages,
+  exchangeCodeForToken,
+  getInstagramBusiness,
+  getLongLivedToken,
   getMetaBusinessLoginEnv,
   getMetaOAuthPlan,
+  getSelectedMetaPageIds,
   tokenExpiryInfo,
 } from "@/services/meta/oauth";
 import { connectMetaAccount } from "@/services/social/accounts";
@@ -15,16 +17,28 @@ import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
+const CONNECTED_ACCOUNTS_PATH = "/dashboard/social/accounts";
+
+function redirectToConnectedAccounts(req: NextRequest, params: Record<string, string>) {
+  const target = new URL(CONNECTED_ACCOUNTS_PATH, req.url);
+  for (const [key, value] of Object.entries(params)) {
+    target.searchParams.set(key, value);
+  }
+  logger.info("auth", "Meta OAuth final redirect target", {
+    finalRedirectTarget: `${target.pathname}${target.search}`,
+    routeExists: true,
+  });
+  return NextResponse.redirect(target);
+}
+
 /**
- * TASK-45 — Meta OAuth callback.
- * Validates `state` (CSRF), exchanges code for a long-lived token,
- * lists Pages, detects the linked Instagram Business account, then
- * securely persists the connection. Never returns tokens to the client.
+ * Meta OAuth callback. Tokens and authorization codes never enter logs or
+ * client responses.
  */
 export async function GET(req: NextRequest) {
   const perm = await requirePermission("SOCIAL_CONNECT", req);
   if (!perm.ok) {
-    return NextResponse.redirect(new URL("/dashboard/social/accounts?meta=unauthorized", req.url));
+    return redirectToConnectedAccounts(req, { meta: "unauthorized" });
   }
 
   const url = new URL(req.url);
@@ -36,8 +50,19 @@ export async function GET(req: NextRequest) {
   const errorCode = url.searchParams.get("error_code");
   const storedState = req.cookies.get("meta_oauth_state")?.value;
 
+  logger.info("auth", "Meta Business OAuth callback received", {
+    callbackReceived: true,
+    authorizationCodePresent: Boolean(code),
+    statePresent: Boolean(state),
+    storedStatePresent: Boolean(storedState),
+    providerErrorPresent: Boolean(error),
+    selectedPageIdPresent: ["page_id", "selected_page_id", "target_id"].some((key) =>
+      Boolean(url.searchParams.get(key)),
+    ),
+  });
+
   const fail = (reason: string) =>
-    NextResponse.redirect(new URL(`/dashboard/social/accounts?meta=error&reason=${encodeURIComponent(reason)}`, req.url));
+    redirectToConnectedAccounts(req, { meta: "error", reason });
 
   if (error) {
     logger.warn("auth", "Meta Business OAuth callback rejected", {
@@ -45,11 +70,13 @@ export async function GET(req: NextRequest) {
       errorReason,
       errorDescription,
       errorCode,
-      configurationId: process.env.META_LOGIN_CONFIG_ID ?? "not-configured",
+      configurationIdLast4: process.env.META_LOGIN_CONFIG_ID?.slice(-4) ?? "not-configured",
     });
-    // User cancelled or denied — friendly enterprise message.
-    const msg = errorReason === "user_denied" ? "Authorization cancelled by user" : errorDescription || error;
-    return fail(msg);
+    const message =
+      errorReason === "user_denied"
+        ? "Authorization cancelled by user"
+        : errorDescription || error;
+    return fail(message);
   }
   if (!code) return fail("Missing authorization code");
   if (!state || !storedState || state !== storedState) {
@@ -60,42 +87,99 @@ export async function GET(req: NextRequest) {
     const user = perm.user!;
     const plan = getMetaOAuthPlan();
     const { configurationId } = getMetaBusinessLoginEnv();
-    // 1. code → short-lived token
-    const short = await exchangeCodeForToken(code);
-    // 2. short-lived → long-lived (~60 days)
-    const longLived = await getLongLivedToken(short.access_token);
-    const { expiresAt, status } = tokenExpiryInfo(longLived.expires_in);
 
-    // 3. validate + capture granted scopes
-    const dbg = await debugToken(longLived.access_token);
-    const scopes = dbg.granted_scopes ?? dbg.scopes ?? [];
+    const short = await exchangeCodeForToken(code);
+    const longLived = await getLongLivedToken(short.access_token);
+    logger.info("auth", "Meta OAuth code exchange completed", {
+      codeExchangeSuccess: true,
+      userAccessTokenReceived: Boolean(longLived.access_token),
+    });
+    const { expiresAt } = tokenExpiryInfo(longLived.expires_in);
+
+    const tokenDebug = await debugToken(longLived.access_token);
+    const scopes = tokenDebug.granted_scopes ?? tokenDebug.scopes ?? [];
     const missingScopes = plan.requestedScopes.filter((scope) => !scopes.includes(scope));
+    const selectedPageIds = getSelectedMetaPageIds(url.searchParams, tokenDebug);
     logger.info("auth", "Meta Business OAuth callback scopes", {
-      configurationId,
+      configurationIdLast4: configurationId.slice(-4),
       requestedScopes: plan.requestedScopes,
       grantedScopes: scopes,
       missingScopes,
+      granularScopeCount: tokenDebug.granular_scopes?.length ?? 0,
+      selectedPageIds,
     });
 
-    // 4. list pages
-    const pages = await getPages(longLived.access_token);
+    const discovery = await discoverPages(longLived.access_token);
+    let pages = discovery.pages;
+    logger.info("auth", "Meta GET /me/accounts response", {
+      responseStatus: discovery.status,
+      ok: discovery.ok,
+      pageCount: pages.length,
+      pageIds: pages.map((page) => page.id),
+      pageNames: pages.map((page) => page.name),
+      pageTasks: pages.map((page) => ({ pageId: page.id, tasks: page.tasks ?? [] })),
+      errorCode: discovery.error?.code,
+      errorType: discovery.error?.type,
+      errorKind: discovery.error?.kind,
+    });
+
+    // Business Login may identify the selected Page through callback
+    // parameters or granular scope target IDs even when /me/accounts is empty.
+    if (!pages.length && selectedPageIds.length) {
+      for (const selectedPageId of selectedPageIds) {
+        const selected = await discoverPageById(longLived.access_token, selectedPageId);
+        logger.info("auth", "Meta selected Page fallback response", {
+          selectedPageId,
+          responseStatus: selected.status,
+          ok: selected.ok,
+          pageCount: selected.pages.length,
+          pageIds: selected.pages.map((page) => page.id),
+          pageNames: selected.pages.map((page) => page.name),
+          pageTasks: selected.pages.map((page) => ({
+            pageId: page.id,
+            tasks: page.tasks ?? [],
+          })),
+          errorCode: selected.error?.code,
+          errorType: selected.error?.type,
+          errorKind: selected.error?.kind,
+        });
+        pages = [...pages, ...selected.pages];
+      }
+    }
+
     if (!pages.length) {
-      return fail("No Facebook Page found for this account");
+      logger.warn("auth", "Meta Page discovery returned no accessible Pages", {
+        responseStatus: discovery.status,
+        grantedScopes: scopes,
+        missingScopes,
+        selectedPageIds,
+      });
+      return fail(
+        missingScopes.length
+          ? `Facebook Page access is missing required permissions: ${missingScopes.join(", ")}`
+          : "No accessible Facebook Page was returned. Reconnect and select a Page you manage.",
+      );
     }
-    // Pick the first page (UI could let admin choose later — architecture-ready).
-    const page = pages.find((candidate) => candidate.tasks?.includes("MANAGE"));
+
+    const page =
+      pages.find((candidate) => selectedPageIds.includes(candidate.id)) ??
+      pages.find((candidate) =>
+        candidate.tasks?.some((task) => task === "MANAGE" || task === "CREATE_CONTENT"),
+      );
     if (!page) {
-      return fail("The Facebook user must have full control/admin access to the Page");
+      return fail("The Facebook user must have Page management or content-creation access");
     }
 
-    // 5. detect linked Instagram Business account
-    const instagramEnabled = plan.features.includes("instagram_publish") || plan.features.includes("instagram_insights");
-    const ig = instagramEnabled ? await getInstagramBusiness(page.id, page.access_token) : null;
+    const instagramEnabled =
+      plan.features.includes("instagram_publish") ||
+      plan.features.includes("instagram_insights");
+    const instagram = instagramEnabled
+      ? await getInstagramBusiness(page.id, page.access_token)
+      : null;
 
-    // 6. persist securely (tokens encrypted at rest)
-    const result = await connectMetaAccount({
+    await connectMetaAccount({
       page: { id: page.id, name: page.name, accessToken: page.access_token },
-      ig: ig ? { id: ig.id, username: ig.username } : null,
+      ig: instagram ? { id: instagram.id, username: instagram.username } : null,
       userToken: longLived.access_token,
       permissions: scopes,
       expiresAt: expiresAt ? expiresAt.toISOString() : null,
@@ -103,17 +187,21 @@ export async function GET(req: NextRequest) {
       connectedById: user.id,
     });
 
-    const res = NextResponse.redirect(
-      new URL("/dashboard/social/accounts?meta=success", req.url),
-    );
-    // clear state cookie
-    res.cookies.set("meta_oauth_state", "", { path: "/", maxAge: 0 });
-    return res;
-  } catch (e: any) {
-    logger.error("auth", "Meta Business OAuth callback failed", {
-      message: e?.message ?? "Meta connection failed",
-      configurationId: process.env.META_LOGIN_CONFIG_ID ?? "not-configured",
+    logger.info("auth", "Meta OAuth Page saved", {
+      pageSaved: true,
+      pageId: page.id,
+      pageName: page.name,
+      instagramAccountSaved: Boolean(instagram),
     });
-    return fail(e?.message ?? "Meta connection failed");
+
+    const response = redirectToConnectedAccounts(req, { meta: "success" });
+    response.cookies.set("meta_oauth_state", "", { path: "/", maxAge: 0 });
+    return response;
+  } catch (error: any) {
+    logger.error("auth", "Meta Business OAuth callback failed", {
+      message: error?.message ?? "Meta connection failed",
+      configurationIdLast4: process.env.META_LOGIN_CONFIG_ID?.slice(-4) ?? "not-configured",
+    });
+    return fail(error?.message ?? "Meta connection failed");
   }
 }

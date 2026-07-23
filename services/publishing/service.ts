@@ -93,6 +93,15 @@ export async function createPost(input: CreatePostInput): Promise<PostPublic> {
     },
     include: { platforms: true },
   });
+  if (input.scheduledAt) {
+    const when = new Date(input.scheduledAt);
+    await prisma.scheduledPost.upsert({
+      where: { postId: post.id },
+      create: { postId: post.id, scheduledAt: when, status: "SCHEDULED", ownerId: input.createdBy.id },
+      update: { scheduledAt: when, status: "SCHEDULED", ownerId: input.createdBy.id },
+    });
+    await enqueuePublish(post.id, when.toISOString());
+  }
   return toPublic(post);
 }
 
