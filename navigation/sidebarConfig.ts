@@ -2,71 +2,30 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
-  LayoutDashboard,
-  Network,
-  MessageCircle,
-  Users,
-  Bot,
-  BarChart3,
-  Inbox,
-  ShieldCheck,
-  Images,
-  Layers,
-  // social
-  Link2,
-  CalendarClock,
-  PenLine,
-  FileEdit,
-  Megaphone,
-  CalendarDays,
   Activity,
-  MessageSquare,
-  Mail,
-  // messenger
-  Hash,
-  Users2,
-  Volume2,
-  Paperclip,
-  Star,
-  Archive,
-  // team
-  UserCog,
-  KeyRound,
-  ListChecks,
-  ScrollText,
-  // ai
-  Sparkles,
-  Wand2,
-  Workflow,
-  // insights
-  TrendingUp,
-  Eye,
-  Heart,
-  Users as UsersIcon,
-  FileText,
-  Radio,
-  // inbox (brand icons substituted with generic + per-platform initials in UI)
-  MessageCircle as FacebookIcon,
-  MessageCircle as InstagramIcon,
-  MessageCircle as LinkedinIcon,
-  // admin
-  Building2,
-  Settings,
-  Plug,
-  Lock,
-  ShieldAlert,
+  BarChart3,
   Bell,
+  Bot,
   Database,
-  HeartPulse,
-  UserPlus,
   Globe,
+  Images,
+  Inbox,
+  Layers,
+  LayoutDashboard,
+  MessageCircle,
+  Network,
+  Settings,
+  ShieldCheck,
+  Users,
 } from "lucide-react";
+import type { Permission } from "@/types/auth";
+import { NAVIGATION_MODULES } from "./registry.mjs";
 
 export type NavChild = {
   label: string;
   href: string;
-  /** short description for page header */
   description?: string;
+  permission: Permission;
 };
 
 export type NavSection = {
@@ -74,255 +33,89 @@ export type NavSection = {
   label: string;
   icon: LucideIcon;
   href: string;
-  /** breadcrumb segment label for the module root */
   crumb: string;
+  description: string;
+  permission: Permission;
   children: NavChild[];
   expandable?: boolean;
 };
 
-// Blueprint v1.0 (Architecture Freeze) — single source of truth for navigation.
-// Route Registry §3 + Naming Convention §8. Every route here is the canonical path.
-export const sidebarConfig: NavSection[] = [
-  {
-    key: "dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    href: "/dashboard",
-    crumb: "Dashboard",
-    expandable: false,
-    children: [],
-  },
-  {
-    key: "social",
-    label: "Social",
-    icon: Network,
-    href: "/dashboard/social",
-    crumb: "Social",
-    children: [
-      { label: "Connected Accounts", href: "/dashboard/social/accounts", description: "Connect and manage Facebook, Instagram, LinkedIn and website accounts." },
-      { label: "Publishing Scheduler", href: "/dashboard/social/publisher", description: "Schedule and publish posts across all connected platforms." },
-      { label: "Content Planner", href: "/dashboard/social/planner", description: "Plan and organize content ideas into a calendar." },
-      { label: "Engagement Monitor", href: "/dashboard/social/engagement", description: "Monitor likes, comments, and reactions in real time." },
-      { label: "Facebook Live", href: "/dashboard/social/facebook", description: "Real-time Facebook page data: followers, posts and inbox messages." },
-    ],
-  },
-  {
-    key: "team",
-    label: "Team",
-    icon: Users,
-    href: "/dashboard/team",
-    crumb: "Team",
-    children: [
-      { label: "Members", href: "/dashboard/team/members", description: "Manage team members, profiles, and access." },
-      { label: "Roles & Permissions", href: "/dashboard/team/roles", description: "Define roles and control what each member can do." },
-      { label: "Tasks", href: "/dashboard/team/tasks", description: "Assign and track team tasks and routines." },
-      { label: "Activity Logs", href: "/dashboard/team/activity", description: "Audit trail of team actions and changes." },
-    ],
-  },
-  {
-    key: "messenger",
-    label: "K2 Messenger",
-    icon: MessageCircle,
-    href: "/dashboard/messenger",
-    crumb: "K2 Messenger",
-    children: [
-      { label: "Direct Messages", href: "/dashboard/messenger/direct", description: "One-on-one realtime conversations." },
-      { label: "Groups", href: "/dashboard/messenger/groups", description: "Group conversations with your team and clients." },
-      { label: "Channels", href: "/dashboard/messenger/channels", description: "Broadcast channels for announcements and updates." },
-      { label: "Announcements", href: "/dashboard/messenger/announcements", description: "Company-wide announcements and notices." },
-      { label: "Shared Files", href: "/dashboard/messenger/files", description: "Files shared across your conversations." },
-      { label: "Starred", href: "/dashboard/messenger/starred", description: "Your starred messages and conversations." },
-      { label: "Archive", href: "/dashboard/messenger/archive", description: "Archived conversations and messages." },
-    ],
-  },
-  {
-    key: "ai",
-    label: "AI & Automation",
-    icon: Bot,
-    href: "/dashboard/ai",
-    crumb: "AI & Automation",
-    children: [
-      { label: "K2Kai Studio", href: "/dashboard/ai/studio", description: "Create and manage AI agents and prompts." },
-      { label: "Workflow Automation", href: "/dashboard/ai/workflows", description: "Build automated workflows and triggers." },
-    ],
-  },
-  {
-    key: "insights",
-    label: "Insights",
-    icon: BarChart3,
-    href: "/dashboard/insights",
-    crumb: "Insights",
-    children: [
-      { label: "Analytics", href: "/dashboard/insights/analytics", description: "Unified analytics across all platforms." },
-      { label: "Reports", href: "/dashboard/insights/reports", description: "Generate and export performance reports." },
-    ],
-  },
-  {
-    key: "executive",
-    label: "Executive",
-    icon: LayoutDashboard,
-    href: "/dashboard/executive",
-    crumb: "Executive",
-    children: [
-      { label: "Activity Feed", href: "/dashboard/executive/activity-feed", description: "Global enterprise timeline across all modules." },
-    ],
-  },
-  {
-    key: "queue",
-    label: "Queue Engine",
-    icon: Layers,
-    href: "/dashboard/queue",
-    crumb: "Queue Engine",
-    children: [
-      { label: "Jobs", href: "/dashboard/queue/jobs", description: "All job audit records across queues." },
-      { label: "Failed Jobs", href: "/dashboard/queue/failed", description: "Recover failed jobs." },
-      { label: "Workers", href: "/dashboard/queue/workers", description: "Background worker instances + health." },
-      { label: "Queue Health", href: "/dashboard/queue/health", description: "Redis, BullMQ, scheduler and subsystem health." },
-    ],
-  },
-  {
-    key: "inbox",
-    label: "Inbox",
-    icon: Inbox,
-    href: "/dashboard/inbox",
-    crumb: "Inbox",
-    children: [
-      { label: "Unified Inbox", href: "/dashboard/inbox/unified", description: "All external messages in one place." },
-    ],
-  },
-  {
-    key: "media",
-    label: "Media Library",
-    icon: Images,
-    href: "/dashboard/media",
-    crumb: "Media Library",
-    children: [
-      { label: "All Assets", href: "/dashboard/media?view=assets", description: "Browse and manage all digital assets." },
-      { label: "Collections", href: "/dashboard/media?view=collections", description: "Organize assets into nested collections." },
-      { label: "Tags", href: "/dashboard/media?view=tags", description: "Tag and categorize assets for quick search." },
-    ],
-  },
-  {
-    key: "notifications",
-    label: "Notifications",
-    icon: Bell,
-    href: "/dashboard/notifications",
-    crumb: "Notification Center",
-    expandable: false,
-    children: [],
-  },
-  {
-    key: "admin-workspace",
-    label: "Workspace",
-    icon: Settings,
-    href: "/dashboard/admin",
-    crumb: "Workspace",
-    expandable: true,
-    children: [
-      { label: "Company Settings", href: "/dashboard/admin/company", description: "Company profile and branding configuration." },
-      { label: "API Connections", href: "/dashboard/admin/api", description: "Manage third-party API integrations." },
-    ],
-  },
-  {
-    key: "admin-users",
-    label: "Users",
-    icon: Users,
-    href: "/dashboard/admin/users",
-    crumb: "Users",
-    expandable: true,
-    children: [
-      { label: "User Permissions", href: "/dashboard/admin/security/permissions", description: "Role-based permission matrix." },
-      { label: "User Activity", href: "/dashboard/admin/users/activity", description: "Per-user login, actions, password, API, device and security activity." },
-      { label: "User Roles", href: "/dashboard/admin/users/roles", description: "User roles, permissions, assignment and access levels." },
-      { label: "Active Sessions", href: "/dashboard/admin/security/sessions", description: "Live login sessions and devices." },
-      { label: "Login History", href: "/dashboard/admin/security/login-history", description: "Authentication attempts." },
-    ],
-  },
-  {
-    key: "admin-security",
-    label: "Security",
-    icon: ShieldCheck,
-    href: "/dashboard/admin/security/overview",
-    crumb: "Security",
-    expandable: true,
-    children: [
-      { label: "Security Events", href: "/dashboard/admin/security/events", description: "Correlated security signals." },
-      { label: "API Access", href: "/dashboard/admin/security/api-access", description: "API call logs and latency." },
-      { label: "Audit Logs", href: "/dashboard/admin/security/audit", description: "System-wide audit and security logs." },
-    ],
-  },
-  {
-    key: "admin-backup",
-    label: "Backup",
-    icon: Database,
-    href: "/dashboard/admin/backup",
-    crumb: "Backup",
-    expandable: true,
-    children: [
-      { label: "Backup Jobs", href: "/dashboard/admin/backup/jobs", description: "Create, verify and restore backups." },
-      { label: "Restore Manager", href: "/dashboard/admin/backup/restore", description: "Guided restore wizard." },
-      { label: "Recovery Logs", href: "/dashboard/admin/backup/logs", description: "Immutable backup/restore audit." },
-      { label: "Schedules", href: "/dashboard/admin/backup/schedule", description: "Automated backup schedules." },
-    ],
-  },
-  {
-    key: "admin-localization",
-    label: "Localization",
-    icon: Globe,
-    href: "/dashboard/admin/localization",
-    crumb: "Localization",
-    expandable: true,
-    children: [
-      { label: "Language Manager", href: "/dashboard/admin/localization/languages", description: "Supported languages and direction." },
-      { label: "Translation Center", href: "/dashboard/admin/localization/translations", description: "Coverage, status and missing keys." },
-      { label: "Locale Settings", href: "/dashboard/admin/localization/settings", description: "Regional formatting and AI translation." },
-    ],
-  },
-  {
-    key: "admin-system",
-    label: "System",
-    icon: Activity,
-    href: "/monitoring",
-    crumb: "System",
-    expandable: true,
-    children: [
-      { label: "Storage", href: "/dashboard/admin/backup/storage", description: "Capacity & provider monitoring." },
-      { label: "PWA Settings", href: "/dashboard/admin/pwa", description: "Install, service worker, cache and update management." },
-    ],
-  },
-];
+const ICONS: Record<string, LucideIcon> = {
+  Activity,
+  BarChart3,
+  Bell,
+  Bot,
+  Database,
+  Globe,
+  Images,
+  Inbox,
+  Layers,
+  LayoutDashboard,
+  MessageCircle,
+  Network,
+  Settings,
+  ShieldCheck,
+  Users,
+};
 
-/** Flat lookup of every route → its nav meta (for breadcrumbs + page headers). */
+/** UI projection of the Blueprint v1.1 registry. Route data lives only in registry.mjs. */
+export const sidebarConfig: NavSection[] = NAVIGATION_MODULES.map((section) => ({
+  key: section.key,
+  label: section.label,
+  icon: ICONS[section.icon],
+  href: section.href,
+  crumb: section.crumb,
+  description: section.description,
+  permission: section.permission as Permission,
+  expandable: section.expandable,
+  children: section.children.map((child) => ({
+    label: child.label,
+    href: child.href,
+    description: child.description,
+    permission: child.permission as Permission,
+  })),
+}));
+
+export const dashboardHref = sidebarConfig.find((section) => section.key === "dashboard")?.href ?? "/dashboard";
+
 export type RouteMeta = {
   href: string;
   label: string;
   description?: string;
+  permission: Permission;
   moduleKey: string;
   moduleLabel: string;
   moduleHref: string;
   crumb: string;
+  breadcrumbs: readonly string[];
 };
 
+/** Flat canonical lookup used by breadcrumbs, page headers, and active navigation. */
 export const routeMetaMap: Record<string, RouteMeta> = (() => {
   const map: Record<string, RouteMeta> = {};
   for (const section of sidebarConfig) {
     map[section.href] = {
       href: section.href,
       label: section.label,
+      description: section.description,
+      permission: section.permission,
       moduleKey: section.key,
       moduleLabel: section.label,
       moduleHref: section.href,
       crumb: section.crumb,
+      breadcrumbs: section.href === "/dashboard" ? ["Dashboard"] : ["Dashboard", section.crumb],
     };
     for (const child of section.children) {
       map[child.href] = {
         href: child.href,
         label: child.label,
         description: child.description,
+        permission: child.permission,
         moduleKey: section.key,
         moduleLabel: section.label,
         moduleHref: section.href,
         crumb: section.crumb,
+        breadcrumbs: ["Dashboard", section.crumb, child.label],
       };
     }
   }

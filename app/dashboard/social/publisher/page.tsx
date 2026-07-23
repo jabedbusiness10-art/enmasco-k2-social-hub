@@ -13,8 +13,8 @@ import SchedulerCalendar, {
   calendarLabel,
 } from "@/components/scheduler/SchedulerCalendar";
 import UpcomingPosts from "@/components/scheduler/UpcomingPosts";
-import PostPreview from "@/components/scheduler/PostPreview";
 import ScheduleModal from "@/components/scheduler/ScheduleModal";
+import PostDetailsDrawer from "@/components/scheduler/PostDetailsDrawer";
 import type { ViewMode } from "@/types/scheduler";
 
 function toView(p: any): ScheduledPost {
@@ -29,23 +29,26 @@ function toView(p: any): ScheduledPost {
   const statusMap: Record<string, PostStatus> = {
     DRAFT: "DRAFT",
     SCHEDULED: "SCHEDULED",
-    QUEUED: "SCHEDULED",
+    QUEUED: "QUEUED",
     PUBLISHING: "PUBLISHING",
     PUBLISHED: "PUBLISHED",
     FAILED: "FAILED",
-    REJECTED: "FAILED",
+    APPROVED: "APPROVED",
+    REJECTED: "REJECTED",
     CANCELLED: "CANCELLED",
+    PENDING_APPROVAL: "PENDING_APPROVAL",
+    RETRYING: "RETRYING",
   };
   return {
     id: p.id,
     title: p.title ?? "(untitled)",
-    caption: p.caption,
+    caption: p.content ?? "",
     platform: platformMap[p.platform] ?? "facebook",
     mediaUrl: p.media?.[0]?.url,
     hashtags: p.hashtags ?? [],
-    scheduledAt: p.publishedAt ?? p.createdAt,
+    scheduledAt: p.scheduled?.scheduledAt ?? p.publishedAt ?? p.createdAt,
     status: statusMap[p.status] ?? "DRAFT",
-    owner: p.createdById ?? "system",
+    owner: p.creator?.name ?? p.createdById ?? "system",
     timezone: "Asia/Riyadh",
     accent: "red",
   };
@@ -61,8 +64,14 @@ export default function SchedulerPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ScheduledPost | null>(null);
-  const [selected, setSelected] = useState<ScheduledPost | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const flash = (m: string) => {
+    setToast(m);
+    setTimeout(() => setToast(null), 2200);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -101,16 +110,26 @@ export default function SchedulerPage() {
           title: incoming.title,
           caption: incoming.caption,
           hashtags: incoming.hashtags,
-          mediaUrls: incoming.mediaUrl ? [incoming.mediaUrl] : [],
+          mediaUrls: incoming.mediaUrl && /^https?:\/\//i.test(incoming.mediaUrl)
+            ? [incoming.mediaUrl]
+            : [],
           platforms,
+          scheduledAt: _action === "schedule" ? incoming.scheduledAt : undefined,
+          timezone: incoming.timezone,
         }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Create failed");
+      if (!res.ok) {
+        const fieldErrors = json.issues?.fieldErrors
+          ? Object.values(json.issues.fieldErrors).flat().filter(Boolean).join(" ")
+          : "";
+        throw new Error(fieldErrors || json.error || "Create failed");
+      }
       await load();
       if (_action === "publish" && json.post?.id) {
         await publishNowById(json.post.id);
       }
+      flash(_action === "publish" ? "Published" : "Saved");
     } catch (e: any) {
       setError(e.message);
     }
@@ -128,34 +147,96 @@ export default function SchedulerPage() {
     setModalOpen(true);
   };
   const openEdit = (post: ScheduledPost) => {
+    setSelectedId(null);
     setEditing(post);
     setModalOpen(true);
   };
-  const duplicate = (post: ScheduledPost) => {
-    setPosts((prev) => [{ ...post, id: `s${Date.now()}`, title: `${post.title} (copy)`, status: "DRAFT" }, ...prev]);
+  const openEditById = (id: string) => {
+    const p = posts.find((x) => x.id === id);
+    if (p) openEdit(p);
   };
-  const remove = async (post: ScheduledPost) => {
-    await fetch(`/api/publishing/update/${post.id}`, { method: "DELETE" });
-    setPosts((prev) => prev.filter((p) => p.id !== post.id));
-    if (selected?.id === post.id) setSelected(null);
+  const openDetails = (post: ScheduledPost) => setSelectedId(post.id);
+
+  const duplicate = async (id: string) => {
+    try {
+      const res = await fetch(`/api/publishing/duplicate/${id}`, { method: "POST" });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Duplicate failed");
+      flash("Duplicated as Draft");
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+  const remove = async (id: string) => {
+    try {
+      const res = await fetch(`/api/publishing/update/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Delete failed");
+      if (selectedId === id) setSelectedId(null);
+      flash("Deleted");
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    }
   };
   const publishNowById = async (id: string) => {
     try {
-      const res = await fetch("/api/publishing/publish", {
+      const res = await fetch(`/api/publishing/publish`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ postId: id }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Publish failed");
+      flash("Published");
       await load();
     } catch (e: any) {
       setError(e.message);
     }
   };
-  const publishNow = (post: ScheduledPost) => {
-    publishNowById(post.id);
-    setSelected({ ...post, status: "PUBLISHING" });
+  const retryById = async (id: string) => {
+    try {
+      const res = await fetch(`/api/publishing/retry/${id}`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Retry failed");
+      flash("Retry dispatched");
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+  const cancelById = async (id: string) => {
+    try {
+      const res = await fetch(`/api/publishing/cancel/${id}`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Cancel failed");
+      flash("Schedule cancelled");
+      setSelectedId(null);
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+
+  // Real drag-and-drop reschedule (server source of truth).
+  const reschedule = async (id: string, newIso: string) => {
+    const prev = posts.find((p) => p.id === id);
+    // Optimistic update
+    setPosts((prevPosts) => prevPosts.map((p) => (p.id === id ? { ...p, scheduledAt: newIso } : p)));
+    try {
+      const res = await fetch(`/api/publishing/reschedule/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scheduledAt: newIso }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Reschedule failed");
+      flash("Rescheduled");
+      await load();
+    } catch (e: any) {
+      // Rollback on failure
+      if (prev) setPosts((prevPosts) => prevPosts.map((p) => (p.id === id ? prev : p)));
+      setError(e.message);
+    }
   };
 
   const filtered = useMemo(() => {
@@ -205,20 +286,36 @@ export default function SchedulerPage() {
               view={view}
               anchor={anchor}
               onAnchorChange={setAnchor}
-              onSelectPost={(p) => setSelected(p)}
+              onSelectPost={openDetails}
+              onReschedule={reschedule}
             />
             <UpcomingPosts
               posts={filtered}
               onEdit={openEdit}
-              onDuplicate={duplicate}
-              onDelete={remove}
-              onPublishNow={publishNow}
-              onClick={(p) => setSelected(p)}
+              onDuplicate={(p) => duplicate(p.id)}
+              onDelete={(p) => remove(p.id)}
+              onPublishNow={(p) => publishNowById(p.id)}
+              onClick={openDetails}
             />
           </div>
 
           <aside className="flex flex-col gap-4">
-            <PostPreview post={selected} />
+            {selectedId ? (
+              <PostDetailsDrawer
+                postId={selectedId}
+                onClose={() => setSelectedId(null)}
+                onEdit={openEditById}
+                onDuplicate={duplicate}
+                onDelete={remove}
+                onPublish={publishNowById}
+                onRetry={retryById}
+                onCancel={cancelById}
+              />
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center text-sm text-white/50">
+                Select a post or calendar event to preview its details.
+              </div>
+            )}
           </aside>
         </section>
       </div>
@@ -232,20 +329,28 @@ export default function SchedulerPage() {
         initial={editing}
         onSubmit={applySubmit}
       />
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-xs font-medium text-emerald-100 shadow-2xl backdrop-blur-xl">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
 
-// local KPI derivation (kept from previous module)
+// local KPI derivation
 function deriveKpis(posts: ScheduledPost[]) {
   const total = posts.length;
   const published = posts.filter((p) => p.status === "PUBLISHED").length;
   const scheduled = posts.filter((p) => p.status === "SCHEDULED").length;
   const failed = posts.filter((p) => p.status === "FAILED").length;
+  const cancelled = posts.filter((p) => p.status === "CANCELLED").length;
   return [
     { label: "Total", value: String(total) },
-    { label: "Published", value: String(published) },
     { label: "Scheduled", value: String(scheduled) },
+    { label: "Published", value: String(published) },
     { label: "Failed", value: String(failed) },
+    { label: "Cancelled", value: String(cancelled) },
   ];
 }

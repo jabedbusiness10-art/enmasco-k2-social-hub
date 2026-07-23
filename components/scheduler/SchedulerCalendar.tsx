@@ -25,6 +25,7 @@ type Props = {
   anchor: Date;
   onAnchorChange: (d: Date) => void;
   onSelectPost: (post: ScheduledPost) => void;
+  onReschedule?: (id: string, newIso: string) => void;
 };
 
 const ACCENT_BAR: Record<string, string> = {
@@ -36,12 +37,22 @@ const ACCENT_BAR: Record<string, string> = {
   rose: "bg-rose-400",
 };
 
+// Keep the original time-of-day, move the date to the drop target day.
+function rescheduleIso(originalIso: string, targetDay: Date): string {
+  const orig = new Date(originalIso);
+  const next = new Date(targetDay);
+  next.setHours(orig.getHours(), orig.getMinutes(), orig.getSeconds(), 0);
+  // If target is today and the time already passed, keep the time (server validates).
+  return next.toISOString();
+}
+
 export default function SchedulerCalendar({
   posts,
   view,
   anchor,
   onAnchorChange,
   onSelectPost,
+  onReschedule,
 }: Props) {
   const byDay = (iso: string) =>
     posts.filter((p) => isSameDay(parseISO(p.scheduledAt), parseISO(iso)));
@@ -67,6 +78,14 @@ export default function SchedulerCalendar({
               <button
                 key={day.toISOString()}
                 onClick={() => onAnchorChange(day)}
+                onDragOver={(e) => { if (onReschedule) e.preventDefault(); }}
+                onDrop={(e) => {
+                  if (!onReschedule) return;
+                  e.preventDefault();
+                  const id = e.dataTransfer.getData("text/post-id");
+                  const orig = e.dataTransfer.getData("text/post-iso");
+                  if (id && orig) onReschedule(id, rescheduleIso(orig, day));
+                }}
                 className={`flex min-h-[78px] flex-col gap-1 rounded-xl border p-1.5 text-left transition ${
                   inMonth ? "border-white/10 bg-white/[0.03]" : "border-transparent bg-white/[0.01]"
                 } ${isCur ? "border-red-500/40 shadow-[0_0_22px_rgba(248,113,113,0.18)]" : "hover:border-white/20"}`}
@@ -76,7 +95,7 @@ export default function SchedulerCalendar({
                 </span>
                 <div className="flex flex-col gap-1">
                   {dayPosts.slice(0, 3).map((p) => (
-                    <EventChip key={p.id} post={p} onClick={() => onSelectPost(p)} />
+                    <EventChip key={p.id} post={p} onClick={() => onSelectPost(p)} onReschedule={onReschedule} />
                   ))}
                   {dayPosts.length > 3 && (
                     <span className="text-[9px] text-white/40">+{dayPosts.length - 3} more</span>
@@ -100,13 +119,24 @@ export default function SchedulerCalendar({
         {days.map((day) => {
           const dayPosts = posts.filter((p) => isSameDay(parseISO(p.scheduledAt), day));
           return (
-            <div key={day.toISOString()} className="flex flex-col gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] p-2">
+            <div
+              key={day.toISOString()}
+              onDragOver={(e) => { if (onReschedule) e.preventDefault(); }}
+              onDrop={(e) => {
+                if (!onReschedule) return;
+                e.preventDefault();
+                const id = e.dataTransfer.getData("text/post-id");
+                const orig = e.dataTransfer.getData("text/post-iso");
+                if (id && orig) onReschedule(id, rescheduleIso(orig, day));
+              }}
+              className="flex flex-col gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] p-2"
+            >
               <div className="text-center text-[11px] font-semibold text-white/70">
                 {format(day, "EEE d")}
               </div>
               <div className="flex flex-col gap-1">
                 {dayPosts.map((p) => (
-                  <EventChip key={p.id} post={p} compact onClick={() => onSelectPost(p)} />
+                  <EventChip key={p.id} post={p} compact onClick={() => onSelectPost(p)} onReschedule={onReschedule} />
                 ))}
                 {dayPosts.length === 0 && (
                   <span className="py-3 text-center text-[10px] text-white/25">—</span>
@@ -124,14 +154,24 @@ export default function SchedulerCalendar({
     .filter((p) => isSameDay(parseISO(p.scheduledAt), anchor))
     .sort((a, b) => +parseISO(a.scheduledAt) - +parseISO(b.scheduledAt));
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-3">
+    <div
+      onDragOver={(e) => { if (onReschedule) e.preventDefault(); }}
+      onDrop={(e) => {
+        if (!onReschedule) return;
+        e.preventDefault();
+        const id = e.dataTransfer.getData("text/post-id");
+        const orig = e.dataTransfer.getData("text/post-iso");
+        if (id && orig) onReschedule(id, rescheduleIso(orig, anchor));
+      }}
+      className="rounded-2xl border border-white/10 bg-white/[0.02] p-3"
+    >
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
         <CalendarDays className="h-4 w-4 text-red-300" />
         {format(anchor, "EEEE, dd MMMM yyyy")}
       </div>
       <div className="flex flex-col gap-2">
         {dayPosts.map((p) => (
-          <EventChip key={p.id} post={p} wide onClick={() => onSelectPost(p)} />
+          <EventChip key={p.id} post={p} wide onClick={() => onSelectPost(p)} onReschedule={onReschedule} />
         ))}
         {dayPosts.length === 0 && (
           <div className="rounded-xl border border-dashed border-white/10 py-8 text-center text-sm text-white/40">
@@ -148,17 +188,26 @@ function EventChip({
   onClick,
   compact,
   wide,
+  onReschedule,
 }: {
   post: ScheduledPost;
   onClick: () => void;
   compact?: boolean;
   wide?: boolean;
+  onReschedule?: (id: string, newIso: string) => void;
 }) {
   const meta = PLATFORMS[post.platform];
   const Icon = meta.icon;
   return (
     <motion.div
       layout
+      draggable={!!onReschedule}
+      onDragStart={(e: any) => {
+        if (!onReschedule) return;
+        e.dataTransfer.setData("text/post-id", post.id);
+        e.dataTransfer.setData("text/post-iso", post.scheduledAt);
+        e.dataTransfer.effectAllowed = "move";
+      }}
       role="button"
       tabIndex={0}
       initial={{ opacity: 0, scale: 0.95 }}

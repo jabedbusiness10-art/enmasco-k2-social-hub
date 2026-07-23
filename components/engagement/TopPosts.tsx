@@ -82,14 +82,14 @@ export default function TopPosts({ posts }: { posts: TopPost[] }) {
                   {PLATFORM_LABELS[p.platform]}
                 </div>
                 <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-white/45">
-                  <span>👍 {p.likes.toLocaleString()}</span>
-                  <span>💬 {p.comments}</span>
-                  <span>🔄 {p.shares}</span>
-                  <span>👀 {p.reach.toLocaleString()}</span>
+                  <span>👍 {(p.likes ?? 0).toLocaleString()}</span>
+                  <span>💬 {p.comments ?? 0}</span>
+                  <span>🔄 {p.shares ?? 0}</span>
+                  <span>👀 {(p.reach ?? 0).toLocaleString()}</span>
                 </div>
               </div>
               <div className="shrink-0 text-right">
-                <div className="text-xs font-bold text-white">{p.engagementRate}%</div>
+                <div className="text-xs font-bold text-white">{p.engagementRate != null && Number.isFinite(p.engagementRate) ? `${p.engagementRate}%` : "—"}</div>
                 <div className="text-[10px] text-white/40">Engmt</div>
               </div>
             </motion.div>

@@ -57,7 +57,7 @@ export default function ScheduleModal({ open, onClose, initial, onSubmit }: Prop
       scheduleTime: "09:00",
       timezone: "Asia/Riyadh",
       campaign: "",
-      mediaUrl: "/logo.svg",
+      mediaUrl: "/logo.png",
     },
   });
 
@@ -73,7 +73,7 @@ export default function ScheduleModal({ open, onClose, initial, onSubmit }: Prop
         scheduleTime: d.toISOString().slice(11, 16),
         timezone: initial.timezone,
         campaign: initial.campaign ?? "",
-        mediaUrl: initial.mediaUrl ?? "/logo.svg",
+        mediaUrl: initial.mediaUrl ?? "/logo.png",
       });
     } else {
       reset({
@@ -84,7 +84,7 @@ export default function ScheduleModal({ open, onClose, initial, onSubmit }: Prop
         scheduleTime: "09:00",
         timezone: "Asia/Riyadh",
         campaign: "",
-        mediaUrl: "/logo.svg",
+        mediaUrl: "/logo.png",
       });
     }
   }, [open, initial, reset]);
@@ -186,10 +186,10 @@ export default function ScheduleModal({ open, onClose, initial, onSubmit }: Prop
                 <div className="flex items-center gap-3">
                   <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/20 bg-white/5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={watch("mediaUrl") || "/logo.svg"} alt="" className="h-full w-full object-cover" />
+                    <img src={watch("mediaUrl") || "/logo.png"} alt="" className="h-full w-full object-contain" />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <span className="text-xs text-white/55">Mock upload — /logo.svg attached</span>
+                    <span className="text-xs text-white/55">Mock upload — /logo.png attached</span>
                     <span className="text-[10px] text-white/35">
                       Real S3/Cloudinary upload ready via future integration.
                     </span>

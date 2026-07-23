@@ -7,6 +7,12 @@ injected only via `APP_URL` / `NEXTAUTH_URL`.
 Copy `.env.example` → `.env.local` and fill in real values. `.env.local` is
 gitignored and must never be committed.
 
+## Weather service
+
+The header weather card uses Open-Meteo and does not require an API key. Current conditions are cached server-side for 10 minutes; the browser refreshes automatically every 10 minutes and also provides a manual refresh action.
+
+Configure the location with `WEATHER_LOCATION`, `WEATHER_LATITUDE`, `WEATHER_LONGITUDE`, and `WEATHER_TIMEZONE`. If omitted, the application defaults to Riyadh, Saudi Arabia. Invalid coordinates or provider downtime produce an honest `Weather Unavailable` state; no placeholder temperature is displayed.
+
 ## Variables
 
 | Variable | Purpose | Notes |
@@ -20,7 +26,10 @@ gitignored and must never be committed.
 | `OPENAI_API_KEY` | AI provider (optional) | |
 | `OPENROUTER_API_KEY` | AI provider (preferred) | |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM` | Email | |
-| `META_APP_ID` / `META_APP_SECRET` | Facebook/Meta OAuth | |
+| `META_APP_ID` / `META_APP_SECRET` | Facebook/Meta app credentials | Server-only |
+| `META_LOGIN_CONFIG_ID` | Facebook Login for Business configuration | Required to start Meta OAuth |
+| `META_REDIRECT_URI` | Meta OAuth callback | Must exactly match the Business Login configuration |
+| `META_OAUTH_FEATURES` | Approved Meta capability stages | Defaults to `facebook_connect` |
 | `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET` | Instagram OAuth | |
 | `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | LinkedIn OAuth | |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google/YouTube OAuth | |

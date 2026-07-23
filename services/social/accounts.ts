@@ -1,12 +1,26 @@
 import { prisma } from "@/lib/db";
-import { encrypt, decrypt } from "@/lib/crypto";
+import { encrypt, decrypt, encryptedValueFingerprint, isEncryptedTokenFormat } from "@/lib/crypto";
 import { Prisma, type Platform } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export type SocialConnectionStatus =
   | "CONNECTED"
   | "EXPIRING_SOON"
   | "DISCONNECTED"
   | "PERMISSION_ERROR";
+
+export type SocialConnectionAction = "NONE" | "REFRESH" | "RECONNECT" | "RETRY";
+export type SocialConnectionReason =
+  | "CONNECTED"
+  | "EXPIRING_SOON"
+  | "TOKEN_EXPIRED"
+  | "TOKEN_REFRESH_FAILED"
+  | "REFRESH_TOKEN_MISSING"
+  | "PERMISSION_REVOKED"
+  | "ACCOUNT_DISCONNECTED"
+  | "PROVIDER_UNAVAILABLE"
+  | "NETWORK_ERROR"
+  | "UNKNOWN";
 
 export interface SocialAccountPublic {
   id: string;
@@ -39,18 +53,89 @@ export interface SocialAccountPublic {
   lastValidatedAt: string | null;
   lastPublishAt: string | null;
   lastError: string | null;
+  connectionState: {
+    connected: boolean;
+    status: SocialConnectionStatus;
+    label: string;
+    reason: SocialConnectionReason;
+    action: SocialConnectionAction;
+    message: string;
+  };
   // -------------------------------------------------------
   createdAt: string;
   updatedAt: string;
 }
 
-// Derived display status (token expiry awareness) without exposing tokens.
+export class SocialProviderRefreshError extends Error {
+  statusCode: number;
+  reason: SocialConnectionReason;
+  recoverable: boolean;
+
+  constructor(message: string, options: { reason: SocialConnectionReason; statusCode?: number; recoverable?: boolean }) {
+    super(message);
+    this.name = "SocialProviderRefreshError";
+    this.reason = options.reason;
+    this.statusCode = options.statusCode ?? 502;
+    this.recoverable = options.recoverable ?? true;
+  }
+}
+
+async function markTokensReconnectRequired(row: any, reason: SocialConnectionReason, message: string): Promise<any> {
+  logger.warn("auth", "Social account token recovery required", {
+    accountId: row.id,
+    platform: row.platform,
+    provider: row.provider,
+    reason,
+    accessTokenFingerprint: encryptedValueFingerprint(row.accessToken),
+    refreshTokenFingerprint: encryptedValueFingerprint(row.refreshToken),
+  });
+  return prisma.companySocialAccount.update({
+    where: { id: row.id },
+    data: {
+      accessToken: "",
+      refreshToken: null,
+      accessTokenStatus: "EXPIRED",
+      status: "PERMISSION_ERROR",
+      permissionStatus: "REAUTH_REQUIRED",
+      lastError: message,
+      lastValidatedAt: new Date(),
+      lastSyncAt: new Date(),
+    },
+  });
+}
+
+async function recoverUndecryptableTokens(row: any): Promise<any> {
+  if (row.status === "DISCONNECTED" || row.isActive === false) return row;
+  const tokenFields = [
+    ["accessToken", row.accessToken],
+    ["refreshToken", row.refreshToken],
+  ] as const;
+  for (const [, value] of tokenFields) {
+    if (!value) continue;
+    if (!isEncryptedTokenFormat(value)) {
+      return markTokensReconnectRequired(row, "TOKEN_EXPIRED", `${row.provider ?? "Provider"} token format is incompatible. Reconnect required.`);
+    }
+    try {
+      decrypt(value);
+    } catch {
+      return markTokensReconnectRequired(row, "TOKEN_EXPIRED", `${row.provider ?? "Provider"} token could not be decrypted. Reconnect required.`);
+    }
+  }
+  return row;
+}
+
+// Derived display status (token expiry + permission awareness).
+// TASK-81.6C — Also checks permissionStatus to detect PERMISSION_MISSING
+// scenarios without requiring a DB migration to add a new enum value.
 function deriveStatus(
   status: string,
   expiresAt: Date | null,
+  permissionStatus?: string | null,
 ): SocialConnectionStatus {
-  if (status === "DISCONNECTED" || status === "PERMISSION_ERROR") {
-    return status as SocialConnectionStatus;
+  if (status === "DISCONNECTED") return "DISCONNECTED";
+  if (status === "PERMISSION_ERROR") return "PERMISSION_ERROR";
+  if (permissionStatus === "PERMISSION_MISSING" || permissionStatus === "REAUTH_REQUIRED") {
+    return "PERMISSION_ERROR";
   }
   if (expiresAt) {
     const daysLeft = (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
@@ -60,7 +145,82 @@ function deriveStatus(
   return "CONNECTED";
 }
 
+function classifyProviderMessage(message: string): SocialConnectionReason {
+  if (/invalid_grant|expired|token/i.test(message)) return "TOKEN_EXPIRED";
+  if (/permission|scope|revoked|access_denied|not authorized/i.test(message)) return "PERMISSION_REVOKED";
+  if (/disconnect/i.test(message)) return "ACCOUNT_DISCONNECTED";
+  if (/network|fetch failed|econn|timeout|etimedout/i.test(message)) return "NETWORK_ERROR";
+  if (/unavailable|5\d\d|temporarily/i.test(message)) return "PROVIDER_UNAVAILABLE";
+  return "UNKNOWN";
+}
+
+function actionableRefreshMessage(reason: SocialConnectionReason, provider?: string | null): string {
+  const name = provider === "meta" ? "Meta" : provider === "youtube" ? "YouTube" : provider === "linkedin" ? "LinkedIn" : "provider";
+  switch (reason) {
+    case "TOKEN_EXPIRED":
+      return `${name} token expired. Reconnect required.`;
+    case "REFRESH_TOKEN_MISSING":
+      return `${name} did not provide a refresh token. Reconnect required.`;
+    case "PERMISSION_REVOKED":
+      return `${name} permissions were revoked or are missing. Reconnect and approve the required scopes.`;
+    case "ACCOUNT_DISCONNECTED":
+      return "Account is disconnected. Reconnect required.";
+    case "PROVIDER_UNAVAILABLE":
+      return `${name} is temporarily unavailable. Try again shortly.`;
+    case "NETWORK_ERROR":
+      return `Network error while contacting ${name}. Try again shortly.`;
+    case "EXPIRING_SOON":
+      return `${name} token is expiring soon. Refresh or reconnect.`;
+    default:
+      return `Unable to refresh this ${name} account. Reconnect may be required.`;
+  }
+}
+
+function deriveConnectionState(row: any) {
+  const status = deriveStatus(row.status, row.expiresAt, row.permissionStatus);
+  const expired = Boolean(row.expiresAt && row.expiresAt.getTime() <= Date.now());
+  const expiring = Boolean(row.expiresAt && !expired && (row.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24) <= 7);
+  const tokenStatus = String(row.accessTokenStatus ?? "").toUpperCase();
+  const permissionStatus = String(row.permissionStatus ?? "").toUpperCase();
+  const lastError = typeof row.lastError === "string" ? row.lastError : "";
+
+  let reason: SocialConnectionReason = "CONNECTED";
+  let action: SocialConnectionAction = "NONE";
+  let label = "Connected";
+  let message = "Connection is active.";
+
+  if (row.status === "DISCONNECTED" || row.isActive === false) {
+    reason = "ACCOUNT_DISCONNECTED";
+    action = "RECONNECT";
+    label = "Disconnected";
+    message = "Account is disconnected. Reconnect to resume publishing and sync.";
+  } else if (permissionStatus.includes("REAUTH") || permissionStatus.includes("PERMISSION")) {
+    reason = permissionStatus.includes("PERMISSION") ? "PERMISSION_REVOKED" : "TOKEN_EXPIRED";
+    action = "RECONNECT";
+    label = "Reconnect Required";
+    message = actionableRefreshMessage(reason, row.provider);
+  } else if (tokenStatus === "EXPIRED" || expired) {
+    reason = "TOKEN_EXPIRED";
+    action = "RECONNECT";
+    label = "Reconnect Required";
+    message = actionableRefreshMessage(reason, row.provider);
+  } else if (tokenStatus === "EXPIRING" || expiring) {
+    reason = "EXPIRING_SOON";
+    action = "REFRESH";
+    label = "Expiring Soon";
+    message = actionableRefreshMessage(reason, row.provider);
+  } else if (lastError) {
+    reason = classifyProviderMessage(lastError);
+    action = reason === "NETWORK_ERROR" || reason === "PROVIDER_UNAVAILABLE" ? "RETRY" : "RECONNECT";
+    label = action === "RETRY" ? "Provider Issue" : "Reconnect Required";
+    message = actionableRefreshMessage(reason, row.provider);
+  }
+
+  return { connected: status === "CONNECTED", status, label, reason, action, message };
+}
+
 function toPublic(row: any): SocialAccountPublic {
+  const connectionState = deriveConnectionState(row);
   return {
     id: row.id,
     platform: row.platform,
@@ -70,7 +230,7 @@ function toPublic(row: any): SocialAccountPublic {
     pageId: row.pageId,
     username: row.username,
     profileUrl: row.profileUrl,
-    status: deriveStatus(row.status, row.expiresAt),
+    status: connectionState.status,
     connectedBy: row.connectedBy,
     lastSyncAt: row.lastSyncAt ? row.lastSyncAt.toISOString() : null,
     expiresAt: row.expiresAt ? row.expiresAt.toISOString() : null,
@@ -90,6 +250,7 @@ function toPublic(row: any): SocialAccountPublic {
     lastValidatedAt: row.lastValidatedAt?.toISOString() ?? null,
     lastPublishAt: row.lastPublishAt?.toISOString() ?? null,
     lastError: row.lastError ?? null,
+    connectionState,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -99,7 +260,8 @@ export async function listAccounts(): Promise<SocialAccountPublic[]> {
   const rows = await prisma.companySocialAccount.findMany({
     orderBy: { platform: "asc" },
   });
-  return rows.map(toPublic);
+  const recovered = await Promise.all(rows.map(recoverUndecryptableTokens));
+  return recovered.map(toPublic);
 }
 
 export interface ConnectInput {
@@ -136,6 +298,14 @@ export interface ConnectInput {
 // Upsert by (platform, accountHandle). Tokens are encrypted at rest.
 export async function connectAccount(input: ConnectInput): Promise<SocialAccountPublic> {
   const expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
+  // TASK-74 — For a manually connected Instagram Business account, the
+  // "Account ID" is the Instagram Business User ID, which is exactly what the
+  // Graph API needs for /insights and /media. Default instagramBusinessId to
+  // it so the manual connect modal yields a fully functional IG connection.
+  const resolvedIgId =
+    input.platform === "INSTAGRAM" && !input.instagramBusinessId
+      ? input.accountId ?? null
+      : input.instagramBusinessId ?? null;
   const row = await prisma.companySocialAccount.upsert({
     where: {
       platform_accountHandle: {
@@ -155,9 +325,10 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       refreshToken: input.refreshToken ? encrypt(input.refreshToken) : null,
       expiresAt,
       status: "CONNECTED",
+      isActive: true,
       connectedBy: input.connectedBy,
       connectedById: input.connectedById ?? null,
-      instagramBusinessId: input.instagramBusinessId ?? null,
+      instagramBusinessId: resolvedIgId,
       pageName: input.pageName ?? null,
       permissions: input.permissions ?? [],
       accessTokenStatus: input.accessTokenStatus ?? "ACTIVE",
@@ -169,7 +340,7 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       companyLogo: input.companyLogo ?? null,
       apiVersion: input.apiVersion ?? null,
       providerCapabilities: input.providerCapabilities as any ?? undefined,
-      permissionStatus: input.permissionStatus ?? null,
+      permissionStatus: input.permissionStatus ?? (input.provider && input.provider !== "manual" ? "AUTHORIZED" : null),
       connectionMetadata: input.connectionMetadata as any ?? undefined,
       lastValidatedAt: new Date(),
       lastSyncAt: new Date(),
@@ -184,9 +355,10 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       refreshToken: input.refreshToken ? encrypt(input.refreshToken) : null,
       expiresAt,
       status: "CONNECTED",
+      isActive: true,
       connectedBy: input.connectedBy,
       connectedById: input.connectedById ?? null,
-      instagramBusinessId: input.instagramBusinessId ?? null,
+      instagramBusinessId: resolvedIgId,
       pageName: input.pageName ?? null,
       permissions: input.permissions ?? [],
       accessTokenStatus: input.accessTokenStatus ?? "ACTIVE",
@@ -198,7 +370,7 @@ export async function connectAccount(input: ConnectInput): Promise<SocialAccount
       companyLogo: input.companyLogo ?? null,
       apiVersion: input.apiVersion ?? null,
       providerCapabilities: input.providerCapabilities as any ?? undefined,
-      permissionStatus: input.permissionStatus ?? null,
+      permissionStatus: input.permissionStatus ?? (input.provider && input.provider !== "manual" ? "AUTHORIZED" : null),
       connectionMetadata: input.connectionMetadata as any ?? undefined,
       lastValidatedAt: new Date(),
       lastError: null,
@@ -220,36 +392,81 @@ export async function getDecryptedToken(id: string): Promise<string | null> {
   }
 }
 
+async function decryptNullableToken(row: any, field: "accessToken" | "refreshToken"): Promise<string | null> {
+  const value = row[field];
+  if (!value) return null;
+  try {
+    return decrypt(value);
+  } catch {
+    const message = `${row.provider ?? "Provider"} token could not be decrypted. Reconnect required.`;
+    await markTokensReconnectRequired(row, "TOKEN_EXPIRED", message);
+    throw new SocialProviderRefreshError(message, {
+      reason: "TOKEN_EXPIRED",
+      statusCode: 409,
+    });
+  }
+}
+
 export async function refreshAccount(id: string): Promise<SocialAccountPublic> {
   const row = await prisma.companySocialAccount.findUnique({ where: { id } });
   if (!row) throw new Error("Account not found");
 
   // YouTube (Google) — real refresh via refresh token.
   if (row.provider === "youtube") {
-    const refreshToken = row.refreshToken ? decrypt(row.refreshToken) : null;
+    const refreshToken = await decryptNullableToken(row, "refreshToken");
     if (!refreshToken) {
       // No refresh token stored → cannot refresh; mark expiring.
       const updated = await prisma.companySocialAccount.update({
         where: { id },
-        data: { lastSyncAt: new Date(), accessTokenStatus: "EXPIRING", status: "EXPIRING_SOON" },
+        data: {
+          lastSyncAt: new Date(),
+          lastValidatedAt: new Date(),
+          accessTokenStatus: "EXPIRED",
+          status: "PERMISSION_ERROR",
+          permissionStatus: "REAUTH_REQUIRED",
+          lastError: actionableRefreshMessage("REFRESH_TOKEN_MISSING", row.provider),
+        },
       });
       return toPublic(updated);
     }
-    const { refreshAccessToken, tokenExpiryInfo } = await import("@/services/youtube/oauth");
-    const fresh = await refreshAccessToken(refreshToken);
-    const { expiresAt, status } = tokenExpiryInfo(fresh.expires_in);
-    const updated = await prisma.companySocialAccount.update({
-      where: { id },
-      data: {
-        accessToken: encrypt(fresh.access_token),
-        refreshToken: fresh.refresh_token ? encrypt(fresh.refresh_token) : row.refreshToken,
-        expiresAt: expiresAt ?? row.expiresAt,
-        accessTokenStatus: status,
-        status: "CONNECTED",
-        lastSyncAt: new Date(),
-      },
-    });
-    return toPublic(updated);
+    try {
+      const { refreshAccessToken, tokenExpiryInfo } = await import("@/services/youtube/oauth");
+      const fresh = await refreshAccessToken(refreshToken);
+      const { expiresAt, status } = tokenExpiryInfo(fresh.expires_in);
+      const updated = await prisma.companySocialAccount.update({
+        where: { id },
+        data: {
+          accessToken: encrypt(fresh.access_token),
+          refreshToken: fresh.refresh_token ? encrypt(fresh.refresh_token) : row.refreshToken,
+          expiresAt: expiresAt ?? row.expiresAt,
+          accessTokenStatus: status,
+          status: "CONNECTED",
+          permissionStatus: "AUTHORIZED",
+          lastError: null,
+          lastSyncAt: new Date(),
+          lastValidatedAt: new Date(),
+        },
+      });
+      return toPublic(updated);
+    } catch (e: any) {
+      const reason = classifyProviderMessage(e?.message ?? "");
+      const retryable = reason === "NETWORK_ERROR" || reason === "PROVIDER_UNAVAILABLE";
+      const updated = await prisma.companySocialAccount.update({
+        where: { id },
+        data: {
+          accessTokenStatus: retryable ? row.accessTokenStatus : "EXPIRED",
+          status: retryable ? row.status : "PERMISSION_ERROR",
+          permissionStatus: reason === "PERMISSION_REVOKED" ? "PERMISSION_REVOKED" : "REAUTH_REQUIRED",
+          lastError: actionableRefreshMessage(reason, row.provider),
+          lastSyncAt: new Date(),
+          lastValidatedAt: new Date(),
+        },
+      });
+      throw new SocialProviderRefreshError(updated.lastError ?? actionableRefreshMessage(reason, row.provider), {
+        reason,
+        statusCode: retryable ? 503 : 409,
+      });
+    }
   }
 
   // TASK-74 — Meta auto-refresh: the long-lived USER token is stored in
@@ -257,11 +474,18 @@ export async function refreshAccount(id: string): Promise<SocialAccountPublic> {
   // expires, re-encrypt, and update health fields. No new OAuth logic — it
   // reuses getLongLivedToken from services/meta/oauth.
   if (row.provider === "meta") {
-    const userToken = row.refreshToken ? decrypt(row.refreshToken) : null;
+    const userToken = await decryptNullableToken(row, "refreshToken");
     if (!userToken) {
       const updated = await prisma.companySocialAccount.update({
         where: { id },
-        data: { lastSyncAt: new Date(), accessTokenStatus: "EXPIRING", status: "EXPIRING_SOON" },
+        data: {
+          lastSyncAt: new Date(),
+          lastValidatedAt: new Date(),
+          accessTokenStatus: "EXPIRED",
+          status: "PERMISSION_ERROR",
+          permissionStatus: "REAUTH_REQUIRED",
+          lastError: actionableRefreshMessage("REFRESH_TOKEN_MISSING", row.provider),
+        },
       });
       return toPublic(updated);
     }
@@ -279,21 +503,31 @@ export async function refreshAccount(id: string): Promise<SocialAccountPublic> {
           expiresAt: expiresAt ?? row.expiresAt,
           accessTokenStatus: status,
           status: "CONNECTED",
+          permissionStatus: "AUTHORIZED",
+          lastError: null,
           lastSyncAt: new Date(),
+          lastValidatedAt: new Date(),
         },
       });
       return toPublic(updated);
     } catch (e: any) {
-      // Refresh failed (token revoked/expired) -> flag for reconnect flow.
+      const reason = classifyProviderMessage(e?.message ?? "");
+      const retryable = reason === "NETWORK_ERROR" || reason === "PROVIDER_UNAVAILABLE";
       const updated = await prisma.companySocialAccount.update({
         where: { id },
         data: {
-          accessTokenStatus: "EXPIRED",
-          status: "PERMISSION_ERROR",
+          accessTokenStatus: retryable ? row.accessTokenStatus : "EXPIRED",
+          status: retryable ? row.status : "PERMISSION_ERROR",
+          permissionStatus: reason === "PERMISSION_REVOKED" ? "PERMISSION_REVOKED" : "REAUTH_REQUIRED",
+          lastError: actionableRefreshMessage(reason, row.provider),
           lastSyncAt: new Date(),
+          lastValidatedAt: new Date(),
         },
       });
-      return toPublic(updated);
+      throw new SocialProviderRefreshError(updated.lastError ?? actionableRefreshMessage(reason, row.provider), {
+        reason,
+        statusCode: retryable ? 503 : 409,
+      });
     }
   }
 
@@ -502,7 +736,7 @@ export async function refreshLinkedInAccount(
 ): Promise<SocialAccountPublic | null> {
   const row = await prisma.companySocialAccount.findUnique({ where: { id } });
   if (!row || row.provider !== "linkedin") return null;
-  const refreshToken = row.refreshToken ? decrypt(row.refreshToken) : null;
+  const refreshToken = await decryptNullableToken(row, "refreshToken");
   if (!refreshToken) {
     await prisma.companySocialAccount.update({
       where: { id },

@@ -8,8 +8,9 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import {
   Users, Activity, ShieldAlert, Plug, Database, HardDrive, HeartPulse,
   CloudUpload, KeyRound, Bell, Cpu, AlertTriangle, CheckCircle2, XCircle, MinusCircle,
-  FileText, Clock, ArrowRight, Settings, LayoutGrid, Lock, ShieldCheck, Save, Globe,
+  FileText, Clock, ArrowRight, Settings, Lock, ShieldCheck, Save, Globe,
 } from "lucide-react";
+import { hrefForLabel } from "@/lib/search/navigation";
 
 /* ------------------------------------------------------------------ */
 /* TASK-65.5 — SAFE UI optimization of the Administration landing page. */
@@ -85,14 +86,13 @@ export default function AdminOverviewPage() {
   ];
 
   const quickActions = [
-    { label: "Company Settings", href: "/dashboard/admin/company", icon: Settings },
-    { label: "Workspace", href: "/dashboard/admin/company", icon: LayoutGrid },
-    { label: "Permissions", href: "/dashboard/admin/security/permissions", icon: Lock },
-    { label: "Security Center", href: "/dashboard/admin/security/overview", icon: ShieldCheck },
-    { label: "Backup Center", href: "/dashboard/admin/backup", icon: CloudUpload },
-    { label: "API Connections", href: "/dashboard/admin/api", icon: Plug },
-    { label: "Localization", href: "/dashboard/admin/localization", icon: Globe },
-    { label: "System Health", href: "/monitoring", icon: HeartPulse },
+    { label: "Company Settings", href: hrefForLabel("Company Settings"), icon: Settings },
+    { label: "User Permissions", href: hrefForLabel("User Permissions"), icon: Lock },
+    { label: "Security", href: hrefForLabel("Security"), icon: ShieldCheck },
+    { label: "Backup", href: hrefForLabel("Backup"), icon: CloudUpload },
+    { label: "API Connections", href: hrefForLabel("API Connections"), icon: Plug },
+    { label: "Localization", href: hrefForLabel("Localization"), icon: Globe },
+    { label: "System", href: hrefForLabel("System"), icon: HeartPulse },
   ];
 
   return (
@@ -163,7 +163,7 @@ export default function AdminOverviewPage() {
           <BackupCard className="p-4">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-sm font-medium text-white/80"><FileText className="h-4 w-4 text-sky-300" /> Recent Audit Logs</h3>
-              <Link href="/dashboard/admin/security/audit" className="text-xs text-sky-300 hover:underline">View all</Link>
+              <Link href={hrefForLabel("Audit Logs")} className="text-xs text-sky-300 hover:underline">View all</Link>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -187,7 +187,7 @@ export default function AdminOverviewPage() {
           <BackupCard className="p-4">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-sm font-medium text-white/80"><CloudUpload className="h-4 w-4 text-sky-300" /> Backup Summary</h3>
-              <Link href="/dashboard/admin/backup" className="text-xs text-sky-300 hover:underline">Open Backup Center</Link>
+              <Link href={hrefForLabel("Backup")} className="text-xs text-sky-300 hover:underline">Open Backup Center</Link>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
               <SecRow label="Latest Backup" value={bk?.overview.lastSuccessful ? new Date(bk.overview.lastSuccessful).toLocaleString() : "None"} />

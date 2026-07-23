@@ -1,4 +1,5 @@
 import { config } from "dotenv";
+import { ROUTE_REDIRECTS } from "./navigation/registry.mjs";
 
 config({ path: ".env.local", override: true });
 if (!process.env.DATABASE_URL) config({ path: ".env", override: true });
@@ -87,59 +88,7 @@ const nextConfig = {
     ],
   },
   async redirects() {
-    return [
-      { source: "/scheduler", destination: "/dashboard/social/publisher", permanent: true },
-      { source: "/planner", destination: "/dashboard/social/planner", permanent: true },
-      { source: "/content-planner", destination: "/dashboard/social/planner", permanent: true },
-      { source: "/social", destination: "/dashboard/social", permanent: true },
-      { source: "/engagement", destination: "/dashboard/social/engagement", permanent: true },
-      { source: "/automation", destination: "/dashboard/ai/workflows", permanent: true },
-      { source: "/ai", destination: "/dashboard/ai/studio", permanent: true },
-      { source: "/inbox", destination: "/dashboard/inbox/unified", permanent: true },
-      { source: "/messages", destination: "/dashboard/inbox/unified", permanent: true },
-      { source: "/duty-routine", destination: "/dashboard/team/tasks", permanent: true },
-      { source: "/dashboard/users", destination: "/dashboard/admin/users", permanent: true },
-      { source: "/dashboard/settings", destination: "/dashboard/admin/company", permanent: true },
-      { source: "/settings/account", destination: "/dashboard/admin/security", permanent: true },
-      { source: "/settings/accounts", destination: "/dashboard/admin/api", permanent: true },
-      { source: "/settings/social", destination: "/dashboard/social/accounts", permanent: true },
-      { source: "/notifications", destination: "/dashboard/notifications", permanent: true },
-      { source: "/insights", destination: "/dashboard/insights/analytics", permanent: true },
-      { source: "/messenger", destination: "/dashboard/messenger", permanent: true },
-      { source: "/groups", destination: "/dashboard/messenger/groups", permanent: true },
-      { source: "/channels", destination: "/dashboard/messenger/channels", permanent: true },
-      { source: "/announcements", destination: "/dashboard/messenger/announcements", permanent: true },
-      { source: "/files", destination: "/dashboard/messenger/files", permanent: true },
-      { source: "/starred", destination: "/dashboard/messenger/starred", permanent: true },
-      { source: "/archive", destination: "/dashboard/messenger/archive", permanent: true },
-      { source: "/dashboard/admin/health", destination: "/monitoring", permanent: true },
-      { source: "/dashboard/admin/apis", destination: "/dashboard/admin/api", permanent: true },
-      { source: "/dashboard/admin/audit", destination: "/dashboard/admin/security/audit", permanent: true },
-      { source: "/dashboard/admin/notifications", destination: "/dashboard/notifications", permanent: true },
-      { source: "/dashboard/admin/system-health", destination: "/monitoring", permanent: true },
-      { source: "/dashboard/monitoring", destination: "/monitoring", permanent: true },
-      { source: "/dashboard/insights/dashboard", destination: "/dashboard/insights/analytics", permanent: true },
-      { source: "/dashboard/team/duty", destination: "/dashboard/team/tasks", permanent: true },
-      { source: "/dashboard/social/scheduler", destination: "/dashboard/social/publisher", permanent: true },
-      { source: "/dashboard/social/calendar", destination: "/dashboard/social/planner", permanent: true },
-      { source: "/dashboard/social/drafts", destination: "/dashboard/social/planner", permanent: true },
-      { source: "/dashboard/social/campaigns", destination: "/dashboard/social/planner", permanent: true },
-      { source: "/dashboard/social/comments", destination: "/dashboard/inbox/unified", permanent: true },
-      { source: "/dashboard/social/messages", destination: "/dashboard/inbox/unified", permanent: true },
-      { source: "/dashboard/ai/reply", destination: "/dashboard/inbox/unified", permanent: true },
-      { source: "/dashboard/ai/captions", destination: "/dashboard/ai/studio", permanent: true },
-      { source: "/dashboard/ai/logs", destination: "/dashboard/ai/workflows", permanent: true },
-      { source: "/dashboard/insights/reach", destination: "/dashboard/insights/analytics", permanent: true },
-      { source: "/dashboard/insights/engagement", destination: "/dashboard/insights/analytics", permanent: true },
-      { source: "/dashboard/insights/audience", destination: "/dashboard/insights/analytics", permanent: true },
-      { source: "/dashboard/insights/live", destination: "/dashboard/insights/analytics", permanent: true },
-      { source: "/dashboard/inbox/all", destination: "/dashboard/inbox/unified", permanent: true },
-      { source: "/dashboard/inbox/facebook", destination: "/dashboard/inbox/unified", permanent: true },
-      { source: "/dashboard/inbox/instagram", destination: "/dashboard/inbox/unified", permanent: true },
-      { source: "/dashboard/inbox/linkedin", destination: "/dashboard/inbox/unified", permanent: true },
-      { source: "/ceo", destination: "/dashboard/team/members", permanent: true },
-      { source: "/publishing", destination: "/dashboard/social/publisher", permanent: true },
-    ];
+    return ROUTE_REDIRECTS;
   },
 };
 

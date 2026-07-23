@@ -18,7 +18,7 @@ export interface CreatePostInput {
   cta?: string;
   location?: string;
   mediaUrls?: string[];
-  platforms: { platform: PublishPlatform; accountId: string }[];
+  platforms: { platform: PublishPlatform; accountId?: string }[];
   providerOptions?: PublishInput["providerOptions"];
   scheduledAt?: string; // ISO; if absent -> publish now / queue now
   requiresApproval?: boolean;
@@ -93,6 +93,15 @@ export async function createPost(input: CreatePostInput): Promise<PostPublic> {
     },
     include: { platforms: true },
   });
+  if (input.scheduledAt) {
+    const when = new Date(input.scheduledAt);
+    await prisma.scheduledPost.upsert({
+      where: { postId: post.id },
+      create: { postId: post.id, scheduledAt: when, status: "SCHEDULED", ownerId: input.createdBy.id },
+      update: { scheduledAt: when, status: "SCHEDULED", ownerId: input.createdBy.id },
+    });
+    await enqueuePublish(post.id, when.toISOString());
+  }
   return toPublic(post);
 }
 
@@ -112,7 +121,21 @@ export async function updatePost(id: string, patch: Partial<CreatePostInput>): P
 }
 
 export async function deletePost(id: string): Promise<void> {
-  await prisma.post.delete({ where: { id } });
+  // Verify the Post actually exists BEFORE attempting delete.
+  // Without this guard a second delete (or delete-after-cleanup) throws
+  // P2025 "No record was found for a delete" as a raw Prisma error.
+  const existing = await prisma.post.findUnique({ where: { id }, select: { id: true } });
+  if (!existing) {
+    const err = new Error("Post not found") as Error & { status?: number };
+    err.status = 404;
+    throw err;
+  }
+  // Transactional cleanup: the cascade FKs (PostPlatform, PublishingJob,
+  // PublishingHistory, Approval, PostMedia, PostAnalytics, ScheduledPost)
+  // are removed atomically with the parent so no orphan records remain.
+  await prisma.$transaction([
+    prisma.post.delete({ where: { id } }),
+  ]);
 }
 
 /** Enqueue publishing (now or scheduled). Real execution happens via the worker. */
@@ -391,3 +414,131 @@ export async function decideApproval(
     await prisma.post.update({ where: { id: postId }, data: { status: "REJECTED" } });
   }
 }
+
+// ===========================================================================
+// TASK-75 — Scheduler operations: duplicate / cancel / reschedule
+// ===========================================================================
+
+/** Server-side duplicate: new Post, safe fields only, status reset to DRAFT. */
+export async function duplicatePost(postId: string, actor: { id: string; name: string }): Promise<PostPublic> {
+  const src = await prisma.post.findUnique({
+    where: { id: postId },
+    include: { platforms: true, media: true },
+  });
+  if (!src) throw new Error("Post not found");
+  const copy = await prisma.post.create({
+    data: {
+      title: `${src.title ?? "Untitled"} (copy)`,
+      content: src.content ?? "",
+      link: src.link ?? null,
+      cta: src.cta ?? null,
+      location: src.location ?? null,
+      hashtags: src.hashtags,
+      platform: src.platform,
+      status: "DRAFT",
+      createdById: actor.id,
+      media: src.media?.length
+        ? { create: src.media.map((m, i) => ({ type: m.type, url: m.url, order: i })) }
+        : undefined,
+      platforms: {
+        create: src.platforms.map((p) => ({ platform: p.platform, accountId: p.accountId, status: "QUEUED" })),
+      },
+    },
+    include: { platforms: true },
+  });
+  await prisma.publishingHistory.create({
+    data: { postId: copy.id, platform: src.platform, publishedBy: actor.id, status: "DRAFT" as any, errorMessage: "Created as duplicate (Draft)" },
+  });
+  await prisma.auditLog.create({
+    data: { action: "PUBLISH_DUPLICATE", entityName: "Post", entityId: copy.id, createdById: actor.id, module: "SOCIAL" },
+  }).catch(() => {});
+  return toPublic(copy);
+}
+
+const CANCELABLE = new Set(["SCHEDULED", "APPROVED", "QUEUED", "PENDING_APPROVAL"]);
+
+/** Cancel a scheduled/approved post. Cancels queued jobs, logs, audits, notifies. */
+export async function cancelPost(postId: string, actor: { id: string; name: string }): Promise<PostPublic> {
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    include: { platforms: true, jobs: true },
+  });
+  if (!post) throw new Error("Post not found");
+  if (post.status === "PUBLISHED" || post.status === "PUBLISHING" || post.status === "CANCELLED") {
+    throw new Error(`Cannot cancel a post in '${post.status}' state`);
+  }
+  if (!CANCELABLE.has(post.status)) {
+    throw new Error(`Cannot cancel a post in '${post.status}' state`);
+  }
+
+  // Cancel queued publishing jobs (DB-backed fallback is the source of truth;
+  // the BullMQ worker honors the PublishingJob CANCELLED state, so no separate
+  // BullMQ removal is needed and the Redis/BullMQ path stays compatible).
+  const queuedJobs = post.jobs.filter((j) => j.state === "QUEUED" || j.state === "RETRY");
+  for (const job of queuedJobs) {
+    await prisma.publishingJob.update({ where: { id: job.id }, data: { state: "CANCELLED", finishedAt: new Date() } }).catch(() => {});
+  }
+  await prisma.postPlatform.updateMany({ where: { postId, status: { in: ["QUEUED", "PUBLISHING"] } }, data: { status: "CANCELLED" as any } }).catch(() => {});
+
+  const updated = await prisma.post.update({
+    where: { id: postId },
+    data: { status: "CANCELLED" },
+    include: { platforms: true },
+  });
+  await prisma.publishingHistory.create({
+    data: { postId, platform: post.platform, publishedBy: actor.id, status: "CANCELLED" as any, errorMessage: "Schedule cancelled by user" },
+  });
+  await prisma.auditLog.create({
+    data: { action: "PUBLISH_CANCEL", entityName: "Post", entityId: postId, createdById: actor.id, module: "SOCIAL" },
+  }).catch(() => {});
+  try {
+    await notifyPublish({ userId: post.createdById, type: "PUBLISH", priority: "MEDIUM", title: "Post schedule cancelled", body: `"${post.title || "Post"}" was cancelled.`, entity: postId, entityType: "POST", platform: post.platform });
+  } catch { /* notification best-effort */ }
+  return toPublic(updated);
+}
+
+/** Reschedule to a new date/time. Updates DB source of truth + queued jobs. */
+export async function reschedulePost(
+  postId: string,
+  newScheduledAt: string,
+  actor: { id: string; name: string },
+): Promise<PostPublic> {
+  const post = await prisma.post.findUnique({ where: { id: postId }, include: { jobs: true } });
+  if (!post) throw new Error("Post not found");
+  if (post.status === "PUBLISHED" || post.status === "PUBLISHING" || post.status === "CANCELLED") {
+    throw new Error(`Cannot reschedule a post in '${post.status}' state`);
+  }
+  const when = new Date(newScheduledAt);
+  if (isNaN(when.getTime())) throw new Error("Invalid scheduled time");
+
+  await prisma.scheduledPost.upsert({
+    where: { postId },
+    create: { postId, scheduledAt: when, status: "SCHEDULED" },
+    update: { scheduledAt: when, status: "SCHEDULED" },
+  }).catch(async () => {
+    // scheduledPost relation may not exist for drafts; create Post.scheduled manually
+    await prisma.scheduledPost.create({ data: { postId, scheduledAt: when, status: "SCHEDULED" } }).catch(() => {});
+  });
+
+  // Re-enqueue to the queue at the new time (DB fallback + BullMQ if present).
+  const queue = getQueue();
+  const jobId = await queue.enqueue("publish:post", { postId, scheduledAt: when.toISOString() }, { runAt: when }).catch(() => "");
+  await prisma.publishingJob.updateMany({
+    where: { postId, state: { in: ["QUEUED", "RETRY"] } },
+    data: { scheduledFor: when, queueId: jobId || undefined, state: "QUEUED" as any },
+  }).catch(() => {});
+
+  const updated = await prisma.post.update({
+    where: { id: postId },
+    data: { status: post.status === "DRAFT" ? "SCHEDULED" : post.status },
+    include: { platforms: true },
+  });
+  await prisma.publishingHistory.create({
+    data: { postId, platform: post.platform, publishedBy: actor.id, status: "QUEUED" as any, errorMessage: `Rescheduled to ${when.toISOString()}` },
+  });
+  await prisma.auditLog.create({
+    data: { action: "PUBLISH_RESCHEDULE", entityName: "Post", entityId: postId, createdById: actor.id, module: "SOCIAL" },
+  }).catch(() => {});
+  return toPublic(updated);
+}
+

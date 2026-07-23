@@ -1,8 +1,7 @@
 "use client";
 
-import { Radio, CircleDot, Check } from "lucide-react";
-import type { PlatformKey, ContentStatus, Platform } from "@/types/contentPlanner";
-import { StatusBadge } from "./StatusBadge";
+import { Radio } from "lucide-react";
+import type { PlatformKey, ContentStatus } from "@/types/contentPlanner";
 import PlatformIcon from "./PlatformIcon";
 
 const STATUS_ORDER: ContentStatus[] = ["DRAFT", "REVIEW", "APPROVED", "SCHEDULED", "PUBLISHED", "FAILED"];
@@ -14,14 +13,14 @@ export default function FilterSidebar({
   onTogglePlatform,
   onToggleStatus,
 }: {
-  platforms: Platform[];
+  platforms: any[];
   selectedPlatforms: PlatformKey[];
   selectedStatuses: ContentStatus[];
   onTogglePlatform: (k: PlatformKey) => void;
   onToggleStatus: (s: ContentStatus) => void;
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-xl">
         <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-white/35">Platforms</div>
         <div className="space-y-0.5">
@@ -39,7 +38,7 @@ export default function FilterSidebar({
                   <PlatformIcon platform={p.key} size={14} />
                   {p.name}
                 </span>
-                {active && <Check className="h-3.5 w-3.5 text-sky-300" />}
+                {active && <span className="h-2 w-2 rounded-full bg-sky-400" />}
               </button>
             );
           })}
@@ -59,8 +58,8 @@ export default function FilterSidebar({
                   active ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5"
                 }`}
               >
-                <StatusBadge status={s} />
-                {active && <Check className="h-3.5 w-3.5 text-sky-300" />}
+                <span className="text-xs font-semibold">{s}</span>
+                {active && <span className="h-2 w-2 rounded-full bg-sky-400" />}
               </button>
             );
           })}

@@ -12,17 +12,55 @@ const META_AUTH_BASE = "https://www.facebook.com/v21.0/dialog/oauth";
 const META_TOKEN_URL = "https://graph.facebook.com/v21.0/oauth/access_token";
 const META_GRAPH_BASE = "https://graph.facebook.com/v21.0";
 
-export const META_SCOPES = [
-  "pages_show_list",
-  "pages_read_engagement",
-  "pages_manage_posts",
-  "read_insights",
-  "business_management",
-  "instagram_basic",
-  "instagram_content_publish",
-  "instagram_manage_insights",
-  "public_profile",
-].join(",");
+const META_SCOPE_FEATURES = {
+  facebook_connect: [
+    "pages_show_list",
+    "pages_read_engagement",
+    "pages_manage_metadata",
+    "pages_read_user_content",
+    "pages_manage_engagement",
+    "business_management",
+  ],
+  facebook_publish: ["pages_manage_posts"],
+  facebook_insights: ["read_insights"],
+  instagram_publish: ["instagram_basic", "instagram_content_publish"],
+  instagram_insights: ["instagram_basic", "instagram_manage_insights"],
+} as const;
+
+export type MetaOAuthFeature = keyof typeof META_SCOPE_FEATURES;
+
+export interface MetaOAuthPlan {
+  features: MetaOAuthFeature[];
+  requestedScopes: string[];
+}
+
+/**
+ * Describes the scopes that must be enabled in the Meta Business Login
+ * configuration. They are deliberately NOT appended to the OAuth URL: the
+ * configuration in Meta App Dashboard is the source of truth.
+ */
+export function getMetaOAuthPlan(): MetaOAuthPlan {
+  const envFeatures = (process.env.META_OAUTH_FEATURES || "")
+    .split(",")
+    .map((feature) => feature.trim())
+    .filter(Boolean);
+  // Default to facebook_connect + facebook_publish so pages_manage_posts
+  // is always requested. Operators remove facebook_publish from
+  // META_OAUTH_FEATURES if they intentionally skip publishing.
+  const defaults: MetaOAuthFeature[] = envFeatures.length === 0
+    ? ["facebook_connect", "facebook_publish"]
+    : ["facebook_connect"];
+  const features = [...new Set([...defaults, ...envFeatures])] as MetaOAuthFeature[];
+  for (const feature of features) {
+    if (!(feature in META_SCOPE_FEATURES)) {
+      throw new Error(`Unsupported META_OAUTH_FEATURES value: ${feature}`);
+    }
+  }
+  return {
+    features,
+    requestedScopes: [...new Set(features.flatMap((feature) => META_SCOPE_FEATURES[feature]))],
+  };
+}
 
 export interface MetaEnv {
   appId: string;
@@ -30,16 +68,41 @@ export interface MetaEnv {
   redirectUri: string;
 }
 
+export interface MetaBusinessLoginEnv extends MetaEnv {
+  configurationId: string;
+}
+
 export function getMetaEnv(): MetaEnv {
-  const appId = process.env.META_APP_ID;
-  const appSecret = process.env.META_APP_SECRET;
-  const redirectUri = process.env.META_REDIRECT_URI;
+  const appId = (process.env.META_APP_ID ?? "").trim();
+  const appSecret = (process.env.META_APP_SECRET ?? "").trim();
+  const redirectUri = (process.env.META_REDIRECT_URI ?? "").trim();
   if (!appId || !appSecret || !redirectUri) {
     throw new Error(
-      "Meta OAuth is not configured. Set META_APP_ID, META_APP_SECRET, META_REDIRECT_URI in .env.local",
+      "Meta OAuth is not configured. Set META_APP_ID, META_APP_SECRET, and META_REDIRECT_URI in .env.local",
+    );
+  }
+  // Validate META_APP_ID is numeric
+  if (!/^\d+$/.test(appId)) {
+    throw new Error(
+      `META_APP_ID must be a numeric value (received: "${appId}"). Check for whitespace, quotes, or non-digit characters.`,
     );
   }
   return { appId, appSecret, redirectUri };
+}
+
+export function getMetaBusinessLoginEnv(): MetaBusinessLoginEnv {
+  const base = getMetaEnv();
+  const configurationId = (process.env.META_LOGIN_CONFIG_ID ?? "").trim();
+  if (!configurationId) {
+    throw new Error("Meta Business OAuth is not configured. Set META_LOGIN_CONFIG_ID in .env.local");
+  }
+  // Validate META_LOGIN_CONFIG_ID is numeric
+  if (!/^\d+$/.test(configurationId)) {
+    throw new Error(
+      `META_LOGIN_CONFIG_ID must be a numeric value (received: "${configurationId}"). Check for whitespace, quotes, or non-digit characters.`,
+    );
+  }
+  return { ...base, configurationId };
 }
 
 /** Generate a cryptographically random OAuth state token. */
@@ -47,14 +110,61 @@ export function generateOAuthState(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
-/** Build the Meta authorization URL. `state` must be validated on callback. */
+/**
+ * TASK-81.6E — Safe diagnostics for development only.
+ * Logs parameter presence and last 4 digits to help debug OAuth issues
+ * without exposing full secrets. Never call in production.
+ */
+export function logSafeMetaDiagnostics(): void {
+  if (process.env.NODE_ENV !== "development") return;
+  const rawAppId = (process.env.META_APP_ID ?? "").trim();
+  const rawConfigId = (process.env.META_LOGIN_CONFIG_ID ?? "").trim();
+  // eslint-disable-next-line no-console
+  console.log(
+    "[META DIAG] META_APP_ID present:",
+    rawAppId.length > 0,
+    "| META_LOGIN_CONFIG_ID present:",
+    rawConfigId.length > 0,
+  );
+  // eslint-disable-next-line no-console
+  console.log(
+    "[META DIAG] client_id last 4:",
+    rawAppId.length >= 4 ? rawAppId.slice(-4) : rawAppId,
+    "| config_id last 4:",
+    rawConfigId.length >= 4 ? rawConfigId.slice(-4) : rawConfigId,
+  );
+  // eslint-disable-next-line no-console
+  console.log(
+    "[META DIAG] authorization hostname: www.facebook.com | pathname: /v21.0/dialog/oauth",
+  );
+  if (rawAppId && rawConfigId && rawAppId === rawConfigId) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[META DIAG WARN] META_APP_ID and META_LOGIN_CONFIG_ID are identical. Verify this is intentional.",
+    );
+  }
+}
+
+/**
+ * Build the Meta authorization URL.
+ *
+ * PARAMETER MAPPING (TASK-81.6E):
+ *   client_id = META_APP_ID        ← never META_LOGIN_CONFIG_ID
+ *   config_id = META_LOGIN_CONFIG_ID ← never META_APP_ID
+ *   redirect_uri = META_REDIRECT_URI
+ *   state = secure CSRF token
+ *   response_type = code
+ *
+ * `state` must be validated on callback.
+ */
 export function buildAuthUrl(state: string): string {
-  const { appId, redirectUri } = getMetaEnv();
+  const { appId, redirectUri, configurationId } = getMetaBusinessLoginEnv();
+  logSafeMetaDiagnostics();
   const params = new URLSearchParams({
     client_id: appId,
     redirect_uri: redirectUri,
     state,
-    scope: META_SCOPES,
+    config_id: configurationId,
     response_type: "code",
   });
   return `${META_AUTH_BASE}?${params.toString()}`;
@@ -108,17 +218,90 @@ export interface MetaPage {
   tasks?: string[];
 }
 
+export interface MetaPageDiscovery {
+  ok: boolean;
+  status: number;
+  pages: MetaPage[];
+  error?: {
+    code: number;
+    type?: string;
+    kind: MetaGraphError["kind"];
+  };
+}
+
+async function discoverPageEndpoint(
+  endpoint: string,
+  userToken: string,
+): Promise<MetaPageDiscovery> {
+  try {
+    const res = await fetch(`${META_GRAPH_BASE}/${endpoint}`, {
+      headers: { Authorization: `Bearer ${userToken}` },
+      cache: "no-store",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data?.error) {
+      const classified = classifyMetaError(data);
+      return {
+        ok: false,
+        status: res.status,
+        pages: [],
+        error: {
+          code: classified.code,
+          type: classified.type,
+          kind: classified.kind,
+        },
+      };
+    }
+    const pages = Array.isArray(data?.data)
+      ? data.data
+      : data?.id && data?.name && data?.access_token
+        ? [data]
+        : [];
+    return { ok: true, status: res.status, pages: pages as MetaPage[] };
+  } catch (error) {
+    const classified = classifyMetaError(error);
+    return {
+      ok: false,
+      status: 0,
+      pages: [],
+      error: {
+        code: classified.code,
+        type: classified.type,
+        kind: classified.kind,
+      },
+    };
+  }
+}
+
+/** Discover Facebook Pages and retain a safe HTTP/Graph response summary. */
+export async function discoverPages(userToken: string): Promise<MetaPageDiscovery> {
+  return discoverPageEndpoint(
+    "me/accounts?fields=id,name,access_token,category,tasks&limit=100",
+    userToken,
+  );
+}
+
+/** Resolve a Page selected by Business Login when /me/accounts is empty. */
+export async function discoverPageById(
+  userToken: string,
+  pageId: string,
+): Promise<MetaPageDiscovery> {
+  if (!/^\d+$/.test(pageId)) {
+    return { ok: false, status: 400, pages: [] };
+  }
+  return discoverPageEndpoint(
+    `${pageId}?fields=id,name,access_token,category,tasks`,
+    userToken,
+  );
+}
+
 /** List Facebook Pages the user manages (with page-scoped tokens). */
 export async function getPages(userToken: string): Promise<MetaPage[]> {
-  const res = await fetch(
-    `${META_GRAPH_BASE}/me/accounts?fields=id,name,access_token,category,tasks&limit=100`,
-    { headers: { Authorization: `Bearer ${userToken}` } },
-  );
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.data) {
-    throw new Error(data?.error?.message ?? "Failed to fetch Facebook Pages");
+  const discovery = await discoverPages(userToken);
+  if (!discovery.ok) {
+    throw new Error("Failed to fetch Facebook Pages");
   }
-  return data.data as MetaPage[];
+  return discovery.pages;
 }
 
 export interface MetaInstagramBusiness {
@@ -152,6 +335,7 @@ export interface MetaTokenDebug {
   expires_at?: number; // unix seconds (0 = never)
   scopes?: string[];
   granted_scopes?: string[];
+  granular_scopes?: Array<{ scope: string; target_ids?: string[] }>;
   is_valid?: boolean;
   error?: { message?: string };
 }
@@ -176,9 +360,35 @@ export async function debugToken(inputToken: string): Promise<MetaTokenDebug> {
     expires_at: dbg.expires_at,
     scopes: dbg.scopes,
     granted_scopes: dbg.granted_scopes,
+    granular_scopes: Array.isArray(dbg.granular_scopes) ? dbg.granular_scopes : [],
     is_valid: dbg.is_valid,
     error: data?.error,
   };
+}
+
+/**
+ * Find Page IDs selected during Business Login without exposing token data.
+ * Meta normally reports selection through granular scope target_ids; callback
+ * parameters are accepted when the configured flow supplies them directly.
+ */
+export function getSelectedMetaPageIds(
+  searchParams: URLSearchParams,
+  tokenDebug: MetaTokenDebug,
+): string[] {
+  const ids = new Set<string>();
+  for (const key of ["page_id", "selected_page_id", "target_id"]) {
+    const candidate = searchParams.get(key)?.trim();
+    if (candidate && /^\d+$/.test(candidate)) ids.add(candidate);
+  }
+  for (const granular of tokenDebug.granular_scopes ?? []) {
+    if (!granular.scope.startsWith("pages_") && granular.scope !== "business_management") {
+      continue;
+    }
+    for (const candidate of granular.target_ids ?? []) {
+      if (/^\d+$/.test(candidate)) ids.add(candidate);
+    }
+  }
+  return [...ids];
 }
 
 export interface MetaConnectionTest {

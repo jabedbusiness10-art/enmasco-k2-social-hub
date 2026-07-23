@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Shield, Eye, EyeOff, Check, Copy, Mail, KeyRound, UserCog } from "lucide-react";
+import Image from "next/image";
+import { Eye, EyeOff, Check, Copy, Mail, KeyRound, UserCog } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
 
 export default function LoginPage() {
@@ -74,8 +75,8 @@ export default function LoginPage() {
         >
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-sky-400/30 bg-sky-400/10">
-                <Shield className="h-5 w-5 text-sky-300" strokeWidth={1.8} />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-black/20 p-1">
+                <Image src="/logo.png" alt="K2KAI official logo" width={48} height={41} className="h-auto w-full object-contain" priority />
               </div>
               <div>
                 <div className="text-[15px] font-bold tracking-[0.3px] text-white">K2KAI Social Flow</div>
@@ -138,8 +139,8 @@ export default function LoginPage() {
           <GlassCard className="w-full rounded-[22px] border-white/10 p-7 shadow-[0_0_50px_rgba(56,189,248,0.06)]">
             {/* Mobile brand (hidden on lg where hero shows it) */}
             <div className="mb-6 flex items-center gap-3 lg:hidden">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-sky-400/30 bg-sky-400/10">
-                <Shield className="h-5 w-5 text-sky-300" strokeWidth={1.8} />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/20 p-1">
+                <Image src="/logo.png" alt="K2KAI official logo" width={44} height={37} className="h-auto w-full object-contain" priority />
               </div>
               <div>
                 <div className="text-sm font-bold tracking-[0.3px] text-white">K2KAI Social Flow</div>

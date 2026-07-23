@@ -86,7 +86,7 @@ export default function HeroPanel({ className = "", stats: statsProp, quickStats
       initial={{ opacity: 0, y: 24, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className={`enterprise-hero-panel relative isolate min-h-0 overflow-hidden rounded-[28px] border border-white/10 bg-[#09090b]/80 p-5 text-white shadow-[0_28px_90px_rgba(0,0,0,0.36)] backdrop-blur-2xl sm:p-6 lg:p-7 ${className}`}
+      className={`enterprise-hero-panel relative isolate min-h-0 overflow-clip rounded-[28px] border border-white/10 bg-[#09090b]/80 p-5 text-white shadow-[0_28px_90px_rgba(0,0,0,0.36)] backdrop-blur-2xl sm:p-6 lg:p-7 ${className}`}
     >
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_12%,rgba(248,113,113,0.18),transparent_30%),radial-gradient(circle_at_88%_18%,rgba(255,255,255,0.08),transparent_25%),radial-gradient(circle_at_52%_110%,rgba(127,29,29,0.26),transparent_38%)]" />
       <div className="cyber-grid absolute inset-0 -z-10 opacity-45" />

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth-server";
-import { refreshAccount } from "@/services/social/accounts";
+import { refreshAccount, SocialProviderRefreshError } from "@/services/social/accounts";
 
 export const runtime = "nodejs";
 
@@ -19,6 +19,21 @@ export async function POST(
   } catch (error) {
     const message = error instanceof Error ? error.message : "Refresh failed";
     const accountMissing = message === "Account not found";
+    if (error instanceof SocialProviderRefreshError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.reason,
+            message,
+            recoverable: error.recoverable,
+            recovery: error.reason === "NETWORK_ERROR" || error.reason === "PROVIDER_UNAVAILABLE"
+              ? "Try refreshing again shortly."
+              : "Reconnect this account from Connected Accounts.",
+          },
+        },
+        { status: error.statusCode },
+      );
+    }
     return NextResponse.json(
       {
         error: accountMissing

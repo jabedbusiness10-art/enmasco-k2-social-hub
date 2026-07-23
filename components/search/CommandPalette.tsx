@@ -8,6 +8,7 @@ import { SearchResults } from "./SearchResults";
 import { RecentSearches } from "./RecentSearches";
 import { QuickActions } from "./QuickActions";
 import ModalPortal from "@/components/ui/ModalPortal";
+import { hrefForLabel } from "@/lib/search/navigation";
 
 export default function CommandPalette() {
   const pal = useCommandPalette();
@@ -33,12 +34,12 @@ export default function CommandPalette() {
   function handleAction(id: string) {
     switch (id) {
       case "logout": window.location.href = "/api/auth/signout"; break;
-      case "upload-media": window.location.href = "/dashboard/media?view=assets&upload=1"; break;
-      case "create-collection": window.location.href = "/dashboard/media?view=collections&create=1"; break;
-      case "create-tag": window.location.href = "/dashboard/media?view=tags&create=1"; break;
-      case "refresh-analytics": window.location.href = "/dashboard/insights/analytics?refresh=1"; break;
+      case "upload-media": window.location.href = `${hrefForLabel("All Assets")}&upload=1`; break;
+      case "create-collection": window.location.href = `${hrefForLabel("Collections")}&create=1`; break;
+      case "create-tag": window.location.href = `${hrefForLabel("Tags")}&create=1`; break;
+      case "refresh-analytics": window.location.href = `${hrefForLabel("Analytics")}?refresh=1`; break;
       case "restart-queue":
-        fetch("/api/queue/pause", { method: "POST" }).then(() => fetch("/api/queue/resume", { method: "POST" })).finally(() => (window.location.href = "/dashboard/queue/health"));
+        fetch("/api/queue/pause", { method: "POST" }).then(() => fetch("/api/queue/resume", { method: "POST" })).finally(() => (window.location.href = hrefForLabel("Queue Health")));
         break;
       default: break;
     }

@@ -27,6 +27,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await deletePost(id);
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Delete failed" }, { status: 400 });
+    const status = e?.status === 404 ? 404 : 400;
+    return NextResponse.json({ error: e?.message ?? "Delete failed" }, { status });
   }
 }

@@ -36,6 +36,7 @@ const SCHEMA: { key: string; required: boolean; note?: string }[] = [
   { key: "OPENROUTER_API_KEY", required: false, note: "OpenRouter key for K2Kai AI (TASK-52)." },
   { key: "META_APP_ID", required: false, note: "Meta / Facebook Graph app id." },
   { key: "META_APP_SECRET", required: false, note: "Meta app secret." },
+  { key: "META_LOGIN_CONFIG_ID", required: false, note: "Facebook Login for Business configuration id." },
   { key: "META_WEBHOOK_VERIFY_TOKEN", required: false, note: "Meta webhook verification token." },
   { key: "LINKEDIN_CLIENT_ID", required: false, note: "LinkedIn OAuth client id." },
   { key: "LINKEDIN_CLIENT_SECRET", required: false, note: "LinkedIn OAuth secret." },

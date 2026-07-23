@@ -8,6 +8,8 @@ node_modules/
 out/
 build/
 dist/
+.open-next/
+.wrangler/
 
 # Runtime / logs
 npm-debug.log*
@@ -28,6 +30,7 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.dev.vars
 
 # Misc
 *.tgz
@@ -43,6 +46,7 @@ tsconfig.tsbuildinfo
 public/uploads/
 .tunnel/
 .cache/
+.continue/
 node_modules
 Al-Kharj_Shop_FOOD_Expense_June2026.xlsx
 WORK-LOG-2026-07-04-to-09.md

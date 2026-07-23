@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type LogoGlassCardProps = {
@@ -43,10 +44,14 @@ export default function LogoGlassCard({ className }: LogoGlassCardProps) {
       />
 
       {/* Logo mark */}
-      <div className="relative flex items-center justify-center">
-        <span className="bg-gradient-to-br from-[#3b82f6] to-[#dc2626] bg-clip-text text-xl font-black tracking-tighter text-transparent">
-          EN
-        </span>
+      <div className="relative flex items-center justify-center px-1">
+        <Image
+          src="/logo.png"
+          alt="K2KAI official logo"
+          width={62}
+          height={53}
+          className="h-auto w-full object-contain drop-shadow-[0_0_12px_rgba(99,102,241,0.45)]"
+        />
       </div>
     </motion.div>
   );
